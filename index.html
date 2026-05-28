@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="KONET POINTS - Konet-grade node control dashboard for blockchain infrastructure management">
+  <title>KONET POINTS | Node Control Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Grid Background -->
+  <div class="grid-bg"></div>
+
+  <!-- Header -->
+  <header id="main-header">
+    <div class="header-left">
+      <span class="header-label">KONET POINTS</span>
+      <h1 id="main-heading">konet-grade node control</h1>
+    </div>
+    <div class="header-right">
+      <nav id="main-nav">
+        <button class="nav-tab active" id="tab-node">NODE</button>
+        <button class="nav-tab" id="tab-register">REGISTER</button>
+        <button class="nav-tab" id="tab-history">HISTORY</button>
+      </nav>
+      <div class="status-badge connected" id="status-badge">
+        <span class="status-dot"></span>
+        <span class="status-text">CONNECTED</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stats Row -->
+  <section class="stats-row" id="stats-row">
+    <div class="stat-card" id="stat-active-nodes">
+      <div class="stat-label">ACTIVE NODES</div>
+      <div class="stat-value" id="active-nodes-val">247</div>
+      <div class="stat-bar"><div class="stat-bar-fill" style="width:72%"></div></div>
+    </div>
+    <div class="stat-card" id="stat-throughput">
+      <div class="stat-label">THROUGHPUT OPS/S</div>
+      <div class="stat-value" id="throughput-val">18,432</div>
+      <div class="stat-bar"><div class="stat-bar-fill" style="width:58%"></div></div>
+    </div>
+    <div class="stat-card" id="stat-total-nodes">
+      <div class="stat-label">TOTAL NODES</div>
+      <div class="stat-value" id="total-nodes-val">1,024</div>
+      <div class="stat-bar"><div class="stat-bar-fill" style="width:90%"></div></div>
+    </div>
+  </section>
+
+  <!-- Center Core -->
+  <section class="core-section" id="core-section">
+    <div class="core-container">
+      <div class="hex-ring ring-outer"></div>
+      <div class="hex-ring ring-mid"></div>
+      <div class="hex-ring ring-inner"></div>
+      <canvas id="core-canvas" width="280" height="280"></canvas>
+      <div class="core-label">KONET CORE</div>
+      <div class="core-pulse"></div>
+    </div>
+    <div class="core-particles" id="core-particles"></div>
+  </section>
+
+  <!-- Bottom Panels -->
+  <section class="bottom-panels" id="bottom-panels">
+    <!-- Left: Node Control -->
+    <div class="panel panel-control" id="panel-control">
+      <div class="panel-header">
+        <span class="panel-icon">⬡</span>
+        <span>CONNECT TO EARN POINTS</span>
+      </div>
+      <div class="panel-body">
+        <label class="input-label" for="node-key-input">NODE KEY</label>
+        <input type="text" id="node-key-input" class="input-field" placeholder="Enter your node key..." spellcheck="false">
+        <button class="btn-connect" id="btn-connect">CONNECT</button>
+        <div class="metric-row">
+          <div class="metric-box" id="metric-ops">
+            <div class="metric-label">OPS/S</div>
+            <div class="metric-value" id="ops-value">0</div>
+          </div>
+          <div class="metric-box" id="metric-points">
+            <div class="metric-label">POINTS</div>
+            <div class="metric-value" id="points-value">0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Activity Feed -->
+    <div class="panel panel-feed" id="panel-feed">
+      <div class="panel-header">
+        <span class="panel-icon">◈</span>
+        <span>Latest Signals</span>
+      </div>
+      <div class="panel-body">
+        <!-- Job Info -->
+        <div class="feed-section">
+          <div class="feed-section-title">JOB INFO</div>
+          <div class="feed-grid" id="job-info">
+            <div class="feed-item"><span class="feed-key">ID</span><span class="feed-val" id="job-id">0x7a3f...e12d</span></div>
+            <div class="feed-item"><span class="feed-key">Deadline</span><span class="feed-val" id="job-deadline">12.4s</span></div>
+            <div class="feed-item"><span class="feed-key">Ops/s</span><span class="feed-val" id="job-ops">2,841</span></div>
+            <div class="feed-item"><span class="feed-key">Success</span><span class="feed-val success" id="job-success">142</span></div>
+            <div class="feed-item"><span class="feed-key">Fail</span><span class="feed-val fail" id="job-fail">3</span></div>
+            <div class="feed-item"><span class="feed-key">Points</span><span class="feed-val cyan" id="job-points">+284</span></div>
+            <div class="feed-item"><span class="feed-key">Reward</span><span class="feed-val" id="job-reward">0.042 KNT</span></div>
+            <div class="feed-item"><span class="feed-key">Tx</span><span class="feed-val mono" id="job-tx">0x9f2a...b4c1</span></div>
+          </div>
+        </div>
+        <!-- System Info -->
+        <div class="feed-section">
+          <div class="feed-section-title">SYSTEM</div>
+          <div class="feed-grid" id="system-info">
+            <div class="feed-item"><span class="feed-key">CPU</span><span class="feed-val" id="sys-cpu">34%</span></div>
+            <div class="feed-item"><span class="feed-key">RAM</span><span class="feed-val" id="sys-ram">2.1 GB</span></div>
+            <div class="feed-item"><span class="feed-key">Net</span><span class="feed-val" id="sys-net">↑12 ↓48 MB/s</span></div>
+          </div>
+        </div>
+        <!-- Session Info -->
+        <div class="feed-section">
+          <div class="feed-section-title">SESSION</div>
+          <div class="feed-grid" id="session-info">
+            <div class="feed-item"><span class="feed-key">Uptime</span><span class="feed-val" id="sess-uptime">02:14:37</span></div>
+            <div class="feed-item"><span class="feed-key">Total Ops</span><span class="feed-val" id="sess-ops">1,284,021</span></div>
+          </div>
+        </div>
+        <!-- Activity Log -->
+        <div class="feed-section">
+          <div class="feed-section-title">ACTIVITY LOG</div>
+          <div class="activity-log" id="activity-log">
+            <!-- JS will populate -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>
