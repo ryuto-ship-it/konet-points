@@ -1,357 +1,312 @@
 /* ========================================
-   KONET POINTS — App Logic
+   KONET POINTS — Institutional Logic
    ======================================== */
 
 (function () {
   'use strict';
 
+  const $ = (sel) => document.querySelector(sel);
+
   // --- State ---
-  let isConnected = false;
-  let opsPerSec = 0;
-  let totalPoints = 0;
-  let sessionUptime = 0;
-  let totalOps = 1284021;
+  let isRunning = false;
+  let earnings = 14291.50000;
+  let currentOps = 0;
   let animFrame = null;
 
-  // --- DOM References ---
-  const $ = (sel) => document.querySelector(sel);
-  const activeNodesEl = $('#active-nodes-val');
-  const throughputEl = $('#throughput-val');
-  const totalNodesEl = $('#total-nodes-val');
-  const opsValueEl = $('#ops-value');
-  const pointsValueEl = $('#points-value');
-  const btnConnect = $('#btn-connect');
-  const nodeKeyInput = $('#node-key-input');
-  const statusBadge = $('#status-badge');
-  const activityLog = $('#activity-log');
-  const canvas = $('#core-canvas');
-  const ctx = canvas.getContext('2d');
+  // --- Elements ---
+  const btnPower = $('#btn-power');
+  const connSteps = $('#conn-steps');
+  const steps = [$('#step-1'), $('#step-2'), $('#step-3')];
+  
+  const statusDot = $('#status-dot');
+  const statusText = $('#status-text');
+  
+  const earnAmount = $('#earn-amount');
+  const earnRate = $('#earn-rate');
+  const liveBadge = $('.live-badge');
+  const miningAnim = $('#mining-anim');
+  const hashBlocks = $('#hash-blocks');
+  
+  const metCpu = $('#met-cpu'), barCpu = $('#bar-cpu');
+  const metRam = $('#met-ram'), barRam = $('#bar-ram');
+  const metNet = $('#met-net'), barNet = $('#bar-net');
+  
+  const txTbody = $('#tx-tbody');
+  const txCountEl = $('#tx-count');
+  
+  const termOut = $('#terminal-out');
+  const chartCurrentOps = $('#chart-current-ops');
 
-  // Nav tabs
-  document.querySelectorAll('.nav-tab').forEach((tab) => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.nav-tab').forEach((t) => t.classList.remove('active'));
-      tab.classList.add('active');
-    });
-  });
+  // --- Utility ---
+  const getTs = () => {
+    const d = new Date();
+    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}.${String(d.getMilliseconds()).padStart(3,'0')}`;
+  };
 
-  // --- Animate Numbers ---
-  function animateValue(el, start, end, duration) {
-    const startTime = performance.now();
-    const diff = end - start;
-    function update(now) {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const current = Math.round(start + diff * eased);
-      el.textContent = current.toLocaleString();
-      if (progress < 1) requestAnimationFrame(update);
-    }
-    requestAnimationFrame(update);
+  const termLog = (msg, type = 'info') => {
+    const div = document.createElement('div');
+    div.className = `t-line ${type}`;
+    div.innerHTML = `<span class="ts">[${getTs()}]</span> ${msg}`;
+    termOut.appendChild(div);
+    if (termOut.children.length > 100) termOut.removeChild(termOut.firstChild);
+    termOut.scrollTop = termOut.scrollHeight;
+  };
+
+  // Build hash blocks for animation
+  for (let i = 0; i < 20; i++) {
+    const b = document.createElement('div');
+    b.className = 'h-block';
+    hashBlocks.appendChild(b);
   }
 
-  // Initial stat animations
-  setTimeout(() => animateValue(activeNodesEl, 0, 247, 1200), 200);
-  setTimeout(() => animateValue(throughputEl, 0, 18432, 1400), 400);
-  setTimeout(() => animateValue(totalNodesEl, 0, 1024, 1000), 600);
+  // --- Connection Sequence ---
+  btnPower.addEventListener('click', () => {
+    if (isRunning) return stopNode();
+    startConnection();
+  });
 
-  // --- Core Canvas (Rotating Hexagon) ---
-  const W = canvas.width;
-  const H = canvas.height;
-  const CX = W / 2;
-  const CY = H / 2;
-  let coreAngle = 0;
-  let glowIntensity = 0;
+  function startConnection() {
+    btnPower.disabled = true;
+    btnPower.querySelector('.btn-text').textContent = 'INITIALIZING...';
+    connSteps.style.display = 'flex';
+    termLog('Initiating handshake with relay nodes...', 'info');
 
-  function drawHexagon(cx, cy, r, rotation, strokeColor, lineWidth, glow) {
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(rotation);
+    let stepIdx = 0;
+    const interval = setInterval(() => {
+      if (stepIdx > 0) {
+        steps[stepIdx - 1].classList.remove('active');
+        steps[stepIdx - 1].classList.add('done');
+      }
+      if (stepIdx < 3) {
+        steps[stepIdx].classList.add('active');
+        termLog(steps[stepIdx].textContent.trim(), 'info');
+      } else {
+        clearInterval(interval);
+        startNode();
+      }
+      stepIdx++;
+    }, 800);
+  }
+
+  function startNode() {
+    isRunning = true;
+    btnPower.disabled = false;
+    btnPower.classList.add('active');
+    btnPower.querySelector('.btn-text').textContent = 'HALT NODE';
+    
+    statusDot.className = 'pulse-dot green';
+    statusText.textContent = 'ONLINE & SYNCED';
+    statusText.style.color = 'var(--primary-green)';
+    
+    liveBadge.style.display = 'block';
+    miningAnim.classList.add('active');
+    
+    termLog('Node successfully synchronized.', 'success');
+    termLog('Begin processing transaction batches.', 'success');
+    
+    lastTime = performance.now();
+    animFrame = requestAnimationFrame(loop);
+  }
+
+  function stopNode() {
+    isRunning = false;
+    cancelAnimationFrame(animFrame);
+    
+    btnPower.classList.remove('active');
+    btnPower.querySelector('.btn-text').textContent = 'INITIALIZE NODE';
+    
+    statusDot.className = 'pulse-dot red';
+    statusText.textContent = 'OFFLINE';
+    statusText.style.color = '';
+    
+    connSteps.style.display = 'none';
+    steps.forEach(s => { s.className = 'step pending'; });
+    
+    liveBadge.style.display = 'none';
+    miningAnim.classList.remove('active');
+    
+    currentOps = 0;
+    chartCurrentOps.textContent = '0';
+    earnRate.textContent = '+ 0.00000 KNT/sec';
+    
+    termLog('Node halted by operator.', 'err');
+    
+    // Reset metrics
+    updateMetrics(0, 0, 0);
+  }
+
+  // --- Live Earnings & Simulation Loop ---
+  let lastTime = 0;
+  let tickAccumulator = 0;
+
+  function loop(time) {
+    if (!isRunning) return;
+    const dt = time - lastTime;
+    lastTime = time;
+
+    // Simulate OPS mapping to earning rate
+    currentOps = Math.floor(25000 + Math.random() * 8000 + Math.sin(time/1000) * 5000);
+    chartCurrentOps.textContent = currentOps.toLocaleString();
+    
+    const ratePerSec = currentOps * 0.0000015; // KNT per second
+    const earnedThisFrame = ratePerSec * (dt / 1000);
+    
+    earnings += earnedThisFrame;
+    
+    earnAmount.textContent = earnings.toFixed(5);
+    earnRate.textContent = `+ ${ratePerSec.toFixed(5)} KNT/sec`;
+
+    // Flash amount occasionally
+    if (Math.random() < 0.05) {
+      earnAmount.classList.add('flash');
+      setTimeout(() => earnAmount.classList.remove('flash'), 50);
+    }
+
+    // Animate hash blocks
+    if (Math.random() < 0.3) {
+      const children = hashBlocks.children;
+      const idx = Math.floor(Math.random() * children.length);
+      children[idx].classList.add('active');
+      setTimeout(() => children[idx].classList.remove('active'), 100);
+    }
+
+    // Metrics update (smooth noise)
+    const cpu = Math.floor(45 + Math.random() * 30 + Math.sin(time/500)*10);
+    const ram = (8.4 + Math.random() * 1.5).toFixed(1);
+    const net = Math.floor(120 + Math.random() * 80);
+    updateMetrics(cpu, ram, net);
+
+    // TX Generation
+    tickAccumulator += dt;
+    if (tickAccumulator > (1000 / (15 + Math.random()*10))) { // ~20 TX per sec
+      generateTx();
+      tickAccumulator = 0;
+    }
+
+    animFrame = requestAnimationFrame(loop);
+  }
+
+  function updateMetrics(cpu, ram, net) {
+    metCpu.textContent = `${cpu}%`;
+    barCpu.style.width = `${cpu}%`;
+    barCpu.className = `fill ${cpu > 80 ? 'crit' : cpu > 60 ? 'high' : ''}`;
+    
+    metRam.textContent = `${ram} GB`;
+    const rPct = (parseFloat(ram) / 16) * 100;
+    barRam.style.width = `${rPct}%`;
+    
+    metNet.textContent = `${net} MB/s`;
+    const nPct = Math.min((net / 300) * 100, 100);
+    barNet.style.width = `${nPct}%`;
+  }
+
+  // --- TX Feed ---
+  const txTypes = ['EXECUTE', 'VERIFY', 'SYNC', 'COMMIT'];
+  let totalTxs = 0;
+  
+  setInterval(() => {
+    if (isRunning) txCountEl.textContent = `${Math.floor(15 + Math.random()*15)} TX/s`;
+    else txCountEl.textContent = '0 TX/s';
+  }, 1000);
+
+  function generateTx() {
+    const hash = '0x' + Array.from({length: 8}, () => Math.floor(Math.random()*16).toString(16)).join('');
+    const type = txTypes[Math.floor(Math.random() * txTypes.length)];
+    const timeMs = (2 + Math.random() * 14).toFixed(1);
+    const reward = (Math.random() * 0.005).toFixed(5);
+
+    const tr = document.createElement('tr');
+    tr.className = 'tx-row';
+    tr.innerHTML = `
+      <td class="tx-hash">${hash}..</td>
+      <td class="tx-type">${type}</td>
+      <td class="tx-time">${timeMs}</td>
+      <td class="tx-reward">+${reward}</td>
+    `;
+    
+    txTbody.prepend(tr);
+    if (txTbody.children.length > 15) txTbody.removeChild(txTbody.lastChild);
+
+    // Occasional terminal log for major events
+    if (Math.random() < 0.02) {
+      termLog(`Batch processed. Merkle root verified. TXs: ${Math.floor(Math.random()*500+100)}`, 'dim');
+    }
+    if (Math.random() < 0.005) {
+      termLog(`Proof submitted to consensus layer. Target reached.`, 'success');
+    }
+  }
+
+  // --- Real-time Chart using Canvas ---
+  const canvas = $('#ops-chart');
+  const ctx = canvas.getContext('2d');
+  
+  function resizeChart() {
+    const parent = canvas.parentElement;
+    canvas.width = parent.clientWidth;
+    canvas.height = parent.clientHeight;
+  }
+  window.addEventListener('resize', resizeChart);
+  resizeChart();
+
+  const chartData = new Array(100).fill(0);
+  
+  function drawChart() {
+    requestAnimationFrame(drawChart);
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const angle = (Math.PI / 3) * i - Math.PI / 2;
-      const x = r * Math.cos(angle);
-      const y = r * Math.sin(angle);
+    for(let i=0; i<4; i++) {
+      const y = (canvas.height/4) * i;
+      ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+    }
+    ctx.stroke();
+
+    if (!isRunning) {
+      chartData.shift();
+      chartData.push(0);
+    } else {
+      chartData.shift();
+      // Normalize currentOps (0-40000) to 0-1
+      const normalized = currentOps / 40000;
+      chartData.push(normalized);
+    }
+
+    const w = canvas.width / (chartData.length - 1);
+    const h = canvas.height;
+
+    // Fill
+    ctx.beginPath();
+    ctx.moveTo(0, h);
+    for (let i = 0; i < chartData.length; i++) {
+      ctx.lineTo(i * w, h - (chartData[i] * h * 0.8));
+    }
+    ctx.lineTo(canvas.width, h);
+    ctx.closePath();
+    
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, 'rgba(0, 229, 255, 0.4)');
+    grad.addColorStop(1, 'rgba(0, 229, 255, 0.0)');
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Line
+    ctx.beginPath();
+    for (let i = 0; i < chartData.length; i++) {
+      const x = i * w;
+      const y = h - (chartData[i] * h * 0.8);
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     }
-    ctx.closePath();
-    if (glow > 0) {
-      ctx.shadowColor = '#00e5ff';
-      ctx.shadowBlur = glow;
-    }
-    ctx.strokeStyle = strokeColor;
-    ctx.lineWidth = lineWidth;
+    ctx.strokeStyle = 'rgba(0, 229, 255, 1)';
+    ctx.lineWidth = 2;
     ctx.stroke();
-    ctx.restore();
-  }
-
-  function drawCore() {
-    ctx.clearRect(0, 0, W, H);
-    const time = performance.now() * 0.001;
-    glowIntensity = 8 + Math.sin(time * 2) * 6;
-
-    // Outer hex
-    drawHexagon(CX, CY, 90, coreAngle, 'rgba(0,229,255,0.15)', 1, 0);
-    // Mid hex
-    drawHexagon(CX, CY, 65, -coreAngle * 1.3, 'rgba(0,229,255,0.3)', 1.5, glowIntensity * 0.5);
-    // Inner hex
-    drawHexagon(CX, CY, 40, coreAngle * 2, '#00e5ff', 2, glowIntensity);
-
-    // Center dot
-    ctx.beginPath();
-    ctx.arc(CX, CY, 4, 0, Math.PI * 2);
-    ctx.fillStyle = '#00e5ff';
-    ctx.shadowColor = '#00e5ff';
-    ctx.shadowBlur = 15;
-    ctx.fill();
     ctx.shadowBlur = 0;
-
-    // Connecting lines from center to inner hex vertices
-    ctx.save();
-    ctx.translate(CX, CY);
-    ctx.rotate(coreAngle * 2);
-    for (let i = 0; i < 6; i++) {
-      const angle = (Math.PI / 3) * i - Math.PI / 2;
-      const x = 40 * Math.cos(angle);
-      const y = 40 * Math.sin(angle);
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(x, y);
-      ctx.strokeStyle = 'rgba(0,229,255,0.2)';
-      ctx.lineWidth = 0.5;
-      ctx.stroke();
-
-      // Vertex dot
-      ctx.beginPath();
-      ctx.arc(x, y, 2, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(0,229,255,0.6)';
-      ctx.fill();
-    }
-    ctx.restore();
-
-    // Data orbiting particles
-    for (let i = 0; i < 3; i++) {
-      const orbitR = 55 + i * 18;
-      const speed = (0.5 + i * 0.3) * (i % 2 === 0 ? 1 : -1);
-      const px = CX + orbitR * Math.cos(time * speed + i * 2.1);
-      const py = CY + orbitR * Math.sin(time * speed + i * 2.1);
-      ctx.beginPath();
-      ctx.arc(px, py, 2.5 - i * 0.5, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(0,229,255,${0.8 - i * 0.2})`;
-      ctx.shadowColor = '#00e5ff';
-      ctx.shadowBlur = 6;
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    }
-
-    coreAngle += 0.003;
-    animFrame = requestAnimationFrame(drawCore);
   }
+  
+  drawChart();
 
-  drawCore();
-
-  // --- Activity Log ---
-  const logMessages = [
-    { msg: 'Node connected to network', type: 'success' },
-    { msg: 'Job received: compute_hash_0x7a3f', type: 'info' },
-    { msg: 'Processing batch #12847...', type: 'info' },
-    { msg: 'Job completed successfully', type: 'success' },
-    { msg: 'Points credited: +284 KNT', type: 'success' },
-    { msg: 'Job deadline exceeded — retry queued', type: 'warning' },
-    { msg: 'New job assigned: verify_block_0x9f2a', type: 'info' },
-    { msg: 'CPU throttle warning: 89%', type: 'warning' },
-    { msg: 'Reward distributed: 0.042 KNT', type: 'success' },
-    { msg: 'Node heartbeat OK', type: 'info' },
-    { msg: 'Peer sync complete — 247 peers', type: 'success' },
-    { msg: 'Job failed: timeout on batch #12849', type: 'error' },
-    { msg: 'Reconnecting to relay node...', type: 'warning' },
-    { msg: 'Relay connection restored', type: 'success' },
-    { msg: 'New epoch started: #4821', type: 'info' },
-    { msg: 'Validator stake updated', type: 'info' },
-    { msg: 'Memory warning: 2.1GB / 4GB used', type: 'warning' },
-    { msg: 'Node stopped by operator', type: 'error' },
-  ];
-
-  function getTimestamp() {
-    const now = new Date();
-    return now.toTimeString().slice(0, 8);
-  }
-
-  function addLogEntry(msg, type) {
-    const entry = document.createElement('div');
-    entry.className = `log-entry ${type}`;
-    entry.innerHTML = `<span class="log-time">${getTimestamp()}</span><span class="log-msg">${msg}</span>`;
-    activityLog.prepend(entry);
-
-    // Keep max 50 entries
-    while (activityLog.children.length > 50) {
-      activityLog.removeChild(activityLog.lastChild);
-    }
-  }
-
-  // Initial log entries
-  function populateInitialLogs() {
-    const initial = [
-      { msg: 'System initialized', type: 'info' },
-      { msg: 'Loading node configuration...', type: 'info' },
-      { msg: 'Connecting to KONET relay...', type: 'info' },
-      { msg: 'Relay handshake successful', type: 'success' },
-      { msg: 'Node registered on network', type: 'success' },
-      { msg: 'Job received: compute_hash_0x7a3f', type: 'info' },
-      { msg: 'Points credited: +142 KNT', type: 'success' },
-    ];
-    initial.forEach((l) => addLogEntry(l.msg, l.type));
-  }
-
-  populateInitialLogs();
-
-  // Live log feed
-  let logInterval;
-  function startLogFeed() {
-    logInterval = setInterval(() => {
-      const item = logMessages[Math.floor(Math.random() * logMessages.length)];
-      addLogEntry(item.msg, item.type);
-    }, 3000 + Math.random() * 2000);
-  }
-
-  startLogFeed();
-
-  // --- Connect Button ---
-  btnConnect.addEventListener('click', () => {
-    if (!isConnected) {
-      // Connect
-      isConnected = true;
-      btnConnect.textContent = 'DISCONNECT';
-      btnConnect.classList.add('connected-state');
-      statusBadge.className = 'status-badge connected';
-      statusBadge.querySelector('.status-text').textContent = 'CONNECTED';
-      addLogEntry('Node connected — earning points', 'success');
-
-      // Start earning
-      startEarning();
-    } else {
-      // Disconnect
-      isConnected = false;
-      btnConnect.textContent = 'CONNECT';
-      btnConnect.classList.remove('connected-state');
-      statusBadge.className = 'status-badge disconnected';
-      statusBadge.querySelector('.status-text').textContent = 'DISCONNECTED';
-      addLogEntry('Node stopped by operator', 'error');
-
-      opsPerSec = 0;
-      opsValueEl.textContent = '0';
-    }
-  });
-
-  // --- Earning Simulation ---
-  let earnInterval;
-  function startEarning() {
-    clearInterval(earnInterval);
-    opsPerSec = 0;
-
-    // Ramp up ops
-    let rampStep = 0;
-    const rampTarget = 1200 + Math.floor(Math.random() * 2000);
-
-    earnInterval = setInterval(() => {
-      if (!isConnected) {
-        clearInterval(earnInterval);
-        return;
-      }
-
-      // Ramp up
-      if (opsPerSec < rampTarget) {
-        opsPerSec = Math.min(opsPerSec + Math.floor(rampTarget / 20), rampTarget);
-      }
-
-      // Fluctuate
-      opsPerSec = Math.max(100, opsPerSec + Math.floor((Math.random() - 0.5) * 200));
-
-      // Earn points
-      const earned = Math.floor(opsPerSec * 0.01);
-      totalPoints += earned;
-
-      opsValueEl.textContent = opsPerSec.toLocaleString();
-      pointsValueEl.textContent = totalPoints.toLocaleString();
-
-      // Update job info
-      $('#job-ops').textContent = opsPerSec.toLocaleString();
-      const pts = '+' + earned;
-      $('#job-points').textContent = pts;
-
-      // Update system info
-      const cpu = 20 + Math.floor(Math.random() * 50);
-      $('#sys-cpu').textContent = cpu + '%';
-      const ram = (1.5 + Math.random() * 2).toFixed(1);
-      $('#sys-ram').textContent = ram + ' GB';
-      const netUp = Math.floor(5 + Math.random() * 20);
-      const netDown = Math.floor(20 + Math.random() * 60);
-      $('#sys-net').textContent = `↑${netUp} ↓${netDown} MB/s`;
-
-      // Update session
-      sessionUptime++;
-      const h = String(Math.floor(sessionUptime / 3600)).padStart(2, '0');
-      const m = String(Math.floor((sessionUptime % 3600) / 60)).padStart(2, '0');
-      const s = String(sessionUptime % 60).padStart(2, '0');
-      $('#sess-uptime').textContent = `${h}:${m}:${s}`;
-      totalOps += opsPerSec;
-      $('#sess-ops').textContent = totalOps.toLocaleString();
-
-      // Update throughput stat
-      const tp = 15000 + Math.floor(Math.random() * 5000);
-      throughputEl.textContent = tp.toLocaleString();
-
-      // Fluctuate active nodes
-      const an = 240 + Math.floor(Math.random() * 20);
-      activeNodesEl.textContent = an.toLocaleString();
-
-      // Random job id
-      if (Math.random() < 0.1) {
-        const hex = Math.random().toString(16).slice(2, 6);
-        const hex2 = Math.random().toString(16).slice(2, 6);
-        $('#job-id').textContent = `0x${hex}...${hex2}`;
-        const deadline = (5 + Math.random() * 20).toFixed(1);
-        $('#job-deadline').textContent = deadline + 's';
-        const succNum = 100 + Math.floor(Math.random() * 100);
-        const failNum = Math.floor(Math.random() * 10);
-        $('#job-success').textContent = succNum.toString();
-        $('#job-fail').textContent = failNum.toString();
-        const reward = (0.01 + Math.random() * 0.08).toFixed(3);
-        $('#job-reward').textContent = reward + ' KNT';
-        const txHex1 = Math.random().toString(16).slice(2, 6);
-        const txHex2 = Math.random().toString(16).slice(2, 6);
-        $('#job-tx').textContent = `0x${txHex1}...${txHex2}`;
-      }
-    }, 1000);
-  }
-
-  // --- Floating Particles ---
-  const particlesContainer = $('#core-particles');
-  function spawnParticle() {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    const coreRect = document.querySelector('.core-container').getBoundingClientRect();
-    const containerRect = document.querySelector('.core-section').getBoundingClientRect();
-    const cx = coreRect.left - containerRect.left + coreRect.width / 2;
-    const cy = coreRect.top - containerRect.top + coreRect.height / 2;
-    const angle = Math.random() * Math.PI * 2;
-    const dist = 40 + Math.random() * 60;
-    p.style.left = (cx + Math.cos(angle) * dist) + 'px';
-    p.style.top = (cy + Math.sin(angle) * dist) + 'px';
-    p.style.animationDuration = (3 + Math.random() * 3) + 's';
-    p.style.animationDelay = Math.random() * 2 + 's';
-    particlesContainer.appendChild(p);
-
-    setTimeout(() => {
-      if (p.parentNode) p.parentNode.removeChild(p);
-    }, 6000);
-  }
-
-  setInterval(spawnParticle, 800);
-
-  // --- Keyboard shortcut: Enter to connect ---
-  nodeKeyInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') btnConnect.click();
-  });
 })();

@@ -3,138 +3,185 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="KONET POINTS - Konet-grade node control dashboard for blockchain infrastructure management">
-  <title>KONET POINTS | Node Control Dashboard</title>
+  <title>KONET POINTS | Institutional Node Control</title>
+  
+  <!-- Premium Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Grid Background -->
-  <div class="grid-bg"></div>
 
-  <!-- Header -->
-  <header id="main-header">
-    <div class="header-left">
-      <span class="header-label">KONET POINTS</span>
-      <h1 id="main-heading">konet-grade node control</h1>
-    </div>
-    <div class="header-right">
-      <nav id="main-nav">
-        <button class="nav-tab active" id="tab-node">NODE</button>
-        <button class="nav-tab" id="tab-register">REGISTER</button>
-        <button class="nav-tab" id="tab-history">HISTORY</button>
-      </nav>
-      <div class="status-badge connected" id="status-badge">
-        <span class="status-dot"></span>
-        <span class="status-text">CONNECTED</span>
-      </div>
-    </div>
-  </header>
+  <!-- Dynamic Video Background -->
+  <div class="video-overlay"></div>
+  <video autoplay loop muted playsinline class="video-bg">
+    <!-- Using a high-quality abstract network/data video -->
+    <source src="https://assets.mixkit.co/videos/preview/mixkit-abstract-technology-network-connection-background-27890-large.mp4" type="video/mp4">
+  </video>
 
-  <!-- Stats Row -->
-  <section class="stats-row" id="stats-row">
-    <div class="stat-card" id="stat-active-nodes">
-      <div class="stat-label">ACTIVE NODES</div>
-      <div class="stat-value" id="active-nodes-val">247</div>
-      <div class="stat-bar"><div class="stat-bar-fill" style="width:72%"></div></div>
-    </div>
-    <div class="stat-card" id="stat-throughput">
-      <div class="stat-label">THROUGHPUT OPS/S</div>
-      <div class="stat-value" id="throughput-val">18,432</div>
-      <div class="stat-bar"><div class="stat-bar-fill" style="width:58%"></div></div>
-    </div>
-    <div class="stat-card" id="stat-total-nodes">
-      <div class="stat-label">TOTAL NODES</div>
-      <div class="stat-value" id="total-nodes-val">1,024</div>
-      <div class="stat-bar"><div class="stat-bar-fill" style="width:90%"></div></div>
-    </div>
-  </section>
-
-  <!-- Center Core -->
-  <section class="core-section" id="core-section">
-    <div class="core-container">
-      <div class="hex-ring ring-outer"></div>
-      <div class="hex-ring ring-mid"></div>
-      <div class="hex-ring ring-inner"></div>
-      <canvas id="core-canvas" width="280" height="280"></canvas>
-      <div class="core-label">KONET CORE</div>
-      <div class="core-pulse"></div>
-    </div>
-    <div class="core-particles" id="core-particles"></div>
-  </section>
-
-  <!-- Bottom Panels -->
-  <section class="bottom-panels" id="bottom-panels">
-    <!-- Left: Node Control -->
-    <div class="panel panel-control" id="panel-control">
-      <div class="panel-header">
-        <span class="panel-icon">⬡</span>
-        <span>CONNECT TO EARN POINTS</span>
-      </div>
-      <div class="panel-body">
-        <label class="input-label" for="node-key-input">NODE KEY</label>
-        <input type="text" id="node-key-input" class="input-field" placeholder="Enter your node key..." spellcheck="false">
-        <button class="btn-connect" id="btn-connect">CONNECT</button>
-        <div class="metric-row">
-          <div class="metric-box" id="metric-ops">
-            <div class="metric-label">OPS/S</div>
-            <div class="metric-value" id="ops-value">0</div>
-          </div>
-          <div class="metric-box" id="metric-points">
-            <div class="metric-label">POINTS</div>
-            <div class="metric-value" id="points-value">0</div>
+  <div class="app-container">
+    
+    <!-- Top Bar -->
+    <header class="topbar glass-panel">
+      <div class="topbar-left">
+        <div class="logo">
+          <div class="logo-icon"></div>
+          <div class="logo-text">
+            <span class="logo-title">KONET NODE</span>
+            <span class="logo-subtitle">INSTITUTIONAL GRADE</span>
           </div>
         </div>
       </div>
-    </div>
+      
+      <div class="topbar-center">
+        <div class="global-metric">
+          <span class="g-label">NETWORK TPS</span>
+          <span class="g-value" id="global-tps">12,482</span>
+        </div>
+        <div class="global-metric">
+          <span class="g-label">ACTIVE VALIDATORS</span>
+          <span class="g-value" id="global-val">1,024</span>
+        </div>
+        <div class="global-metric">
+          <span class="g-label">TOTAL REWARDS (24H)</span>
+          <span class="g-value txt-green">14,291.50 KNT</span>
+        </div>
+      </div>
 
-    <!-- Right: Activity Feed -->
-    <div class="panel panel-feed" id="panel-feed">
-      <div class="panel-header">
-        <span class="panel-icon">◈</span>
-        <span>Latest Signals</span>
-      </div>
-      <div class="panel-body">
-        <!-- Job Info -->
-        <div class="feed-section">
-          <div class="feed-section-title">JOB INFO</div>
-          <div class="feed-grid" id="job-info">
-            <div class="feed-item"><span class="feed-key">ID</span><span class="feed-val" id="job-id">0x7a3f...e12d</span></div>
-            <div class="feed-item"><span class="feed-key">Deadline</span><span class="feed-val" id="job-deadline">12.4s</span></div>
-            <div class="feed-item"><span class="feed-key">Ops/s</span><span class="feed-val" id="job-ops">2,841</span></div>
-            <div class="feed-item"><span class="feed-key">Success</span><span class="feed-val success" id="job-success">142</span></div>
-            <div class="feed-item"><span class="feed-key">Fail</span><span class="feed-val fail" id="job-fail">3</span></div>
-            <div class="feed-item"><span class="feed-key">Points</span><span class="feed-val cyan" id="job-points">+284</span></div>
-            <div class="feed-item"><span class="feed-key">Reward</span><span class="feed-val" id="job-reward">0.042 KNT</span></div>
-            <div class="feed-item"><span class="feed-key">Tx</span><span class="feed-val mono" id="job-tx">0x9f2a...b4c1</span></div>
-          </div>
-        </div>
-        <!-- System Info -->
-        <div class="feed-section">
-          <div class="feed-section-title">SYSTEM</div>
-          <div class="feed-grid" id="system-info">
-            <div class="feed-item"><span class="feed-key">CPU</span><span class="feed-val" id="sys-cpu">34%</span></div>
-            <div class="feed-item"><span class="feed-key">RAM</span><span class="feed-val" id="sys-ram">2.1 GB</span></div>
-            <div class="feed-item"><span class="feed-key">Net</span><span class="feed-val" id="sys-net">↑12 ↓48 MB/s</span></div>
-          </div>
-        </div>
-        <!-- Session Info -->
-        <div class="feed-section">
-          <div class="feed-section-title">SESSION</div>
-          <div class="feed-grid" id="session-info">
-            <div class="feed-item"><span class="feed-key">Uptime</span><span class="feed-val" id="sess-uptime">02:14:37</span></div>
-            <div class="feed-item"><span class="feed-key">Total Ops</span><span class="feed-val" id="sess-ops">1,284,021</span></div>
-          </div>
-        </div>
-        <!-- Activity Log -->
-        <div class="feed-section">
-          <div class="feed-section-title">ACTIVITY LOG</div>
-          <div class="activity-log" id="activity-log">
-            <!-- JS will populate -->
-          </div>
+      <div class="topbar-right">
+        <div class="status-indicator" id="main-status">
+          <div class="pulse-dot red" id="status-dot"></div>
+          <span id="status-text">OFFLINE</span>
         </div>
       </div>
-    </div>
-  </section>
+    </header>
+
+    <!-- Main Grid -->
+    <main class="dashboard-grid">
+      
+      <!-- Left Column: Control & Earnings -->
+      <aside class="col-left">
+        <div class="control-panel glass-panel">
+          <div class="panel-header">
+            <h2>NODE CONTROL</h2>
+          </div>
+          <div class="panel-content">
+            <div class="input-group">
+              <label>AUTHENTICATION KEY</label>
+              <input type="password" id="node-key" placeholder="Enter 64-character hex key..." value="0x7f9a2b4c8d1e...9f3a">
+            </div>
+            
+            <button id="btn-power" class="btn-power">
+              <span class="btn-text">INITIALIZE NODE</span>
+              <div class="btn-glow"></div>
+            </button>
+
+            <div class="connection-steps" id="conn-steps">
+              <div class="step pending" id="step-1"><span class="step-icon"></span> Handshake initialized...</div>
+              <div class="step pending" id="step-2"><span class="step-icon"></span> Verifying cryptography...</div>
+              <div class="step pending" id="step-3"><span class="step-icon"></span> Syncing ledger state...</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="earnings-panel glass-panel">
+          <div class="panel-header">
+            <h2>LIVE EARNINGS</h2>
+            <div class="live-badge">LIVE</div>
+          </div>
+          <div class="earnings-content">
+            <div class="earnings-main">
+              <span class="currency">KNT</span>
+              <span class="amount" id="earn-amount">0.00000</span>
+            </div>
+            <div class="earnings-rate">
+              <span class="rate-value" id="earn-rate">+ 0.00000 KNT/sec</span>
+              <span class="rate-label">Current Yield Rate</span>
+            </div>
+          </div>
+          <div class="mining-animation" id="mining-anim">
+            <div class="scan-line"></div>
+            <div class="hash-blocks" id="hash-blocks"></div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Center Column: Telemetry & Visualization -->
+      <section class="col-center">
+        <div class="chart-panel glass-panel">
+          <div class="panel-header">
+            <h2>REAL-TIME THROUGHPUT (OPS/S)</h2>
+            <span class="metric-highlight" id="chart-current-ops">0</span>
+          </div>
+          <div class="canvas-container">
+            <canvas id="ops-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card glass-panel">
+            <div class="m-head">CPU LOAD</div>
+            <div class="m-body">
+              <span class="m-val" id="met-cpu">0%</span>
+              <div class="progress-bar"><div class="fill" id="bar-cpu" style="width: 0%"></div></div>
+            </div>
+          </div>
+          <div class="metric-card glass-panel">
+            <div class="m-head">RAM USAGE</div>
+            <div class="m-body">
+              <span class="m-val" id="met-ram">0.0 GB</span>
+              <div class="progress-bar"><div class="fill" id="bar-ram" style="width: 0%"></div></div>
+            </div>
+          </div>
+          <div class="metric-card glass-panel">
+            <div class="m-head">NET I/O</div>
+            <div class="m-body">
+              <span class="m-val" id="met-net">0 MB/s</span>
+              <div class="progress-bar"><div class="fill" id="bar-net" style="width: 0%"></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Live Feed & Logs -->
+      <aside class="col-right">
+        <div class="feed-panel glass-panel">
+          <div class="panel-header">
+            <h2>TRANSACTION STREAM</h2>
+            <span class="tx-count" id="tx-count">0 TX/s</span>
+          </div>
+          <div class="table-container">
+            <table class="tx-table">
+              <thead>
+                <tr>
+                  <th>HASH</th>
+                  <th>TYPE</th>
+                  <th>TIME (ms)</th>
+                  <th>REWARD</th>
+                </tr>
+              </thead>
+              <tbody id="tx-tbody">
+                <!-- Rows injected by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="terminal-panel glass-panel">
+          <div class="panel-header">
+            <h2>NODE CONSOLE</h2>
+          </div>
+          <div class="terminal-content" id="terminal-out">
+            <div class="t-line dim">KONET OS v3.1.4 initialized.</div>
+            <div class="t-line dim">Waiting for operator command...</div>
+          </div>
+        </div>
+      </aside>
+
+    </main>
+  </div>
 
   <script src="app.js"></script>
 </body>
