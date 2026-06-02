@@ -90,7 +90,7 @@ export default function ReportView({ data, onBack }) {
               <p>
                 Report generated at {data.generatedAt ? new Date(data.generatedAt).toLocaleString() : 'N/A'}
               </p>
-              <p>KONET — AI-Powered Token Intelligence Platform</p>
+              <p>Dorphin Research — AI-Powered Token Intelligence Platform</p>
               <p className="report-disclaimer">
                 This report is for informational purposes only and does not constitute financial advice.
                 Always conduct your own research before making investment decisions.

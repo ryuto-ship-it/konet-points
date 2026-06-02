@@ -9,13 +9,13 @@ export async function exportReportAsPDF(elementId, tokenName = 'Token') {
   // Target the main report content area
   const element = document.querySelector('.report-main');
   if (!element) {
-    console.error('[KONET] PDF export: Could not find .report-main element');
+    console.error('[Dorphin Research] PDF export: Could not find .report-main element');
     return;
   }
 
   const date = new Date().toISOString().split('T')[0];
   const safeName = tokenName.replace(/[^a-zA-Z0-9]/g, '_');
-  const filename = `KONET_Report_${safeName}_${date}.pdf`;
+  const filename = `Dorphin_Research_Report_${safeName}_${date}.pdf`;
 
   const opt = {
     margin: [10, 10, 10, 10],
@@ -39,7 +39,7 @@ export async function exportReportAsPDF(elementId, tokenName = 'Token') {
   try {
     await html2pdf().set(opt).from(element).save();
   } catch (err) {
-    console.error('[KONET] PDF export error:', err);
+    console.error('[Dorphin Research] PDF export error:', err);
     throw err;
   }
 }

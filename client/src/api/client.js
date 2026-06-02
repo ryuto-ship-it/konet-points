@@ -21,7 +21,7 @@ export async function searchTokens(query) {
     const data = await res.json();
     return data.results || [];
   } catch (err) {
-    console.error('[KONET] Search error:', err);
+    console.error('[Dorphin Research] Search error:', err);
     throw err;
   }
 }
@@ -55,7 +55,7 @@ export async function getReport(coinId, address, chain) {
 
     return await res.json();
   } catch (err) {
-    console.error('[KONET] Report error:', err);
+    console.error('[Dorphin Research] Report error:', err);
     throw err;
   }
 }

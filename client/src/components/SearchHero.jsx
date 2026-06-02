@@ -101,12 +101,12 @@ export default function SearchHero({ onTokenSelect, error }) {
             <svg width="48" height="48" viewBox="0 0 64 64" fill="none">
               <rect width="64" height="64" rx="14" fill="var(--bg-secondary)" />
               <rect x="2" y="2" width="60" height="60" rx="12" stroke="var(--accent-cyan)" strokeWidth="2" strokeOpacity="0.5" />
-              <path d="M18 46V18h4l12 17.5V18h4v28h-4L22 28.5V46h-4z" fill="var(--accent-cyan)" />
-              <circle cx="48" cy="20" r="4" fill="var(--accent-emerald)" opacity="0.8" />
+              <path d="M22 18h12c8.8 0 16 7.2 16 16s-7.2 16-16 16H22V18zm5 5v22h7c6 0 11-5 11-11s-5-11-11-11h-7z" fill="var(--accent-cyan)" />
+              <circle cx="44" cy="20" r="4" fill="var(--accent-emerald)" opacity="0.8" />
             </svg>
           </div>
           <h1 className="logo-text">
-            KO<span className="text-gradient">NET</span>
+            Dorphin <span className="text-gradient">Research</span>
           </h1>
         </div>
 

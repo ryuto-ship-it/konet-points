@@ -61,9 +61,9 @@ export default function SectionNav({ sections, activeSection, onNavigate }) {
       <div className="nav-footer">
         <div className="nav-branding">
           <svg width="16" height="16" viewBox="0 0 64 64" fill="none">
-            <path d="M18 46V18h4l12 17.5V18h4v28h-4L22 28.5V46h-4z" fill="var(--accent-cyan)" opacity="0.5" />
+            <path d="M22 18h12c8.8 0 16 7.2 16 16s-7.2 16-16 16H22V18zm5 5v22h7c6 0 11-5 11-11s-5-11-11-11h-7z" fill="var(--accent-cyan)" opacity="0.5" />
           </svg>
-          <span>KONET</span>
+          <span>Dorphin Research</span>
         </div>
       </div>
     </nav>
