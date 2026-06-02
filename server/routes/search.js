@@ -39,16 +39,41 @@ router.get('/', async (req, res, next) => {
     }
 
     console.log(`[Search] Searching for "${query}"`);
-    const data = await coingecko.searchTokens(query);
 
-    // Normalize results into a simpler structure
-    const results = (data.coins || []).slice(0, 20).map((coin) => ({
-      id: coin.id,
-      name: coin.name,
-      symbol: coin.symbol,
-      image: coin.large || coin.thumb || '',
-      market_cap_rank: coin.market_cap_rank || null,
-    }));
+    // Detect if search query is a contract address (0x followed by 40 hex characters)
+    const isAddress = /^0x[a-fA-F0-9]{40}$/.test(query);
+
+    let results = [];
+
+    if (isAddress) {
+      console.log(`[Search] Contract address detected: ${query}. Querying CoinGecko by contract...`);
+      try {
+        const coinData = await coingecko.getTokenByContract('ethereum', query);
+        if (coinData && coinData.id) {
+          results = [{
+            id: coinData.id,
+            name: coinData.name,
+            symbol: coinData.symbol,
+            image: coinData.image?.large || coinData.image?.thumb || '',
+            market_cap_rank: coinData.market_cap_rank || null,
+            address: query,
+            chain: 'ethereum',
+          }];
+        }
+      } catch (err) {
+        console.error(`[Search] Contract search failed: ${err.message}`);
+      }
+    } else {
+      const data = await coingecko.searchTokens(query);
+      // Normalize results into a simpler structure
+      results = (data.coins || []).slice(0, 20).map((coin) => ({
+        id: coin.id,
+        name: coin.name,
+        symbol: coin.symbol,
+        image: coin.large || coin.thumb || '',
+        market_cap_rank: coin.market_cap_rank || null,
+      }));
+    }
 
     const response = { results };
     cache.set(cacheKey, response, CACHE_TTL);

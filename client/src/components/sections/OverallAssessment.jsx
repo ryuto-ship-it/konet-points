@@ -8,6 +8,17 @@ export default function OverallAssessment({ data }) {
   const risks = assessment.risks || [];
   const investmentPerspective = assessment.investmentPerspective || '';
 
+  const getGradeStyle = (grade) => {
+    const g = (grade || '').toUpperCase();
+    if (g === 'A') return { color: 'var(--accent-emerald)', borderColor: 'var(--accent-emerald)', background: 'rgba(0, 220, 130, 0.12)' };
+    if (g === 'B') return { color: 'var(--accent-cyan)', borderColor: 'var(--accent-cyan)', background: 'rgba(0, 229, 255, 0.12)' };
+    if (g === 'C') return { color: 'var(--accent-amber)', borderColor: 'var(--accent-amber)', background: 'rgba(255, 184, 0, 0.12)' };
+    if (g === 'D') return { color: 'var(--accent-crimson)', borderColor: 'var(--accent-crimson)', background: 'rgba(255, 51, 102, 0.12)' };
+    return { color: 'var(--accent-cyan)', borderColor: 'var(--accent-cyan)', background: 'rgba(0, 229, 255, 0.12)' };
+  };
+
+  const gradeStyle = getGradeStyle(assessment.listingGrade);
+
   return (
     <section className="report-section" id="overall-assessment">
       <div className="section-header">
@@ -17,6 +28,44 @@ export default function OverallAssessment({ data }) {
           <span className="section-title-en">Overall Assessment</span>
         </h2>
       </div>
+
+      {/* Listing Eligibility Grade Card */}
+      {assessment.listingGrade && (
+        <div className="analysis-card" style={{ 
+          borderColor: gradeStyle.borderColor, 
+          background: `linear-gradient(135deg, ${gradeStyle.background.replace('0.12', '0.03')}, var(--bg-card))`, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between', 
+          flexWrap: 'wrap', 
+          gap: 'var(--space-4)',
+          marginBottom: 'var(--space-6)'
+        }}>
+          <div style={{ flex: 1, minWidth: '280px' }}>
+            <div className="analysis-card-label" style={{ color: gradeStyle.color, marginBottom: 'var(--space-1)' }}>
+              Listing Feasibility Grade (상장 심사 예측 등급)
+            </div>
+            <div className="analysis-text" style={{ fontSize: 'var(--text-base)', color: 'var(--text-primary)' }}>
+              본 평가는 프로젝트의 유통 공급량 비율, 락업 투명성, 실사용 온체인 지표를 거래소 상장 위원회 관점에서 종합 계산하여 도출한 인텔리전스 등급입니다.
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 90 }}>
+            <span style={{ 
+              fontSize: '2.5rem', 
+              fontWeight: 900, 
+              fontFamily: 'var(--font-mono)', 
+              padding: 'var(--space-2) var(--space-6)', 
+              borderRadius: 'var(--radius-md)', 
+              color: gradeStyle.color, 
+              border: `2px solid ${gradeStyle.borderColor}`,
+              background: gradeStyle.background,
+              boxShadow: `0 0 20px ${gradeStyle.background.replace('0.12', '0.05')}`
+            }}>
+              {assessment.listingGrade}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Summary */}
       {summary && (

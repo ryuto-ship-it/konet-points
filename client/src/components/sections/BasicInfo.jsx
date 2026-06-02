@@ -20,6 +20,49 @@ export default function BasicInfo({ data }) {
           <span className="section-title-en">Basic Info</span>
         </h2>
       </div>
+      {/* Token Profile Header */}
+      <div className="token-profile-header" style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: 'var(--space-4)', 
+        marginBottom: 'var(--space-6)', 
+        padding: 'var(--space-5)', 
+        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.02), var(--bg-card))', 
+        borderRadius: 'var(--radius-md)', 
+        border: '1px solid var(--border-glass)' 
+      }}>
+        {token.image ? (
+          <img src={token.image} alt={token.name} style={{ width: 48, height: 48, borderRadius: 'var(--radius-full)', objectFit: 'cover' }} />
+        ) : (
+          <div style={{ 
+            width: 48, 
+            height: 48, 
+            borderRadius: 'var(--radius-full)', 
+            background: 'linear-gradient(135deg, var(--accent-cyan-dim), var(--bg-tertiary))', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            fontWeight: 700, 
+            color: 'var(--accent-cyan)' 
+          }}>
+            {token.symbol?.charAt(0) || '?'}
+          </div>
+        )}
+        <div>
+          <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--text-primary)' }}>
+            {token.name || 'Unknown Token'} ({token.symbol?.toUpperCase() || 'TOKEN'})
+          </h3>
+          {token.contractAddress ? (
+            <span className="mono" style={{ fontSize: 'var(--text-xs)', color: 'var(--text-dim)', wordBreak: 'break-all' }}>
+              Contract Address: {token.contractAddress}
+            </span>
+          ) : (
+            <span className="mono" style={{ fontSize: 'var(--text-xs)', color: 'var(--text-dim)' }}>
+              Native Chain Coin ({token.network || 'Mainnet'})
+            </span>
+          )}
+        </div>
+      </div>
 
       {/* Metric Cards */}
       <div className="metric-grid">
@@ -37,6 +80,17 @@ export default function BasicInfo({ data }) {
           {(market.high24h || market.low24h) && (
             <div className="metric-sub">
               H: {formatCurrency(market.high24h)} / L: {formatCurrency(market.low24h)}
+            </div>
+          )}
+        </div>
+
+        {/* All-Time High (ATH) & Comparison */}
+        <div className="metric-card">
+          <div className="metric-label">All-Time High (ATH)</div>
+          <div className="metric-value">{formatCurrency(market.ath)}</div>
+          {market.ath && market.currentPrice && (
+            <div className="metric-sub" style={{ color: 'var(--accent-cyan)' }}>
+              현재가 ATH 대비 {((market.currentPrice / market.ath) * 100).toFixed(1)}% 수준
             </div>
           )}
         </div>

@@ -24,18 +24,18 @@ export default function RiskIndicators({ data }) {
 
   const getRiskBadgeClass = (level) => {
     const l = (level || '').toLowerCase();
-    if (l === 'low') return 'badge-risk-low';
-    if (l === 'medium') return 'badge-risk-medium';
-    if (l === 'high') return 'badge-risk-high';
+    if (l === 'low' || l === 'none') return 'badge-risk-low';
+    if (l === 'medium' || l === 'possible') return 'badge-risk-medium';
+    if (l === 'high' || l === 'detected') return 'badge-risk-high';
     if (l === 'critical') return 'badge-risk-critical';
     return 'badge-risk-medium';
   };
 
   const getRiskDotClass = (level) => {
     const l = (level || '').toLowerCase();
-    if (l === 'low') return 'low';
-    if (l === 'medium') return 'medium';
-    if (l === 'high') return 'high';
+    if (l === 'low' || l === 'none') return 'low';
+    if (l === 'medium' || l === 'possible') return 'medium';
+    if (l === 'high' || l === 'detected') return 'high';
     if (l === 'critical') return 'critical';
     return 'medium';
   };

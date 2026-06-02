@@ -32,46 +32,75 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = 'ether
   };
   const chainId = chainIdMap[chain] || 1;
 
-  // ── Run all API calls in parallel ────────────────────────────────────────────
+  const platformMap = {
+    ethereum: 'ethereum',
+    polygon: 'polygon-pos',
+    arbitrum: 'arbitrum-one',
+    optimism: 'optimistic-ethereum',
+    base: 'base',
+    bsc: 'binance-smart-chain',
+    avalanche: 'avalanche',
+  };
+  const platformId = platformMap[chain] || 'ethereum';
+
+  // ── Step 1: Pre-fetch token details to resolve contract address if needed ─────
+  let tokenDetails = {};
+  try {
+    tokenDetails = await coingecko.getTokenDetails(coinId);
+  } catch (err) {
+    console.error(`[Aggregator] Failed to pre-fetch CoinGecko token details: ${err.message}`);
+  }
+
+  let resolvedAddress = contractAddress;
+  if (!resolvedAddress && tokenDetails && tokenDetails.platforms) {
+    resolvedAddress = tokenDetails.platforms[platformId] || null;
+    if (resolvedAddress) {
+      console.log(`[Aggregator] Dynamically resolved contract address for ${coinId}: ${resolvedAddress}`);
+    }
+  }
+
+  // ── Step 2: Run all remaining API calls in parallel ──────────────────────────
   const [
-    tokenDetailsResult,
     marketDataResult,
     priceHistoryResult,
     txCountResult,
     txListResult,
     contractSourceResult,
     tokenInfoResult,
+    networkStatsResult,
     defiProtocolResult,
   ] = await Promise.allSettled([
     // CoinGecko
-    coingecko.getTokenDetails(coinId),
     coingecko.getTokenMarketData(coinId),
     coingecko.getPriceHistory(coinId, 30),
 
-    // Etherscan (only if contract address is provided)
-    contractAddress
-      ? etherscan.getTransactionCount(contractAddress, chainId)
+    // Etherscan ERC-20 calls (only if contract address is resolved)
+    resolvedAddress
+      ? etherscan.getTransactionCount(resolvedAddress, chainId)
       : Promise.resolve(null),
-    contractAddress
-      ? etherscan.getTransactionList(contractAddress, chainId, 1, 20)
+    resolvedAddress
+      ? etherscan.getTransactionList(resolvedAddress, chainId, 1, 20)
       : Promise.resolve(null),
-    contractAddress
-      ? etherscan.getContractSource(contractAddress, chainId)
+    resolvedAddress
+      ? etherscan.getContractSource(resolvedAddress, chainId)
       : Promise.resolve(null),
-    contractAddress
-      ? etherscan.getTokenInfo(contractAddress, chainId)
+    resolvedAddress
+      ? etherscan.getTokenInfo(resolvedAddress, chainId)
       : Promise.resolve(null),
 
-    // DefiLlama – try to find a protocol associated with this token
-    coingecko.getTokenDetails(coinId).then((details) => {
-      const symbol = details?.symbol?.toUpperCase();
+    // Etherscan Native statistic calls (only if native coin)
+    !resolvedAddress
+      ? etherscan.getNetworkStats(chainId)
+      : Promise.resolve(null),
+
+    // DefiLlama – find protocol by token symbol
+    Promise.resolve(tokenDetails?.symbol?.toUpperCase()).then((symbol) => {
       if (symbol) return defillama.findProtocolByToken(symbol);
       return null;
     }),
   ]);
 
   // ── Extract results (handle failures) ────────────────────────────────────────
-
   /** @param {PromiseSettledResult} result */
   const extract = (result, fallback = null) => {
     if (result.status === 'fulfilled') return result.value;
@@ -79,13 +108,13 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = 'ether
     return fallback;
   };
 
-  const tokenDetails = extract(tokenDetailsResult, {});
   const marketDataArr = extract(marketDataResult, []);
   const priceHistory = extract(priceHistoryResult, { prices: [], total_volumes: [] });
   const txCount = extract(txCountResult);
   const txList = extract(txListResult);
   const contractSource = extract(contractSourceResult);
   const tokenInfo = extract(tokenInfoResult);
+  const networkStats = extract(networkStatsResult);
   const defiProtocol = extract(defiProtocolResult);
 
   // ── Normalize market data ────────────────────────────────────────────────────
@@ -123,7 +152,14 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = 'ether
   const sourceCode = contractSource?.result?.[0] || {};
   const tokenInfoData = tokenInfo?.result?.[0] || {};
 
+  // Retrieve CoinGecko holder count as a dynamic fallback
+  const coinGeckoHolderCount = details.detail_platforms?.[platformId]?.holder_count 
+    || details.market_data?.holder_count
+    || null;
+
   const onchainData = {
+    isNative: !resolvedAddress,
+    networkStats: networkStats || null,
     transactionCount: txCountDecimal,
     dailyTxEstimate: txCountDecimal ? Math.round(txCountDecimal / 365) : null,
     recentTransactions: recentTxs.slice(0, 10).map((tx) => ({
@@ -141,6 +177,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = 'ether
     tokenName: tokenInfoData.tokenName || null,
     tokenType: tokenInfoData.tokenType || null,
     tokenDecimals: tokenInfoData.divisor || null,
+    holderCount: coinGeckoHolderCount, // CoinGecko fallback
   };
 
   // ── Normalize DeFi data ──────────────────────────────────────────────────────

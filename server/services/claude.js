@@ -22,13 +22,30 @@ function shouldUseMock() {
 
 const SYSTEM_PROMPT = `You are an expert cryptocurrency analyst with deep knowledge of blockchain technology, tokenomics, DeFi protocols, and on-chain analytics. You provide thorough, balanced, and data-driven analysis.
 
-Your task is to analyze the provided token data and produce a structured JSON report. Be specific with numbers and percentages when available. Be honest about risks and limitations.
+Your task is to analyze the provided token data and produce a structured JSON report. You MUST read the input values carefully and use real numbers and ratios in your analysis.
+
+CRITICAL INSTRUCTIONS:
+1. USE REAL FIGURES AND RATIOS:
+   - You MUST include exact calculations in your analysis. Do not use vague terms.
+   - For example: Calculate and state "시가총액 $X는 전체 암호화폐 시장 시가총액(약 $2.5T 가정)의 Y%를 차지함" or "24시간 거래량 $A는 시가총액의 B% 수준임".
+2. EXCHANGE LISTING REVIEW FOCUS (상장 심사 관점):
+   - You MUST analyze the token from the perspective of an exchange listing committee.
+   - You must specifically analyze:
+     * Circulation supply ratio (유통량 비율) relative to total/max supply.
+     * Token distribution and lockup status (토큰 배분 및 락업 여부).
+     * Real utility transaction volumes and activity levels (실사용 트랜잭션 활성도).
+3. SPECIFIC STRENGTHS, WEAKNESSES, AND RISKS:
+   - Do NOT use generic warnings or boilerplate sentences (e.g. "Crypto is highly volatile", "blockchain is a new technology").
+   - Every strength, weakness, and risk must be highly specific to the given token's technology, mechanics, history, and current market position.
+4. LISTING GRADE:
+   - Inside the "overall_assessment" JSON object, you MUST include a new string field "listingGrade".
+   - Set this field to one of: "A", "B", "C", "D" (where A is highly eligible for listing, and D is very high risk / ineligible).
 
 You MUST respond with ONLY valid JSON (no markdown, no code fences) in the following structure:
 
 {
-  "basic_info_analysis": "A 2-3 paragraph analysis of the token's fundamentals, market position, and key characteristics based on the market data provided.",
-  "onchain_analysis": "A 2-3 paragraph analysis of on-chain activity, transaction patterns, holder distribution, and network health. Highlight any notable patterns or concerns.",
+  "basic_info_analysis": "A 2-3 paragraph analysis of the token's fundamentals, market position, and key characteristics based on the market data provided, including exact 시가총액/거래량 market share and ratio calculations.",
+  "onchain_analysis": "A 2-3 paragraph analysis of on-chain activity, transaction patterns, holder distribution, and network health, evaluating real transaction activity and token distribution / lockup status from a listing perspective.",
   "utility_analysis": {
     "text": "A 2-3 paragraph analysis of the token's utility, use cases, and ecosystem value.",
     "hasBurn": false,
@@ -47,7 +64,8 @@ You MUST respond with ONLY valid JSON (no markdown, no code fences) in the follo
     "strengths": ["strength1", "strength2", "strength3"],
     "weaknesses": ["weakness1", "weakness2"],
     "risks": ["risk1", "risk2", "risk3"],
-    "investmentPerspective": "A balanced 2-3 paragraph perspective on the token from an investment standpoint. This is NOT investment advice."
+    "investmentPerspective": "A balanced 2-3 paragraph perspective on the token from an investment standpoint. This is NOT investment advice.",
+    "listingGrade": "A|B|C|D"
   }
 }`;
 
@@ -68,13 +86,16 @@ function generateMockAnalysis(aggregatedData) {
     ? `$${(marketCap / 1e9).toFixed(1)}B`
     : `$${(marketCap / 1e6).toFixed(1)}M`;
 
-  return {
-    basic_info_analysis: `${name} (${symbol}) is currently trading at $${price} with a market capitalization of ${mcapFormatted}, placing it among the top-tier digital assets by market value. The token has demonstrated significant price resilience over recent market cycles, maintaining strong trading volume which indicates sustained market interest and healthy liquidity conditions.\n\nThe 24-hour trading volume suggests active market participation from both retail and institutional players. The fully diluted valuation relative to current market cap provides insight into potential future dilution. The token's position relative to its all-time high indicates current market sentiment and potential recovery trajectory.\n\nOverall, the fundamental market metrics paint a picture of a well-established digital asset with strong liquidity, significant market capitalization, and active trading patterns that support price discovery and market efficiency.`,
+  const mcapShare = ((marketCap / 2.5e12) * 100).toFixed(4);
+  const volPercent = marketCap ? ((aggregatedData.marketData?.total_volume / marketCap) * 100).toFixed(2) : '4.39';
 
-    onchain_analysis: `On-chain analysis reveals consistent network activity with steady transaction throughput. The transaction count and daily estimates suggest a healthy level of organic usage rather than artificially inflated metrics. The distribution of transactions across different function calls indicates diverse utility beyond simple token transfers.\n\nThe network's transaction patterns show typical institutional and retail participation, with a mix of high-value and small-denomination transactions. Smart contract interactions constitute a significant portion of on-chain activity, suggesting strong ecosystem engagement and DeFi integration.\n\nContract verification status and the overall quality of the codebase provide confidence in the technical integrity of the protocol. The on-chain footprint is consistent with a mature, well-adopted blockchain project.`,
+  return {
+    basic_info_analysis: `${name} (${symbol})은 현재 $${price}에 거래되고 있으며, 시가총액은 약 ${mcapFormatted}입니다. 이 시가총액은 전체 암호화폐 시장(약 $2.5T 규모)의 약 ${mcapShare}%를 차지하고 있습니다. 24시간 거래량은 약 $${(aggregatedData.marketData?.total_volume / 1e9).toFixed(1)}B로, 시가총액 대비 약 ${volPercent}% 수준을 기록하며 매우 활발한 거래와 강력한 시장 지지력을 보여주고 있습니다.\n\n역대 최고가(ATH) 대비 현재가 추이는 시장 참여자들의 심리와 회복 가능 속도를 판단하는 유의미한 수치를 제공합니다. 전반적인 유동성과 풍부한 시장 거래 대금은 가격 발견과 상장 유지 기준을 넉넉히 충족시키고 있습니다.`,
+
+    onchain_analysis: `상장 심사 관점에서 ${name}의 유통량 비율은 약 99.8%로 매우 건전하며, 장기 락업 물량이 해제되면서 발생할 수 있는 덤핑 리스크가 대단히 낮습니다. 온체인 트랜잭션 빈도를 분석한 결과, 일평균 전송량 및 트랜잭션 규모는 실사용 토큰으로서 활발히 기능하고 있음을 증명합니다.\n\n컨트랙트 코드의 투명성과 배포 이후 소스코드 검증(Verified) 상태는 스마트 컨트랙트 악용 가능성을 차단하고 있으며, 토큰 분배 상태 또한 소수의 고래에 의해 극단적으로 지배되지 않고 넓게 분산되어 있어 상장 안정성 기준을 완벽하게 만족하고 있습니다.`,
 
     utility_analysis: {
-      text: `${name} serves as the native utility token of its ecosystem, providing fundamental value through gas fee payments, staking mechanisms, and governance participation. The token's utility is deeply embedded in the protocol's architecture, creating organic demand drivers that support long-term value accrual.\n\nThe staking mechanism provides token holders with the ability to earn yield while contributing to network security and consensus. This creates a natural supply sink that reduces circulating supply pressure. Governance capabilities allow token holders to participate in protocol decision-making, aligning stakeholder incentives.\n\nThe token demonstrates strong product-market fit with clear utility that extends beyond speculative trading. Its role in the broader DeFi ecosystem as collateral, a trading pair, and a yield-generating asset creates multiple demand vectors that contribute to price stability and long-term value.`,
+      text: `${name}은 생태계 내 핵심 가스비 결제 및 트랜잭션 검증, 그리고 합의 알고리즘 유지를 위한 필수 스테이킹(Staking) 자산으로 기능합니다. 생태계 내부의 디플레이션 메커니즘과 자율적 의사결정을 지원하는 가버넌스 구조는 토큰의 본질적 유스케이스가 투기적 자산에만 국한되지 않고 실제 플랫폼 인프라에 단단히 결합되어 있음을 입증하고 있습니다.`,
       hasBurn: symbol === 'ETH' || symbol === 'BNB',
       hasStaking: true,
       hasGovernance: true,
@@ -85,30 +106,26 @@ function generateMockAnalysis(aggregatedData) {
       liquidityRisk: 'low',
       volumeAnomaly: 'none',
       overallRiskLevel: 'medium',
-      details: `Concentration risk is assessed as medium, as large holders (whales) control a meaningful portion of the total supply. While this is common for established digital assets, it does introduce potential volatility risk if large positions are liquidated simultaneously. Monitoring whale wallet movements is recommended for active risk management.\n\nLiquidity risk is low, supported by deep order books across major exchanges and significant DEX liquidity pools. The 24-hour trading volume relative to market capitalization suggests healthy liquidity ratios that can absorb large trades without significant slippage. Cross-exchange arbitrage opportunities are minimal, indicating efficient price discovery.\n\nFrom a regulatory perspective, the evolving global regulatory landscape presents ongoing uncertainty. Smart contract risk is mitigated by extensive audits and the protocol's track record, though no system is entirely risk-free. Market correlation with Bitcoin and broader crypto markets remains a systemic risk factor that cannot be diversified away within the asset class.`,
+      details: `해당 자산의 지갑 집중도 리스크는 '보통(Medium)' 수준으로 일부 상위 홀더들의 비중이 존재하나, 거래소 내 호가창 유동성이 매우 두터워 대량 매도 발생 시에도 슬리페이지(Slippage) 리스크를 흡수할 능력이 우수합니다.\n\n다만, 스마트 컨트랙트 감사(Audit) 이력과는 무관하게 레이어-1/레이어-2 경쟁 프로토콜의 대두와 지속되는 각국 금융 당국의 규제 및 컴플라이언스 불확실성은 거래 환경의 잠재적 리스크 요인입니다. 거시 경제 변화에 따른 비트코인과의 양의 상관관계 역시 시스템적 리스크로 상존하고 있습니다.`,
     },
 
     overall_assessment: {
-      summary: `${name} is a well-established digital asset with strong fundamentals, deep liquidity, and meaningful utility within its ecosystem. While not without risks, its market position and technical foundation provide a solid basis for long-term consideration.`,
+      summary: `${name}은 압도적인 생태계 기여도와 활발한 온체인 실물 유스케이스를 지닌 대표 자산으로, 상장 안정성과 비즈니스 지속 가능성 항목 모두 최상위 수준을 충족하고 있습니다.`,
       strengths: [
-        `Strong market capitalization of ${mcapFormatted} with deep liquidity`,
-        'Active on-chain ecosystem with diverse transaction types',
-        'Clear token utility through staking, governance, and protocol fees',
-        'Established track record with extensive security audits',
-        'Broad exchange support and DeFi integration',
+        `시가총액 ${mcapFormatted}에 상응하는 우수한 온체인 유동성 확보`,
+        '명확한 가스비 결제 및 가버넌스 유틸리티 지원',
+        '코어 개발팀의 코드 활성도와 주기적 검증 상태 완료',
       ],
       weaknesses: [
-        'Moderate holder concentration with significant whale influence',
-        'Price correlation with broader crypto market limits diversification benefits',
-        'Ongoing scalability challenges during high network demand',
+        '일부 거대 홀더의 대량 이체에 따른 가격 일시 변동 가능성',
+        '경쟁 스마트 컨트랙트 플랫폼들과의 기술적 격차 축소 압박',
       ],
       risks: [
-        'Regulatory uncertainty across major jurisdictions',
-        'Smart contract vulnerability risk despite audits',
-        'Competitive pressure from alternative Layer-1/Layer-2 solutions',
-        'Market-wide systemic risk during crypto downturns',
+        '가상자산 분류법 적용에 따른 규제 및 제도적 대응 리스크',
+        'DeFi 프로토콜 취약성 발생 시 연쇄적인 온체인 담보 청산 위험',
       ],
-      investmentPerspective: `From an investment perspective, ${name} represents one of the more established positions in the digital asset space. Its combination of market leadership, ecosystem depth, and technological innovation creates a compelling long-term value proposition for those with conviction in the broader blockchain thesis.\n\nHowever, potential investors should be mindful of the inherent volatility in cryptocurrency markets and the specific risks outlined in this analysis. Position sizing should reflect individual risk tolerance, and diversification across multiple assets and asset classes remains prudent.\n\nThis analysis is for informational purposes only and does not constitute investment advice. All cryptocurrency investments carry significant risk, including the potential loss of principal. Investors should conduct their own due diligence and consult with qualified financial advisors before making investment decisions.`,
+      investmentPerspective: `${name}은 전체 시장 시가총액의 ${mcapShare}%를 차지하는 지배적 플랫폼으로, 장기적 투자 가치와 지속적인 생태계 고도화 측면에서 우수한 점수를 보입니다. 다만 가격 변동성에 유의한 포지션 관리가 요구됩니다.`,
+      listingGrade: 'A',
     },
   };
 }
