@@ -156,6 +156,46 @@ export default function BasicInfo({ data }) {
         </div>
       )}
 
+      {/* Tokenomics & Allocation Section */}
+      {(data.analysis?.tokenomicsAllocation?.supplyDistribution || data.analysis?.tokenomicsAllocation?.circulationRatio) && (
+        <div style={{ marginTop: 'var(--space-8)', marginBottom: 'var(--space-6)' }}>
+          <div className="metric-label" style={{ marginBottom: 'var(--space-3)', color: 'var(--accent-cyan)', fontSize: 'var(--text-xs)', fontWeight: 700 }}>
+            Tokenomics & Allocation (토크노믹스 배분 분석)
+          </div>
+          <div className="metric-grid-2" style={{ marginBottom: 'var(--space-4)' }}>
+            <div className="metric-card">
+              <div className="metric-label">Circulating / Total Supply Ratio (유통 공급량 비율)</div>
+              <div className="metric-value" style={{ color: 'var(--accent-cyan)', fontSize: 'var(--text-xl)' }}>
+                {data.analysis.tokenomicsAllocation.circulationRatio || 'N/A'}
+              </div>
+              <div className="metric-sub">유통 발행량 대비 총공급 건전성 비율</div>
+            </div>
+            <div className="metric-card">
+              <div className="metric-label">Market Cap / FDV Ratio (시가총액 대 희석가치 비율)</div>
+              <div className="metric-value" style={{ color: 'var(--accent-emerald)', fontSize: 'var(--text-xl)' }}>
+                {data.analysis.tokenomicsAllocation.mcapFdvRatio || 'N/A'}
+              </div>
+              <div className="metric-sub">희석 가치 대비 유통 물량 비중</div>
+            </div>
+          </div>
+          {data.analysis.tokenomicsAllocation.supplyDistribution && (
+            <div className="analysis-card" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-glass)', padding: 'var(--space-5)' }}>
+              <div className="analysis-card-label" style={{ color: 'var(--accent-cyan)' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <ellipse cx="12" cy="5" rx="9" ry="3" />
+                  <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                  <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3" />
+                </svg>
+                Allocation & Lockup Assessment (토큰 배분 및 락업 설계 평가)
+              </div>
+              <div className="analysis-text" style={{ fontSize: 'var(--text-sm)', lineHeight: '1.7' }}>
+                {data.analysis.tokenomicsAllocation.supplyDistribution}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* AI Analysis */}
       {analysis && (
         <div className="analysis-card">
@@ -164,7 +204,7 @@ export default function BasicInfo({ data }) {
               <path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/>
               <path d="M16 14a4 4 0 0 1 4 4v2H4v-2a4 4 0 0 1 4-4"/>
             </svg>
-            AI Analysis
+            AI Fundamental Analysis (기본적 펀더멘탈 분석)
           </div>
           <div className="analysis-text">{analysis}</div>
         </div>

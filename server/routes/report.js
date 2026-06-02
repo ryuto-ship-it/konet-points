@@ -77,10 +77,12 @@ router.get('/:coinId', async (req, res, next) => {
       },
 
       onchainData: {
+        isNative: onchainData.isNative || false,
+        networkStats: onchainData.networkStats || null,
         transactionCount: onchainData.transactionCount,
         dailyTxEstimate: onchainData.dailyTxEstimate,
-        holderCount: null, // Not available from Etherscan free tier
-        topHolders: [],    // Would require premium API access
+        holderCount: onchainData.holderCount || null, // CoinGecko fallback holderCount mapped
+        topHolders: [],    
         contractVerified: onchainData.contractVerified,
       },
 
@@ -105,6 +107,20 @@ router.get('/:coinId', async (req, res, next) => {
           hasStaking: analysis.utility_analysis?.hasStaking || false,
           hasGovernance: analysis.utility_analysis?.hasGovernance || false,
         },
+        teamInvestors: {
+          coreTeam: analysis.team_investors?.core_team || '',
+          backingInvestors: analysis.team_investors?.backing_investors || '',
+          transparencyRating: analysis.team_investors?.transparency_rating || 'medium',
+        },
+        tokenomicsAllocation: {
+          supplyDistribution: analysis.tokenomics_allocation?.supply_distribution || '',
+          circulationRatio: analysis.tokenomics_allocation?.circulation_ratio || 'N/A',
+          mcapFdvRatio: analysis.tokenomics_allocation?.mcap_fdv_ratio || 'N/A',
+        },
+        competitiveLandscape: {
+          summary: analysis.competitive_landscape?.summary || '',
+          competitors: analysis.competitive_landscape?.competitors || [],
+        },
         riskAnalysis: {
           concentrationRisk: analysis.risk_analysis?.concentrationRisk || 'unknown',
           liquidityRisk: analysis.risk_analysis?.liquidityRisk || 'unknown',
@@ -118,6 +134,13 @@ router.get('/:coinId', async (req, res, next) => {
           weaknesses: analysis.overall_assessment?.weaknesses || [],
           risks: analysis.overall_assessment?.risks || [],
           investmentPerspective: analysis.overall_assessment?.investmentPerspective || '',
+          listingGrade: analysis.overall_assessment?.listingGrade || 'B',
+          listingScoreMatrix: {
+            circulation: analysis.overall_assessment?.listingScoreMatrix?.circulation || 'Fair',
+            volume: analysis.overall_assessment?.listingScoreMatrix?.volume || 'Fair',
+            onchain: analysis.overall_assessment?.listingScoreMatrix?.onchain || 'Fair',
+            team: analysis.overall_assessment?.listingScoreMatrix?.team || 'Fair',
+          },
         },
       },
 

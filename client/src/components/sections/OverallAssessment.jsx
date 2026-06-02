@@ -20,14 +20,7 @@ export default function OverallAssessment({ data }) {
   const gradeStyle = getGradeStyle(assessment.listingGrade);
 
   return (
-    <section className="report-section" id="overall-assessment">
-      <div className="section-header">
-        <span className="section-number">5</span>
-        <h2 className="section-title">
-          종합 평가
-          <span className="section-title-en">Overall Assessment</span>
-        </h2>
-      </div>
+    <section className="report-section" id="overall-assessment" style={{ marginTop: 'var(--space-6)' }}>
 
       {/* Listing Eligibility Grade Card */}
       {assessment.listingGrade && (

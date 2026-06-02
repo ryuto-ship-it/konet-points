@@ -2,18 +2,19 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import ReportHeader from './ReportHeader';
 import SectionNav from './SectionNav';
 import BasicInfo from './sections/BasicInfo';
+import TeamInvestors from './sections/TeamInvestors';
+import CompetitiveLandscape from './sections/CompetitiveLandscape';
 import OnchainData from './sections/OnchainData';
-import UtilityAnalysis from './sections/UtilityAnalysis';
 import RiskIndicators from './sections/RiskIndicators';
 import OverallAssessment from './sections/OverallAssessment';
 import './ReportView.css';
 
 const SECTIONS = [
-  { id: 'basic-info', label: '기본 정보', labelEn: 'Basic Info' },
-  { id: 'onchain-data', label: '온체인 데이터', labelEn: 'On-chain Data' },
-  { id: 'utility-analysis', label: '유틸리티 분석', labelEn: 'Utility Analysis' },
-  { id: 'risk-indicators', label: '리스크 지표', labelEn: 'Risk Indicators' },
-  { id: 'overall-assessment', label: '종합 평가', labelEn: 'Overall Assessment' },
+  { id: 'basic-info', label: '기본 정보 & 토크노믹스', labelEn: 'Basic Info & Tokenomics' },
+  { id: 'team-investors', label: '팀 & 투자자', labelEn: 'Team & Investors' },
+  { id: 'competitive-landscape', label: '경쟁 환경 분석', labelEn: 'Competitive Landscape' },
+  { id: 'onchain-data', label: '온체인 & 유틸리티', labelEn: 'On-chain & Utility' },
+  { id: 'risk-indicators', label: '리스크 & 상장 심사', labelEn: 'Risk & Listing Review' },
 ];
 
 export default function ReportView({ data, onBack }) {
@@ -72,16 +73,17 @@ export default function ReportView({ data, onBack }) {
             <div ref={setSectionRef('basic-info')}>
               <BasicInfo data={data} />
             </div>
+            <div ref={setSectionRef('team-investors')}>
+              <TeamInvestors data={data} />
+            </div>
+            <div ref={setSectionRef('competitive-landscape')}>
+              <CompetitiveLandscape data={data} />
+            </div>
             <div ref={setSectionRef('onchain-data')}>
               <OnchainData data={data} />
             </div>
-            <div ref={setSectionRef('utility-analysis')}>
-              <UtilityAnalysis data={data} />
-            </div>
             <div ref={setSectionRef('risk-indicators')}>
               <RiskIndicators data={data} />
-            </div>
-            <div ref={setSectionRef('overall-assessment')}>
               <OverallAssessment data={data} />
             </div>
 

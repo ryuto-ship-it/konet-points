@@ -28,10 +28,10 @@ export default function OnchainData({ data }) {
   return (
     <section className="report-section" id="onchain-data">
       <div className="section-header">
-        <span className="section-number">2</span>
+        <span className="section-number">4</span>
         <h2 className="section-title">
-          온체인 데이터
-          <span className="section-title-en">On-chain Data</span>
+          온체인 & 유틸리티
+          <span className="section-title-en">On-chain & Utility</span>
         </h2>
       </div>
 
@@ -179,6 +179,42 @@ export default function OnchainData({ data }) {
         </div>
       )}
 
+      {/* Token Utility & Ecosystem Value Section */}
+      {(data.analysis?.utilityAnalysis?.text || data.analysis?.utilityAnalysis?.hasStaking !== undefined) && (
+        <div style={{ marginTop: 'var(--space-8)', marginBottom: 'var(--space-6)' }}>
+          <div className="metric-label" style={{ marginBottom: 'var(--space-3)', color: 'var(--accent-cyan)', fontSize: 'var(--text-xs)', fontWeight: 700 }}>
+            Token Utility & Ecosystem Value (토큰 유틸리티 및 가치 창출)
+          </div>
+          
+          <div className="feature-badges" style={{ marginBottom: 'var(--space-4)' }}>
+            <span className={`badge ${data.analysis.utilityAnalysis.hasStaking ? 'badge-feature-yes' : 'badge-feature-no'}`}>
+              {data.analysis.utilityAnalysis.hasStaking ? '✓ Staking Enabled (스테이킹 지원)' : '✗ No Staking (스테이킹 미지원)'}
+            </span>
+            <span className={`badge ${data.analysis.utilityAnalysis.hasGovernance ? 'badge-feature-yes' : 'badge-feature-no'}`}>
+              {data.analysis.utilityAnalysis.hasGovernance ? '✓ Governance Active (의사결정 거버넌스)' : '✗ No Governance (의사결정 권한 미비)'}
+            </span>
+            <span className={`badge ${data.analysis.utilityAnalysis.hasBurn ? 'badge-feature-yes' : 'badge-feature-no'}`}>
+              {data.analysis.utilityAnalysis.hasBurn ? '✓ Token Burn Active (소각 메커니즘)' : '✗ No Burn Mechanism (소각 미지원)'}
+            </span>
+          </div>
+
+          {data.analysis.utilityAnalysis.text && (
+            <div className="analysis-card" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-glass)', padding: 'var(--space-5)' }}>
+              <div className="analysis-card-label" style={{ color: 'var(--accent-cyan)' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                  <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
+                </svg>
+                Ecosystem Utility & Accrual Model (생태계 유틸리티 및 가치 획득 모델)
+              </div>
+              <div className="analysis-text" style={{ fontSize: 'var(--text-sm)', lineHeight: '1.7' }}>
+                {data.analysis.utilityAnalysis.text}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* AI Analysis */}
       {analysis && (
         <div className="analysis-card">
@@ -187,7 +223,7 @@ export default function OnchainData({ data }) {
               <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
               <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
             </svg>
-            On-chain Analysis
+            On-chain Activity Analysis (온체인 트랜잭션 활성도 분석)
           </div>
           <div className="analysis-text">{analysis}</div>
         </div>
