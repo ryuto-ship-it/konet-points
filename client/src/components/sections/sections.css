@@ -1,0 +1,446 @@
+/* ── Shared Section Styles ──────────────────────────────────── */
+
+/* Section Container */
+.report-section {
+  margin-bottom: var(--space-12);
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.report-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Section Header */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-glass);
+}
+
+.section-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-cyan-dim);
+  color: var(--accent-cyan);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.section-title {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.section-title-en {
+  font-size: var(--text-sm);
+  color: var(--text-dim);
+  margin-left: var(--space-2);
+  font-weight: 400;
+}
+
+/* ── Metric Card Grid ──────────────────────────────────────── */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.metric-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.metric-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-cyan-dim), transparent);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.metric-card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.metric-card:hover::before {
+  opacity: 1;
+}
+
+.metric-card-featured {
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.05), var(--bg-card));
+  border-color: rgba(0, 229, 255, 0.15);
+}
+
+.metric-label {
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+
+.metric-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.metric-value-lg {
+  font-size: var(--text-3xl);
+}
+
+.metric-change {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  margin-top: var(--space-2);
+}
+
+.metric-change.positive {
+  color: var(--accent-emerald);
+}
+
+.metric-change.negative {
+  color: var(--accent-crimson);
+}
+
+.metric-sub {
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  margin-top: var(--space-1);
+}
+
+/* ── Analysis Card ─────────────────────────────────────────── */
+.analysis-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.analysis-card-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+}
+
+.analysis-card-label svg {
+  opacity: 0.7;
+}
+
+.analysis-text {
+  font-size: var(--text-base);
+  line-height: 1.8;
+  color: var(--text-secondary);
+  white-space: pre-line;
+}
+
+.analysis-text p {
+  margin-bottom: var(--space-4);
+}
+
+.analysis-text p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Data Table ────────────────────────────────────────────── */
+.data-table-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: var(--space-6);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table thead {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.data-table th {
+  padding: var(--space-3) var(--space-5);
+  text-align: left;
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-glass);
+}
+
+.data-table td {
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.data-table tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.data-table tbody tr:hover {
+  background: rgba(0, 229, 255, 0.03);
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table .mono-cell {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.data-table .address-cell {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Holder Concentration Bar ──────────────────────────────── */
+.concentration-bar-container {
+  margin-bottom: var(--space-6);
+}
+
+.concentration-bar-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+}
+
+.concentration-bar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  display: flex;
+}
+
+.concentration-segment {
+  height: 100%;
+  transition: width var(--transition-slow);
+}
+
+/* ── Feature Badges ────────────────────────────────────────── */
+.feature-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.feature-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+/* ── Risk Gauge ────────────────────────────────────────────── */
+.risk-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.risk-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.risk-dot.low { background: var(--accent-emerald); }
+.risk-dot.medium { background: var(--accent-amber); }
+.risk-dot.high { background: var(--accent-crimson); }
+.risk-dot.critical { background: var(--accent-crimson); animation: pulse 1.5s ease-in-out infinite; }
+
+/* ── Three Column Layout ───────────────────────────────────── */
+.three-col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.col-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+}
+
+.col-header {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 2px solid;
+}
+
+.col-header.strengths {
+  color: var(--accent-emerald);
+  border-color: var(--accent-emerald);
+}
+
+.col-header.weaknesses {
+  color: var(--accent-crimson);
+  border-color: var(--accent-crimson);
+}
+
+.col-header.risks {
+  color: var(--accent-amber);
+  border-color: var(--accent-amber);
+}
+
+.col-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.col-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.col-list-bullet {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.col-list-bullet.green { background: var(--accent-emerald); }
+.col-list-bullet.red { background: var(--accent-crimson); }
+.col-list-bullet.amber { background: var(--accent-amber); }
+
+/* ── Chart Container ───────────────────────────────────────── */
+.chart-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+.chart-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 200px;
+}
+
+.chart-wrapper-sm {
+  position: relative;
+  height: 120px;
+}
+
+/* ── No Data Notice ────────────────────────────────────────── */
+.no-data-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-8);
+  background: var(--bg-card);
+  border: 1px dashed var(--border-glass);
+  border-radius: var(--radius-md);
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-6);
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .metric-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .three-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}

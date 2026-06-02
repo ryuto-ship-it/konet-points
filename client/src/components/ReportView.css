@@ -1,0 +1,64 @@
+/* ── Report View Layout ────────────────────────────────────── */
+.report-view {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+}
+
+.report-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  height: calc(100vh - var(--header-height));
+}
+
+.report-main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--space-8);
+  scroll-behavior: smooth;
+}
+
+.report-content {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+}
+
+/* ── Report Footer ─────────────────────────────────────────── */
+.report-footer {
+  margin-top: var(--space-16);
+  padding: var(--space-8) 0;
+  border-top: 1px solid var(--border-glass);
+  text-align: center;
+  color: var(--text-dim);
+  font-size: var(--text-xs);
+  line-height: 2;
+}
+
+.report-disclaimer {
+  max-width: 600px;
+  margin: var(--space-4) auto 0;
+  line-height: 1.5;
+  opacity: 0.7;
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .report-main {
+    padding: var(--space-6) var(--space-4);
+  }
+}
+
+@media (max-width: 640px) {
+  .report-layout {
+    height: auto;
+  }
+
+  .report-main {
+    height: auto;
+    overflow-y: visible;
+    padding: var(--space-4);
+  }
+}

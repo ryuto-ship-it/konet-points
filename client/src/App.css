@@ -1,0 +1,24 @@
+/* ── App Layout ─────────────────────────────────────────────── */
+.app {
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Error toast (shown on search page) */
+.error-toast {
+  position: fixed;
+  bottom: var(--space-8);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent-crimson-dim);
+  border: 1px solid rgba(255, 51, 102, 0.3);
+  color: var(--accent-crimson);
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  font-weight: 500;
+  z-index: var(--z-modal);
+  animation: slideUp 0.3s ease;
+  backdrop-filter: blur(20px);
+  max-width: 90vw;
+}

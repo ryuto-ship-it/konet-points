@@ -1,0 +1,139 @@
+/* ── Loading Overlay ────────────────────────────────────────── */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-overlay);
+  padding: var(--space-4);
+}
+
+.loading-backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+}
+
+.loading-card {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  padding: var(--space-10);
+  text-align: center;
+}
+
+.loading-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-10);
+  text-align: left;
+}
+
+.loading-logo-pulse {
+  animation: pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.loading-title {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.loading-subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-top: var(--space-1);
+}
+
+/* ── Steps ─────────────────────────────────────────────────── */
+.loading-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  margin-bottom: var(--space-8);
+  text-align: left;
+}
+
+.loading-step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  opacity: 0.35;
+  transition: all var(--transition-base);
+}
+
+.loading-step.step-active {
+  opacity: 1;
+}
+
+.loading-step.step-done {
+  opacity: 0.8;
+}
+
+.step-indicator {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.step-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(0, 229, 255, 0.2);
+  border-top-color: var(--accent-cyan);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.step-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-dim);
+}
+
+.step-check {
+  animation: fadeIn 0.3s ease;
+}
+
+.step-label {
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.step-done .step-label {
+  color: var(--text-secondary);
+}
+
+/* ── Progress Bar ──────────────────────────────────────────── */
+.loading-progress-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: var(--space-4);
+}
+
+.loading-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-emerald));
+  border-radius: var(--radius-full);
+  transition: width 0.1s linear;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+}
+
+.loading-percentage {
+  font-size: var(--text-sm);
+  color: var(--text-dim);
+  font-weight: 500;
+}
