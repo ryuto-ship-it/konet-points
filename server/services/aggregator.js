@@ -238,13 +238,27 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const holderCountData = extract(holderCountResult);
   const topHoldersData = extract(topHoldersResult, []);
   const dexData = extract(dexDataResult);
-  const twitterData = extract(twitterResult);
   const tickersData = extract(tickersResult, []);
   const tokenCreationDate = extract(tokenCreationResult);
   const bscHoldersData = extract(bscHoldersResult);
   const bscCreationDate = extract(bscCreationDateResult);
   const bscHolderCountData = extract(bscHolderCountResult);
   const rawCompetitors = extract(competitorsResult, []);
+
+  // CMC Twitter URL fallback: try if CoinGecko had no handle
+  let twitterData = extract(twitterResult);
+  if (!twitterData && !twitterHandle) {
+    const cmcRaw = extract(cmcResult);
+    const cmcTwitterUrl = cmcRaw?.urls?.twitter?.[0] || null;
+    if (cmcTwitterUrl) {
+      const cmcHandle = cmcTwitterUrl.split('/').filter(Boolean).pop();
+      if (cmcHandle) {
+        try {
+          twitterData = await twitter.getTwitterData(cmcHandle);
+        } catch {}
+      }
+    }
+  }
   const goplusData = extract(goplusSecurityResult);
 
   // ── Normalize market data ────────────────────────────────────────────────────

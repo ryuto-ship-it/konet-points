@@ -72,4 +72,7 @@ async function getTwitterData(username) {
   }
 }
 
-module.exports = { getTwitterData };
+// Alias matching the requested interface
+const getCachedTwitterData = getTwitterData;
+
+module.exports = { getTwitterData, getCachedTwitterData };
