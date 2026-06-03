@@ -33,6 +33,7 @@ CRITICAL RULES:
 8. TWITTER: If twitterData present, include followers/activity in team_investors. followers < 1000 → LOW engagement flag.
 9. CONTRACT SOURCE ANALYSIS: When computed_metrics.contract_analysis is provided, use each flag in risk_matrix.contractRisk. Format: ✅ flag=false (safe), ⚠️ flag=true (risk). hasMint→무한발행, hasOwnerControl→소유자 권한 존재, hasTax→세금 함수, hasBlacklist→지갑 차단 가능, hasPause→거래 중단 가능, hasMaxTx→최대 거래량 제한, hasProxy→프록시 컨트랙트. hasRenounceOwnership=true→✅ 소유권 포기 완료. Cite as [Contract Source Code, Etherscan].
 10. DATA SOURCES: Use marketData.priceDataSource to determine citation. priceDataSource='CoinMarketCap' → cite price/volume as [CoinMarketCap]; otherwise [CoinGecko].
+11. LISTING ASSESSMENT GRADE: Use computed_metrics.listing_score for the listing_assessment. The composite score (0-100) is pre-calculated as: exchange 40% + onchain 30% + price stability 30%. Use composite_grade as the base, but you may adjust ±1 grade based on qualitative factors (e.g. contract risks, community size). Cite tierCounts: "T1×N, T2×N, T3×N" format. TIER1 상장 여부가 가장 중요한 지표임.
 
 You MUST output ONLY valid JSON in this exact structure:
 
@@ -261,6 +262,19 @@ async function generateReport(aggregatedData) {
       token_creation_date: aggregatedData.tokenCreationDate || null,
       contract_analysis: aggregatedData.contractAnalysis || null,
       price_data_source: aggregatedData.marketData?.priceDataSource || 'CoinGecko',
+      listing_score: aggregatedData.listingScore ? {
+        composite_score: aggregatedData.listingScore.composite,
+        composite_grade: aggregatedData.listingScore.compositeGrade,
+        exchange_score: aggregatedData.listingScore.exchange.score,
+        exchange_grade: aggregatedData.listingScore.exchange.grade,
+        exchange_reason: aggregatedData.listingScore.exchange.reason,
+        tier_counts: aggregatedData.listingScore.exchange.tierCounts,
+        onchain_score: aggregatedData.listingScore.onchain.score,
+        onchain_level: aggregatedData.listingScore.onchain.level,
+        price_stability_score: aggregatedData.listingScore.priceStability.score,
+        price_stability_level: aggregatedData.listingScore.priceStability.level,
+        ath_drop_pct: aggregatedData.listingScore.priceStability.athDropPct,
+      } : null,
       holder_concentration: aggregatedData.holderAnalysis ? {
         top10_pct: aggregatedData.holderAnalysis.top10TotalPercent,
         is_high_risk: aggregatedData.holderAnalysis.isHighRisk,

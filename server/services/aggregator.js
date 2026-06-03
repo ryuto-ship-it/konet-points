@@ -15,6 +15,7 @@ const dexscreener = require('./dexscreener');
 const twitter = require('./twitter');
 const bscscan = require('./bscscan');
 const contractAnalyzer = require('./contractAnalyzer');
+const { getExchangeTier, calculateListingScore } = require('../data/exchangeTiers');
 
 /**
  * Aggregate token data from all API sources.
@@ -519,10 +520,50 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const rawSourceCode = (contractSource?.result?.[0]?.SourceCode) || null;
   const contractAnalysis = contractAnalyzer.analyzeSource(rawSourceCode);
 
-  // ── Normalize exchange listings: cmcInternal → CMC official → CoinGecko tickers
-  const exchangeListings = (cmciPairs.length > 0 ? cmciPairs : null)
+  // ── Normalize exchange listings + add tier info ───────────────────────────────
+  const rawListings = (cmciPairs.length > 0 ? cmciPairs : null)
     || (cmcPairsData.length > 0 ? cmcPairsData : null)
-    || (tickersData.length > 0 ? tickersData : null);
+    || (tickersData.length > 0 ? tickersData : null)
+    || [];
+
+  const exchangeListings = rawListings.map(ex => ({
+    ...ex,
+    tierInfo: getExchangeTier(ex.exchangeName),
+  }));
+
+  // Sort by tier score descending
+  exchangeListings.sort((a, b) => (b.tierInfo?.score ?? 0) - (a.tierInfo?.score ?? 0));
+
+  // ── Composite listing score (exchange 40% + onchain 30% + price stability 30%) ─
+  const exchangeScoreResult = calculateListingScore(exchangeListings);
+
+  const dailyTx = onchainData.dailyTxEstimate || 0;
+  const onchainScore = dailyTx >= 4000 ? 100 : dailyTx >= 1000 ? 70 : dailyTx >= 100 ? 40 : 10;
+  const onchainLevel = dailyTx >= 4000 ? '높음' : dailyTx >= 1000 ? '보통' : dailyTx >= 100 ? '낮음' : '매우 낮음';
+
+  const athDrop = marketData.ath > 0 && marketData.current_price > 0
+    ? ((marketData.ath - marketData.current_price) / marketData.ath) * 100
+    : 0;
+  const priceScore = athDrop <= 50 ? 100 : athDrop <= 80 ? 60 : athDrop <= 90 ? 30 : 10;
+  const priceLevel = athDrop <= 50 ? '높음' : athDrop <= 80 ? '중간' : athDrop <= 90 ? '낮음' : '매우 낮음';
+
+  const compositeScore = Math.round(
+    exchangeScoreResult.score * 0.4 + onchainScore * 0.3 + priceScore * 0.3
+  );
+  const compositeGrade = compositeScore >= 80 ? 'A' : compositeScore >= 60 ? 'B' : compositeScore >= 40 ? 'C' : compositeScore >= 20 ? 'D' : 'F';
+
+  const listingScore = {
+    composite: compositeScore,
+    compositeGrade,
+    exchange: {
+      score: exchangeScoreResult.score,
+      grade: exchangeScoreResult.grade,
+      reason: exchangeScoreResult.reason,
+      tierCounts: exchangeScoreResult.tierCounts,
+    },
+    onchain: { score: onchainScore, level: onchainLevel, dailyTx },
+    priceStability: { score: priceScore, level: priceLevel, athDropPct: parseFloat(athDrop.toFixed(1)) },
+  };
 
   return {
     actualChain,
@@ -538,6 +579,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     pricePattern,
     tokenCreationDate: (actualChain === 'bsc' ? bscCreationDate : null) || tokenCreationDate || null,
     contractAnalysis: contractAnalysis || null,
+    listingScore,
   };
 }
 
