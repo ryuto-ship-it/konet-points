@@ -36,9 +36,7 @@ export default function SearchHero({ onTokenSelect, error }) {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     if (query.trim().length < 2) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResults([]);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowDropdown(false);
       return;
     }
