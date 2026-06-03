@@ -164,18 +164,9 @@ export default function SearchHero({ onTokenSelect, error }) {
               className="chain-select"
               value={selectedChain}
               onChange={(e) => setSelectedChain(e.target.value)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--text-primary)',
-                padding: '0 12px',
-                outline: 'none',
-                cursor: 'pointer',
-                borderRight: '1px solid rgba(255,255,255,0.1)'
-              }}
             >
               {SUPPORTED_CHAINS.map(c => (
-                <option key={c.id} value={c.id} style={{background: 'var(--bg-primary)'}}>{c.name}</option>
+                <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
             <input
