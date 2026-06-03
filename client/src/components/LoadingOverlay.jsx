@@ -13,6 +13,11 @@ export default function LoadingOverlay({ tokenName, onComplete }) {
   const [progress, setProgress] = useState(0);
   const timerRef = useRef(null);
   const completedRef = useRef(false);
+  const onCompleteRef = useRef(onComplete);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  });
 
   useEffect(() => {
     const stepDurations = [800, 900, 700, 1000]; // ms per step
@@ -44,7 +49,7 @@ export default function LoadingOverlay({ tokenName, onComplete }) {
         clearInterval(timerRef.current);
         // Small delay after 100% before transitioning
         setTimeout(() => {
-          onComplete?.();
+          onCompleteRef.current?.();
         }, 400);
       }
     };
@@ -54,7 +59,7 @@ export default function LoadingOverlay({ tokenName, onComplete }) {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [onComplete]);
+  }, []); // run once on mount — onComplete accessed via ref
 
   // If data arrives early but animation hasn't finished, wait for animation
   // If animation finishes but no data, the onComplete will trigger ReportView

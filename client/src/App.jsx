@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import SearchHero from './components/SearchHero';
 import LoadingOverlay from './components/LoadingOverlay';
 import ReportView from './components/ReportView';
@@ -11,15 +11,25 @@ function App() {
   const [error, setError] = useState(null);
   const [selectedToken, setSelectedToken] = useState(null);
 
+  // Refs to coordinate between async fetch and animation completion
+  const reportDataRef = useRef(null);
+  const loadingCompleteRef = useRef(false);
+
   const handleTokenSelect = useCallback(async (token) => {
+    reportDataRef.current = null;
+    loadingCompleteRef.current = false;
     setSelectedToken(token);
     setError(null);
     setCurrentView('loading');
 
     try {
       const data = await getReport(token.id, token.address, token.chain);
+      reportDataRef.current = data;
       setReportData(data);
-      // Don't switch to report view yet — LoadingOverlay will call onComplete
+      // If animation already finished, transition immediately
+      if (loadingCompleteRef.current) {
+        setCurrentView('report');
+      }
     } catch (err) {
       setError(err.message || 'Failed to generate report. Please try again.');
       setCurrentView('search');
@@ -27,12 +37,17 @@ function App() {
   }, []);
 
   const handleLoadingComplete = useCallback(() => {
-    if (reportData) {
+    loadingCompleteRef.current = true;
+    // If data already arrived, transition immediately
+    if (reportDataRef.current) {
       setCurrentView('report');
     }
-  }, [reportData]);
+    // else: handleTokenSelect will transition when data arrives
+  }, []);
 
   const handleBackToSearch = useCallback(() => {
+    reportDataRef.current = null;
+    loadingCompleteRef.current = false;
     setCurrentView('search');
     setReportData(null);
     setSelectedToken(null);
@@ -53,7 +68,6 @@ function App() {
         <LoadingOverlay
           tokenName={selectedToken?.name || 'Token'}
           onComplete={handleLoadingComplete}
-          hasData={!!reportData}
         />
       )}
 
