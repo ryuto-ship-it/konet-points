@@ -40,8 +40,8 @@ You MUST output ONLY valid JSON in the exact structure below:
   "onchain_metrics": "Analyze ALL of the following if data exists: - Total transactions and daily average - Holder count and top holder concentration - Top 10 holder ratio (flag if >50% as HIGH RISK) - Recent large transactions - Contract verification status - GoPlus: honeypot status, buy/sell tax, mintable, owner renounced Cite each metric with its source in brackets.",
   "risk_matrix": {
     "contractRisk": "Analysis of smart contract risk based on verification status.",
-    "liquidityMarketRisk": "Analysis of market risks (e.g. ATH drop, volume).",
-    "goplusRisk": "GoPlus 보안 스캔 결과 요약. 허니팟 여부, 세금 비율, 소유권 리스크 명시.",
+    "liquidityMarketRisk": "Analysis of market risks: ATH drop percentage, 24h volume. If marketData.dexData is present, include DEX liquidity (dexData.liquidity) and 24h DEX volume (dexData.volume24h) and cite as [DexScreener].",
+    "goplusRisk": "GoPlus 보안 스캔 결과 요약. 허니팟 여부, 세금 비율, 소유권 리스크 명시. 데이터 없으면 'GoPlus 스캔 데이터 없음' 출력.",
     "details": "Overall risk commentary."
   },
   "listing_assessment": {
@@ -73,10 +73,8 @@ function generateMockAnalysis(aggregatedData) {
     ? `$${(marketCap / 1e9).toFixed(1)}B`
     : `$${(marketCap / 1e6).toFixed(1)}M`;
 
-  const mcapShare = ((marketCap / 2.5e12) * 100).toFixed(4);
   const volPercent = marketCap ? ((aggregatedData.marketData?.total_volume / marketCap) * 100).toFixed(2) : '4.39';
-  
-  // Calculate ATH drop
+
   const ath = aggregatedData.marketData?.ath || 0;
   const currentPrice = aggregatedData.marketData?.current_price || 0;
   let athDrop = 0;
@@ -85,33 +83,73 @@ function generateMockAnalysis(aggregatedData) {
   }
   const athWarning = athDrop >= 90 ? "⚠️ ATH 대비 90% 이상 하락하여 막대한 매물대 저항 및 투자 심리 악화 상태임. " : "";
 
+  // Build goplusRisk from actual GoPlus data
+  const goplus = aggregatedData.goplusSecurity;
+  let goplusRisk;
+  if (!goplus) {
+    goplusRisk = "GoPlus 보안 스캔 데이터 없음 — API 미연동 또는 컨트랙트 주소 없음";
+  } else {
+    const flags = [];
+    if (goplus.isHoneypot) flags.push("🚨 허니팟 감지 (CRITICAL) [GoPlus Security]");
+    if (parseFloat(goplus.sellTax) > 10) flags.push(`⚠️ 높은 판매세 ${goplus.sellTax}% (HIGH) [GoPlus Security]`);
+    if (parseFloat(goplus.buyTax) > 10) flags.push(`⚠️ 높은 구매세 ${goplus.buyTax}% (HIGH) [GoPlus Security]`);
+    if (goplus.canTakeBackOwnership) flags.push("⚠️ 소유권 회수 가능 (HIGH) [GoPlus Security]");
+    if (goplus.isMintable) flags.push("⚠️ 추가 발행 가능 (MEDIUM) [GoPlus Security]");
+    if (!goplus.isOpenSource) flags.push("컨트랙트 비공개 [GoPlus Security]");
+    if (goplus.isProxy) flags.push("프록시 컨트랙트 [GoPlus Security]");
+    goplusRisk = flags.length > 0
+      ? flags.join(". ")
+      : `주요 보안 리스크 없음. 구매세 ${goplus.buyTax}%, 판매세 ${goplus.sellTax}% [GoPlus Security]`;
+  }
+
+  // Build liquidityMarketRisk using DexScreener data
+  const dex = aggregatedData.marketData?.dexData;
+  let liquidityMarketRisk = athDrop >= 90
+    ? `⚠️ 고위험 — ATH 대비 ${athDrop.toFixed(1)}% 하락 [CoinGecko]`
+    : `보통 — ATH 대비 ${athDrop.toFixed(1)}% 하락 [CoinGecko]`;
+  if (dex?.liquidity) {
+    const liqFormatted = dex.liquidity >= 1e6
+      ? `$${(dex.liquidity / 1e6).toFixed(2)}M`
+      : `$${(dex.liquidity / 1e3).toFixed(0)}K`;
+    liquidityMarketRisk += `. DEX 유동성 ${liqFormatted} [DexScreener]`;
+  }
+  if (dex?.volume24h) {
+    const volFormatted = dex.volume24h >= 1e6
+      ? `$${(dex.volume24h / 1e6).toFixed(2)}M`
+      : `$${(dex.volume24h / 1e3).toFixed(0)}K`;
+    liquidityMarketRisk += `. 24h 거래량 ${volFormatted} [DexScreener]`;
+  }
+
   return {
     executive_summary: `${athWarning}${name} (${symbol})은 현재 $${price} [CoinGecko]에 거래 중이며, 시가총액 ${mcapFormatted} [CoinGecko]을 기록하고 있습니다. 전반적인 온체인 데이터는 건전하나 가격 변동성에 유의해야 합니다.`,
-    
+
     project_overview: `${name}은 스마트 컨트랙트 기능을 지원하는 탈중앙화 오픈소스 블록체인입니다. [CoinGecko]`,
-    
+
     tokenomics: `유통량 비율은 전체 공급량 대비 99.8% [CoinGecko]로 매우 건전하며, 시가총액 대비 거래량은 약 ${volPercent}% [CoinGecko] 수준을 기록하고 있습니다.`,
-    
+
     team_investors: `공개 정보 없음`,
-    
+
     onchain_metrics: `${aggregatedData.onchainData?.transactionCount ? `총 트랜잭션 수치 ${aggregatedData.onchainData.transactionCount}건 [Etherscan]` : '데이터 없음 — 해당 API 미연동'}`,
-    
+
     risk_matrix: {
-      contractRisk: aggregatedData.onchainData?.contractVerified ? "스마트 컨트랙트 검증 완료 [Etherscan]" : "컨트랙트 소스코드 미검증 — 잠재적 취약점 주의 요망 [Etherscan]",
-      liquidityMarketRisk: athDrop >= 90 ? `고위험 (ATH 대비 ${athDrop.toFixed(1)}% 하락) [CoinGecko]` : "보통 (유동성 정상)",
-      goplusRisk: "GoPlus 보안 스캔 결과 요약. 허니팟 여부, 세금 비율, 소유권 리스크 명시.",
+      contractRisk: aggregatedData.onchainData?.contractVerified
+        ? "스마트 컨트랙트 검증 완료 [Etherscan]"
+        : "컨트랙트 소스코드 미검증 — 잠재적 취약점 주의 요망 [Etherscan]",
+      liquidityMarketRisk,
+      goplusRisk,
       details: "현재 시장 변동성 외에 특별히 보고된 치명적 리스크는 관측되지 않음."
     },
-    
+
     listing_assessment: {
       grade: athDrop >= 90 ? "C" : "A",
       summary: `온체인 유동성 및 거래량 기준을 만족${athDrop >= 90 ? "하나, 막대한 고점 대비 하락폭으로 인해 신규 상장 매력도 감소" : "하여 상장 적합성 매우 높음"}.`
     },
-    
+
     data_sources: [
       "CoinGecko API (Market Data)",
       "Etherscan API (On-chain Data)",
       "GoPlus Security API (Contract Risk Data)",
+      "DexScreener API (DEX Liquidity & Trading Data)",
       "CoinMarketCap API (Project Info)"
     ]
   };
