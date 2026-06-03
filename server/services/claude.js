@@ -34,10 +34,10 @@ You MUST output ONLY valid JSON in the exact structure below:
 
 {
   "executive_summary": "2-3 sentences summarizing the token. Be honest about both positive and negative aspects.",
-  "project_overview": "What the project actually does, its use cases, and current development stage based on provided data.",
+  "project_overview": "Write 3-4 sentences covering: (1) what the project actually does based on description field, (2) which blockchain it runs on, (3) current development stage. If description is empty or null, output '공개된 프로젝트 설명 없음'. DO NOT invent any description. [Source: CoinGecko/DexScreener]",
   "tokenomics": "Details on token distribution, circulating supply ratio, max supply, and market cap to FDV ratio.",
   "team_investors": "Details on the team and backing investors. If not explicitly provided in the data, output '공개 정보 없음'.",
-  "onchain_metrics": "Analysis of on-chain data: transaction count, holder count, smart contract verification, etc.",
+  "onchain_metrics": "Analyze ALL of the following if data exists: - Total transactions and daily average - Holder count and top holder concentration - Top 10 holder ratio (flag if >50% as HIGH RISK) - Recent large transactions - Contract verification status - GoPlus: honeypot status, buy/sell tax, mintable, owner renounced Cite each metric with its source in brackets.",
   "risk_matrix": {
     "contractRisk": "Analysis of smart contract risk based on verification status.",
     "liquidityMarketRisk": "Analysis of market risks (e.g. ATH drop, volume).",
@@ -142,7 +142,10 @@ async function generateReport(aggregatedData) {
     const userMessage = `Analyze the following cryptocurrency token data and provide your structured analysis:
 
 --- TOKEN DATA ---
-${JSON.stringify(aggregatedData, null, 2)}
+${JSON.stringify({
+  ...aggregatedData,
+  goplusSecurity: aggregatedData.goplusSecurity || null
+}, null, 2)}
 --- END TOKEN DATA ---
 
 Respond with ONLY the JSON object as specified. No additional text.`;

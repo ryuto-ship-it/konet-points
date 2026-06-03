@@ -347,10 +347,36 @@ async function getNetworkStats(chainId = 1) {
   }
 }
 
+async function getTokenHolderCount(contractAddress, chainId = 56) {
+  const API_KEY = process.env.ETHERSCAN_API_KEY;
+  const url = `https://api.etherscan.io/v2/api?chainid=${chainId}&module=token&action=tokenholdercount&contractaddress=${contractAddress}&apikey=${API_KEY}`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    return data.result || null;
+  } catch (err) {
+    return null;
+  }
+}
+
+async function getTopTokenHolders(contractAddress, chainId = 56) {
+  const API_KEY = process.env.ETHERSCAN_API_KEY;
+  const url = `https://api.etherscan.io/v2/api?chainid=${chainId}&module=token&action=tokenholderlist&contractaddress=${contractAddress}&page=1&offset=10&apikey=${API_KEY}`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    return data.result || [];
+  } catch (err) {
+    return [];
+  }
+}
+
 module.exports = {
   getTransactionCount,
   getTransactionList,
   getTokenInfo,
   getContractSource,
   getNetworkStats,
+  getTokenHolderCount,
+  getTopTokenHolders,
 };

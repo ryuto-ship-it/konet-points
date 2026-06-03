@@ -10,6 +10,7 @@ const etherscan = require('./etherscan');
 const defillama = require('./defillama');
 const goplus = require('./goplus');
 const cmc = require('./coinmarketcap');
+const dexscreener = require('./dexscreener');
 
 /**
  * Aggregate token data from all API sources.
@@ -101,6 +102,9 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     defiProtocolResult,
     goplusSecurityResult,
     cmcResult,
+    holderCountResult,
+    topHoldersResult,
+    dexDataResult,
     competitorsResult,
   ] = await Promise.allSettled([
     // CoinGecko
@@ -140,6 +144,19 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     // CoinMarketCap
     resolvedAddress
       ? cmc.getProjectInfoByContract(resolvedAddress)
+      : Promise.resolve(null),
+
+    // BscScan / Etherscan Token Holders
+    resolvedAddress
+      ? etherscan.getTokenHolderCount(resolvedAddress, chainId)
+      : Promise.resolve(null),
+    resolvedAddress
+      ? etherscan.getTopTokenHolders(resolvedAddress, chainId)
+      : Promise.resolve(null),
+
+    // DexScreener
+    resolvedAddress
+      ? dexscreener.getPairData(resolvedAddress)
       : Promise.resolve(null),
 
     // Competitors logic
@@ -183,6 +200,9 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const networkStats = extract(networkStatsResult);
   const defiProtocol = extract(defiProtocolResult);
   const cmcData = extract(cmcResult);
+  const holderCountData = extract(holderCountResult);
+  const topHoldersData = extract(topHoldersResult, []);
+  const dexData = extract(dexDataResult);
   const rawCompetitors = extract(competitorsResult, []);
   const goplusData = extract(goplusSecurityResult);
 
@@ -195,8 +215,9 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     name: details.name || market.name || coinId,
     symbol: details.symbol || market.symbol || '',
     image: details.image?.large || market.image || '',
-    description: details.description?.en || cmcData?.description || '',
+    description: details.description?.en || cmcData?.description || dexData?.info?.description || '',
     cmcData: cmcData || null,
+    dexData: dexData || null,
     categories: details.categories || [],
     genesisDate: details.genesis_date || null,
     links: details.links || {},
@@ -247,8 +268,8 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     tokenName: tokenInfoData.tokenName || null,
     tokenType: tokenInfoData.tokenType || null,
     tokenDecimals: tokenInfoData.divisor || null,
-    goplusSecurity: goplusData,
-    holderCount: goplusData?.holderCount || coinGeckoHolderCount,
+    holderCount: holderCountData || coinGeckoHolderCount,
+    topHolders: topHoldersData,
   };
 
   // ── Normalize DeFi data ──────────────────────────────────────────────────────
@@ -303,6 +324,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     defiData,
     priceHistory: normalizedHistory,
     competitors: validCompetitors,
+    goplusSecurity: goplusData
   };
 }
 
