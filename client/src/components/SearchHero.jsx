@@ -78,18 +78,40 @@ export default function SearchHero({ onTokenSelect, error }) {
     onTokenSelect(token);
   }, [onTokenSelect]);
 
-  const handleKeyDown = (e) => {
-    if (!showDropdown || results.length === 0) return;
+  const executeSearch = () => {
+    if (!query.trim()) return;
+    
+    if (showDropdown && results.length > 0 && activeIndex >= 0) {
+      handleSelect(results[activeIndex]);
+      return;
+    }
+    
+    if (results.length > 0) {
+      handleSelect(results[0]);
+      return;
+    }
+    
+    handleSelect({
+      id: query.trim(),
+      name: query.trim(),
+      address: query.trim().startsWith('0x') ? query.trim() : null,
+      chain: selectedChain,
+      symbol: 'TOKEN'
+    });
+  };
 
+  const handleKeyDown = (e) => {
     if (e.key === 'ArrowDown') {
+      if (!showDropdown || results.length === 0) return;
       e.preventDefault();
       setActiveIndex((prev) => (prev < results.length - 1 ? prev + 1 : 0));
     } else if (e.key === 'ArrowUp') {
+      if (!showDropdown || results.length === 0) return;
       e.preventDefault();
       setActiveIndex((prev) => (prev > 0 ? prev - 1 : results.length - 1));
-    } else if (e.key === 'Enter' && activeIndex >= 0) {
+    } else if (e.key === 'Enter') {
       e.preventDefault();
-      handleSelect(results[activeIndex]);
+      executeSearch();
     } else if (e.key === 'Escape') {
       setShowDropdown(false);
     }
@@ -167,12 +189,40 @@ export default function SearchHero({ onTokenSelect, error }) {
               spellCheck="false"
               style={{ flex: 1 }}
             />
-            {isSearching && (
+            {isSearching ? (
               <div className="search-spinner" style={{ marginRight: '16px' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" strokeWidth="2">
                   <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                 </svg>
               </div>
+            ) : (
+              <button 
+                onClick={executeSearch}
+                className="search-button"
+                style={{
+                  background: 'rgba(51,204,204,0.15)',
+                  color: 'var(--accent-cyan)',
+                  border: '1px solid rgba(51,204,204,0.3)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '8px 16px',
+                  margin: '8px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  fontSize: '14px',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.background = 'rgba(51,204,204,0.25)';
+                  e.target.style.borderColor = 'rgba(51,204,204,0.5)';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.background = 'rgba(51,204,204,0.15)';
+                  e.target.style.borderColor = 'rgba(51,204,204,0.3)';
+                }}
+              >
+                검색하기
+              </button>
             )}
           </div>
           <div className="search-glow" />
