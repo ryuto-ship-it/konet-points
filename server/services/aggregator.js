@@ -10,6 +10,7 @@ const etherscan = require('./etherscan');
 const defillama = require('./defillama');
 const goplus = require('./goplus');
 const cmc = require('./coinmarketcap');
+const cmcInternal = require('./cmcInternal');
 const dexscreener = require('./dexscreener');
 const twitter = require('./twitter');
 const bscscan = require('./bscscan');
@@ -96,6 +97,16 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   // Extract Twitter handle from CoinGecko links (available from Step 1)
   const twitterHandle = tokenDetails?.links?.twitter_screen_name || null;
 
+  // ── Step 1b: Resolve CMC ID (needed to call cmcInternal endpoints) ───────────
+  let cmcId = null;
+  if (resolvedAddress) {
+    try {
+      cmcId = await cmcInternal.getCmcIdByAddress(resolvedAddress);
+    } catch (err) {
+      console.warn(`[Aggregator] CMC ID resolution failed: ${err.message}`);
+    }
+  }
+
   // ── Step 2: Run all remaining API calls in parallel ──────────────────────────
   const [
     marketDataResult,
@@ -110,6 +121,9 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     cmcResult,
     cmcMarketResult,
     cmcPairsResult,
+    cmciDetailResult,
+    cmciPairsResult,
+    cmciHoldersResult,
     holderCountResult,
     topHoldersResult,
     dexDataResult,
@@ -155,19 +169,34 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
       ? goplus.getTokenSecurity(resolvedAddress, String(chainId))
       : Promise.resolve(null),
 
-    // CoinMarketCap — project info
+    // CoinMarketCap official API — project info
     resolvedAddress
       ? cmc.getProjectInfoByContract(resolvedAddress)
       : Promise.resolve(null),
 
-    // CoinMarketCap — market data (primary price source)
+    // CoinMarketCap official API — market data (primary price source)
     resolvedAddress
       ? cmc.getMarketDataByContract(resolvedAddress)
       : Promise.resolve(null),
 
-    // CoinMarketCap — exchange pairs (primary exchange listing source)
+    // CoinMarketCap official API — exchange pairs
     resolvedAddress
       ? cmc.getExchangePairsByContract(resolvedAddress)
+      : Promise.resolve(null),
+
+    // CMC internal web API — full token detail (description, socials, tags)
+    cmcId
+      ? cmcInternal.getTokenDetail(cmcId)
+      : Promise.resolve(null),
+
+    // CMC internal web API — exchange market pairs (up to 40, no API key)
+    cmcId
+      ? cmcInternal.getMarketPairs(cmcId, 40)
+      : Promise.resolve([]),
+
+    // CMC internal web API — holder distribution
+    cmcId
+      ? cmcInternal.getHolderAggregated(cmcId)
       : Promise.resolve(null),
 
     // BscScan / Etherscan Token Holders
@@ -250,6 +279,9 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const cmcData = extract(cmcResult);
   const cmcMarketData = extract(cmcMarketResult);
   const cmcPairsData = extract(cmcPairsResult, []);
+  const cmciDetail = extract(cmciDetailResult);
+  const cmciPairs = extract(cmciPairsResult, []);
+  const cmciHolders = extract(cmciHoldersResult);
   const holderCountData = extract(holderCountResult);
   const topHoldersData = extract(topHoldersResult, []);
   const dexData = extract(dexDataResult);
@@ -282,20 +314,25 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const detailMarket = details.market_data || {};
   const hasCmcMarket = !!cmcMarketData?.price;
 
+  // cmcInternal detail is the most complete source (web scrape, no API key needed)
+  const cmciBest = cmciDetail || cmcData;
+
   const marketData = {
-    // Identifiers: CMC → CoinGecko
-    name: cmcData?.name || details.name || market.name || coinId,
-    symbol: cmcData?.symbol || details.symbol || market.symbol || '',
-    image: details.image?.large || market.image || cmcData?.logo || '',
-    description: details.description?.en || cmcData?.description || dexData?.info?.description || '',
+    // Identifiers: cmcInternal → CMC official → CoinGecko
+    name: cmciDetail?.name || cmcData?.name || details.name || market.name || coinId,
+    symbol: cmciDetail?.symbol || cmcData?.symbol || details.symbol || market.symbol || '',
+    image: cmciDetail?.logo || details.image?.large || market.image || cmcData?.logo || '',
+    description: cmciDetail?.description || details.description?.en || cmcData?.description || dexData?.info?.description || '',
     cmcData: cmcData || null,
+    cmciDetail: cmciDetail || null,
     dexData: dexData || null,
-    categories: details.categories || cmcData?.tags || [],
-    genesisDate: cmcData?.dateAdded || details.genesis_date || null,
+    categories: cmciDetail?.tags || details.categories || cmcData?.tags || [],
+    genesisDate: cmciDetail?.dateAdded || cmcData?.dateAdded || details.genesis_date || null,
     links: {
       ...details.links,
-      ...(cmcData?.website ? { homepage: [cmcData.website] } : {}),
-      ...(cmcData?.twitter ? { twitter_screen_name: cmcData.twitter.split('/').pop() } : {}),
+      ...(cmciBest?.website ? { homepage: [cmciBest.website] } : {}),
+      ...(cmciBest?.twitter ? { twitter_screen_name: cmciBest.twitter.split('/').filter(Boolean).pop() } : {}),
+      ...(cmciBest?.telegram ? { telegram_channel_identifier: cmciBest.telegram.split('/').filter(Boolean).pop() } : {}),
     },
     // Price / market metrics: CMC → CoinGecko
     current_price: cmcMarketData?.price || market.current_price || detailMarket.current_price?.usd || 0,
@@ -404,7 +441,24 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   // ── Compute holder concentration ─────────────────────────────────────────────
   let holderAnalysis = null;
 
-  if (actualChain === 'bsc' && bscHoldersData?.topHolders?.length > 0) {
+  if (cmciHolders?.holders?.length > 0) {
+    // CMC internal has pre-computed percentages and labels — highest quality source
+    const holders = cmciHolders.holders.map(h => ({
+      rank: h.rank,
+      address: h.address,
+      balance: h.balance,
+      percentage: parseFloat(h.percentage),
+      label: h.label,
+    }));
+    const top10Total = parseFloat(holders.slice(0, 10).reduce((s, h) => s + h.percentage, 0).toFixed(2));
+    holderAnalysis = {
+      holders,
+      top10TotalPercent: cmciHolders.top10Pct != null ? parseFloat(Number(cmciHolders.top10Pct).toFixed(2)) : top10Total,
+      isHighRisk: (cmciHolders.top10Pct ?? top10Total) > 50,
+      totalHolders: cmciHolders.totalHolders || null,
+      source: 'CoinMarketCap',
+    };
+  } else if (actualChain === 'bsc' && bscHoldersData?.topHolders?.length > 0) {
     // BSC: use bscscan data, recalculate percentages with actual total supply if available
     const actualTotalSupply = marketData.total_supply || 0;
     const holders = bscHoldersData.topHolders.map(h => {
@@ -465,8 +519,9 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const rawSourceCode = (contractSource?.result?.[0]?.SourceCode) || null;
   const contractAnalysis = contractAnalyzer.analyzeSource(rawSourceCode);
 
-  // ── Normalize exchange listings (CMC primary, CoinGecko tickers fallback) ────
-  const exchangeListings = (cmcPairsData.length > 0 ? cmcPairsData : null)
+  // ── Normalize exchange listings: cmcInternal → CMC official → CoinGecko tickers
+  const exchangeListings = (cmciPairs.length > 0 ? cmciPairs : null)
+    || (cmcPairsData.length > 0 ? cmcPairsData : null)
     || (tickersData.length > 0 ? tickersData : null);
 
   return {
