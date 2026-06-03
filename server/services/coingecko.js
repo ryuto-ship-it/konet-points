@@ -21,8 +21,6 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
  * @throws {Error} On network / HTTP errors
  */
 async function fetchCoinGecko(path) {
-  // node-fetch v3 is ESM-only, dynamic import required in CJS
-  const { default: fetch } = await import('node-fetch');
 
   const url = `${BASE_URL}${path}`;
   const headers = {};
@@ -46,7 +44,8 @@ async function fetchCoinGecko(path) {
  * @returns {boolean}
  */
 function shouldUseMock() {
-  return !API_KEY || API_KEY === 'your_coingecko_demo_key';
+  // Try real API first instead of aggressive mock fallback
+  return false;
 }
 
 // ─── Mock Data ─────────────────────────────────────────────────────────────────

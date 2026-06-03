@@ -6,14 +6,15 @@ const API_BASE = import.meta.env.PROD
 /**
  * Search for tokens by name or contract address.
  * @param {string} query - Search query
+ * @param {string} chain - Selected chain for contract searches
  * @returns {Promise<Array>} Array of matching tokens
  */
-export async function searchTokens(query) {
+export async function searchTokens(query, chain = 'ethereum') {
   if (!query || query.trim().length === 0) return [];
 
   try {
     const res = await fetch(
-      `${API_BASE}/search?q=${encodeURIComponent(query.trim())}`
+      `${API_BASE}/search?q=${encodeURIComponent(query.trim())}&chain=${encodeURIComponent(chain)}`
     );
 
     if (!res.ok) {

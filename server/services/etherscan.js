@@ -18,7 +18,8 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
  * @returns {boolean}
  */
 function shouldUseMock() {
-  return !API_KEY || API_KEY === 'your_etherscan_key';
+  // Try real API first instead of aggressive mock fallback
+  return false;
 }
 
 /**
@@ -30,7 +31,6 @@ function shouldUseMock() {
  * @throws {Error} On network / HTTP errors
  */
 async function fetchEtherscan(params, chainId = 1) {
-  const { default: fetch } = await import('node-fetch');
 
   const searchParams = new URLSearchParams({
     ...params,

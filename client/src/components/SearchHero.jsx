@@ -10,8 +10,19 @@ const QUICK_TOKENS = [
   { id: 'aave', name: 'Aave', symbol: 'AAVE', image: 'https://assets.coingecko.com/coins/images/12645/small/aave-token.png', chain: 'ethereum' },
 ];
 
+const SUPPORTED_CHAINS = [
+  { id: 'ethereum', name: 'Ethereum' },
+  { id: 'bsc', name: 'BSC' },
+  { id: 'polygon-pos', name: 'Polygon' },
+  { id: 'arbitrum-one', name: 'Arbitrum' },
+  { id: 'optimistic-ethereum', name: 'Optimism' },
+  { id: 'solana', name: 'Solana' },
+  { id: 'base', name: 'Base' }
+];
+
 export default function SearchHero({ onTokenSelect, error }) {
   const [query, setQuery] = useState('');
+  const [selectedChain, setSelectedChain] = useState('ethereum');
   const [results, setResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -33,7 +44,7 @@ export default function SearchHero({ onTokenSelect, error }) {
     setIsSearching(true);
     debounceRef.current = setTimeout(async () => {
       try {
-        const data = await searchTokens(query);
+        const data = await searchTokens(query, selectedChain);
         setResults(data.slice(0, 8));
         setShowDropdown(true);
         setActiveIndex(-1);
@@ -47,7 +58,7 @@ export default function SearchHero({ onTokenSelect, error }) {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [query]);
+  }, [query, selectedChain]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -124,13 +135,25 @@ export default function SearchHero({ onTokenSelect, error }) {
           style={{ animationDelay: '0.3s' }}
           ref={dropdownRef}
         >
-          <div className={`search-bar ${query ? 'search-bar--active' : ''}`}>
-            <div className="search-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.35-4.35" />
-              </svg>
-            </div>
+          <div className={`search-bar ${query ? 'search-bar--active' : ''}`} style={{ display: 'flex', gap: '8px' }}>
+            <select 
+              className="chain-select"
+              value={selectedChain}
+              onChange={(e) => setSelectedChain(e.target.value)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-primary)',
+                padding: '0 12px',
+                outline: 'none',
+                cursor: 'pointer',
+                borderRight: '1px solid rgba(255,255,255,0.1)'
+              }}
+            >
+              {SUPPORTED_CHAINS.map(c => (
+                <option key={c.id} value={c.id} style={{background: 'var(--bg-primary)'}}>{c.name}</option>
+              ))}
+            </select>
             <input
               ref={inputRef}
               type="text"
@@ -142,9 +165,10 @@ export default function SearchHero({ onTokenSelect, error }) {
               onFocus={() => results.length > 0 && setShowDropdown(true)}
               autoComplete="off"
               spellCheck="false"
+              style={{ flex: 1 }}
             />
             {isSearching && (
-              <div className="search-spinner">
+              <div className="search-spinner" style={{ marginRight: '16px' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" strokeWidth="2">
                   <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                 </svg>

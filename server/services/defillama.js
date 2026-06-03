@@ -21,7 +21,6 @@ const PROTOCOLS_CACHE_TTL = 30 * 60 * 1000; // 30 minutes (heavy cache)
  * @throws {Error} On network / HTTP errors
  */
 async function fetchDefiLlama(path) {
-  const { default: fetch } = await import('node-fetch');
 
   const url = `${BASE_URL}${path}`;
   console.log(`[DefiLlama] GET ${url}`);

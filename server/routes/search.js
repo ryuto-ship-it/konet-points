@@ -22,6 +22,7 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 router.get('/', async (req, res, next) => {
   try {
     const query = (req.query.q || '').trim();
+    const chain = req.query.chain || 'ethereum';
 
     if (!query) {
       return res.status(400).json({
@@ -31,14 +32,14 @@ router.get('/', async (req, res, next) => {
     }
 
     // Check cache
-    const cacheKey = `search:${query.toLowerCase()}`;
+    const cacheKey = `search:${query.toLowerCase()}:${chain}`;
     const cached = cache.get(cacheKey);
     if (cached) {
-      console.log(`[Search] Cache hit for "${query}"`);
+      console.log(`[Search] Cache hit for "${query}" on "${chain}"`);
       return res.json(cached);
     }
 
-    console.log(`[Search] Searching for "${query}"`);
+    console.log(`[Search] Searching for "${query}" on "${chain}"`);
 
     // Detect if search query is a contract address (0x followed by 40 hex characters)
     const isAddress = /^0x[a-fA-F0-9]{40}$/.test(query);
@@ -46,9 +47,9 @@ router.get('/', async (req, res, next) => {
     let results = [];
 
     if (isAddress) {
-      console.log(`[Search] Contract address detected: ${query}. Querying CoinGecko by contract...`);
+      console.log(`[Search] Contract address detected: ${query}. Querying CoinGecko on ${chain}...`);
       try {
-        const coinData = await coingecko.getTokenByContract('ethereum', query);
+        const coinData = await coingecko.getTokenByContract(chain, query);
         if (coinData && coinData.id) {
           results = [{
             id: coinData.id,
@@ -57,7 +58,7 @@ router.get('/', async (req, res, next) => {
             image: coinData.image?.large || coinData.image?.thumb || '',
             market_cap_rank: coinData.market_cap_rank || null,
             address: query,
-            chain: 'ethereum',
+            chain: chain,
           }];
         }
       } catch (err) {
