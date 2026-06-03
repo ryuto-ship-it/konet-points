@@ -68,8 +68,8 @@ function generateMockAnalysis(aggregatedData) {
   const price = aggregatedData.marketData?.current_price || 'N/A';
   const marketCap = aggregatedData.marketData?.market_cap || 0;
   const mcapFormatted = marketCap > 1e9
-    ? \`$\${(marketCap / 1e9).toFixed(1)}B\`
-    : \`$\${(marketCap / 1e6).toFixed(1)}M\`;
+    ? `$${(marketCap / 1e9).toFixed(1)}B`
+    : `$${(marketCap / 1e6).toFixed(1)}M`;
 
   const mcapShare = ((marketCap / 2.5e12) * 100).toFixed(4);
   const volPercent = marketCap ? ((aggregatedData.marketData?.total_volume / marketCap) * 100).toFixed(2) : '4.39';
@@ -84,26 +84,26 @@ function generateMockAnalysis(aggregatedData) {
   const athWarning = athDrop >= 90 ? "⚠️ ATH 대비 90% 이상 하락하여 막대한 매물대 저항 및 투자 심리 악화 상태임. " : "";
 
   return {
-    executive_summary: \`\${athWarning}\${name} (\${symbol})은 현재 $\${price} [CoinGecko]에 거래 중이며, 시가총액 \${mcapFormatted} [CoinGecko]을 기록하고 있습니다. 전반적인 온체인 데이터는 건전하나 가격 변동성에 유의해야 합니다.\`,
+    executive_summary: `${athWarning}${name} (${symbol})은 현재 $${price} [CoinGecko]에 거래 중이며, 시가총액 ${mcapFormatted} [CoinGecko]을 기록하고 있습니다. 전반적인 온체인 데이터는 건전하나 가격 변동성에 유의해야 합니다.`,
     
-    project_overview: \`\${name}은 스마트 컨트랙트 기능을 지원하는 탈중앙화 오픈소스 블록체인입니다. [CoinGecko]\`,
+    project_overview: `${name}은 스마트 컨트랙트 기능을 지원하는 탈중앙화 오픈소스 블록체인입니다. [CoinGecko]`,
     
-    tokenomics: \`유통량 비율은 전체 공급량 대비 99.8% [CoinGecko]로 매우 건전하며, 시가총액 대비 거래량은 약 \${volPercent}% [CoinGecko] 수준을 기록하고 있습니다.\`,
+    tokenomics: `유통량 비율은 전체 공급량 대비 99.8% [CoinGecko]로 매우 건전하며, 시가총액 대비 거래량은 약 ${volPercent}% [CoinGecko] 수준을 기록하고 있습니다.`,
     
-    team_investors: \`공개 정보 없음\`,
+    team_investors: `공개 정보 없음`,
     
-    onchain_metrics: \`\${aggregatedData.onchainData?.transactionCount ? \`총 트랜잭션 수치 \${aggregatedData.onchainData.transactionCount}건 [Etherscan]\` : '데이터 없음 — 해당 API 미연동'}\`,
+    onchain_metrics: `${aggregatedData.onchainData?.transactionCount ? `총 트랜잭션 수치 ${aggregatedData.onchainData.transactionCount}건 [Etherscan]` : '데이터 없음 — 해당 API 미연동'}`,
     
     risk_matrix: {
       contractRisk: aggregatedData.onchainData?.contractVerified ? "스마트 컨트랙트 검증 완료 [Etherscan]" : "컨트랙트 소스코드 미검증 — 잠재적 취약점 주의 요망 [Etherscan]",
-      liquidityMarketRisk: athDrop >= 90 ? \`고위험 (ATH 대비 \${athDrop.toFixed(1)}% 하락) [CoinGecko]\` : "보통 (유동성 정상)",
+      liquidityMarketRisk: athDrop >= 90 ? `고위험 (ATH 대비 ${athDrop.toFixed(1)}% 하락) [CoinGecko]` : "보통 (유동성 정상)",
       goplusRisk: "GoPlus 보안 스캔 결과 요약. 허니팟 여부, 세금 비율, 소유권 리스크 명시.",
       details: "현재 시장 변동성 외에 특별히 보고된 치명적 리스크는 관측되지 않음."
     },
     
     listing_assessment: {
       grade: athDrop >= 90 ? "C" : "A",
-      summary: \`온체인 유동성 및 거래량 기준을 만족\${athDrop >= 90 ? "하나, 막대한 고점 대비 하락폭으로 인해 신규 상장 매력도 감소" : "하여 상장 적합성 매우 높음"}.\`
+      summary: `온체인 유동성 및 거래량 기준을 만족${athDrop >= 90 ? "하나, 막대한 고점 대비 하락폭으로 인해 신규 상장 매력도 감소" : "하여 상장 적합성 매우 높음"}.`
     },
     
     data_sources: [
