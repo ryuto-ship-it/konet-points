@@ -7,6 +7,9 @@ import Tokenomics from './sections/Tokenomics';
 import TeamInvestors from './sections/TeamInvestors';
 import OnchainMetrics from './sections/OnchainMetrics';
 import RiskMatrix from './sections/RiskMatrix';
+import ExchangeListings from './sections/ExchangeListings';
+import HolderAnalysis from './sections/HolderAnalysis';
+import PricePattern from './sections/PricePattern';
 import ListingAssessment from './sections/ListingAssessment';
 import DataSources from './sections/DataSources';
 import './ReportView.css';
@@ -17,6 +20,9 @@ const SECTIONS = [
   { id: 'tokenomics', label: '토크노믹스', labelEn: 'Tokenomics' },
   { id: 'team-investors', label: '팀 & 투자자', labelEn: 'Team & Investors' },
   { id: 'onchain-metrics', label: '온체인 지표', labelEn: 'On-chain Metrics' },
+  { id: 'exchange-listings', label: '거래소 현황', labelEn: 'Exchange Listings' },
+  { id: 'holder-analysis', label: '홀더 분석', labelEn: 'Holder Analysis' },
+  { id: 'price-pattern', label: '가격 패턴', labelEn: 'Price Pattern' },
   { id: 'risk-matrix', label: '리스크 매트릭스', labelEn: 'Risk Matrix' },
   { id: 'listing-assessment', label: '상장 심사', labelEn: 'Listing Assessment' },
   { id: 'data-sources', label: '출처', labelEn: 'Data Sources' },
@@ -89,6 +95,15 @@ export default function ReportView({ data, onBack }) {
             </div>
             <div ref={setSectionRef('onchain-metrics')}>
               <OnchainMetrics data={data} />
+            </div>
+            <div ref={setSectionRef('exchange-listings')}>
+              <ExchangeListings data={data} />
+            </div>
+            <div ref={setSectionRef('holder-analysis')}>
+              <HolderAnalysis data={data} />
+            </div>
+            <div ref={setSectionRef('price-pattern')}>
+              <PricePattern data={data} />
             </div>
             <div ref={setSectionRef('risk-matrix')}>
               <RiskMatrix data={data} />

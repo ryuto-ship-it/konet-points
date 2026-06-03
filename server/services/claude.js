@@ -20,41 +20,41 @@ function shouldUseMock() {
 
 // ─── System Prompt ─────────────────────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `You are an expert cryptocurrency analyst providing an institutional-grade token analysis report.
+const SYSTEM_PROMPT = `You are an expert cryptocurrency analyst for an institutional exchange listing desk.
 
 CRITICAL RULES:
-1. NO HALLUCINATION: You MUST base your entire analysis strictly on the provided JSON data. NEVER invent or guess team members, investors, VC names, or features. If data for a section is missing in the JSON, you MUST output "공개 정보 없음" or "데이터 없음 — 해당 API 미연동". Do NOT fill missing sections with generic boilerplate or assumptions.
-2. CITATIONS REQUIRED: Every numerical figure or factual metric MUST include an inline citation in brackets indicating the data source (e.g., "$1.1M [CoinGecko]"). The sources available are CoinGecko, Etherscan, and DefiLlama.
-3. HIGHLIGHT SEVERE RISKS: If the token has fallen 90% or more from its All-Time High (ATH), or if other severe red flags exist, you MUST place a "⚠️" warning emoji at the beginning of the relevant section and describe the negative impact bluntly. Do NOT sugarcoat negative metrics.
-4. STRICT COMPETITOR RULES: You are provided with a 'competitors' array of actual tokens within a ±50% market cap range. You MUST ONLY compare the token to the entities in this specific array. Do NOT use your pre-trained knowledge to invent competitors. If the 'competitors' array is empty, you MUST state "유사 시총 프로젝트 데이터 없음".
-5. GOPLUS SECURITY DATA: When goplusSecurity data is provided, you MUST use it for the risk_matrix section. Specifically flag: is_honeypot=true as CRITICAL risk, sell_tax above 10% as HIGH risk, can_take_back_ownership=true as HIGH risk, is_mintable=true as MEDIUM risk. Always cite as [GoPlus Security].
-6. COINMARKETCAP DATA: Use cmcData (projectDescription, website, twitter, telegram, tags, certikScore) if provided to enrich the project_overview and team_investors sections. Cite as [CoinMarketCap].
-7. TWITTER DATA: When twitterData is provided, include in team_investors: follower count (cite as [Twitter API]), account creation date, recent 7-day tweet activity, and verified status. If followersCount < 1000, flag as LOW community engagement. If recentTweetCount7d === 0, flag as INACTIVE account.
+1. NO HALLUCINATION: Base analysis STRICTLY on provided JSON data and computed_metrics. NEVER invent team members, investors, or features. Missing data → "공개 정보 없음" or "데이터 없음".
+2. DATA-FIRST: computed_metrics contains pre-calculated numbers. Use EXACTLY these numbers — do NOT recalculate. Cite each figure with its source in brackets (e.g. "$1.1M [CoinGecko]").
+3. INTERPRETATION ONLY: For each section, your role is to interpret the pre-computed numbers in 2-3 concise sentences. Do NOT pad with generic text.
+4. SEVERE RISK FLAGS: ATH drop ≥90% → prepend "⚠️". Honeypot detected → prepend "🚨 CRITICAL".
+5. COMPETITOR RULE: Only reference tokens in the provided competitors array. Empty array → "유사 시총 프로젝트 데이터 없음".
+6. GOPLUS: Use computed_metrics.goplus_flags exactly. ownership_renounced=true → "소유권 포기 완료 ✓". is_honeypot=true → CRITICAL. sell_tax>10 → HIGH risk. can_take_back_ownership=true → HIGH risk. is_mintable=true → MEDIUM risk.
+7. HOLDER RISK: computed_metrics.holder_concentration.top10_pct > 50% → flag as HIGH RISK in risk_matrix.holderConcentrationRisk.
+8. TWITTER: If twitterData present, include followers/activity in team_investors. followers < 1000 → LOW engagement flag.
 
-You MUST output ONLY valid JSON in the exact structure below:
+You MUST output ONLY valid JSON in this exact structure:
 
 {
-  "executive_summary": "2-3 sentences summarizing the token. Be honest about both positive and negative aspects.",
-  "project_overview": "Write 3-4 sentences covering: (1) what the project actually does based on description field, (2) which blockchain it runs on, (3) current development stage. If description is empty or null, output '공개된 프로젝트 설명 없음'. DO NOT invent any description. [Source: CoinGecko/DexScreener]",
-  "tokenomics": "Details on token distribution, circulating supply ratio, max supply, and market cap to FDV ratio.",
-  "team_investors": "Details on the team and backing investors. Include Twitter social metrics if twitterData is present: follower count [Twitter API], account created date [Twitter API], recent 7-day tweet count [Twitter API], verified status. If not explicitly provided in the data, output '공개 정보 없음'.",
-  "onchain_metrics": "Analyze ALL of the following if data exists: - Total transactions and daily average - Holder count and top holder concentration - Top 10 holder ratio (flag if >50% as HIGH RISK) - Recent large transactions - Contract verification status - GoPlus: honeypot status, buy/sell tax, mintable, owner renounced Cite each metric with its source in brackets.",
+  "executive_summary": "2-3 sentences. Cite key price/market metrics. Flag ⚠️ if ATH drop ≥90%.",
+  "project_overview": "3-4 sentences: what it does, which chain, development stage. No description → '공개된 프로젝트 설명 없음'. [CoinGecko/DexScreener]",
+  "tokenomics": "Interpret: circulating/total supply ratio, FDV vs market cap, max supply. Use numbers from marketData.",
+  "team_investors": "Team info from data only. Include Twitter metrics if present. No data → '공개 정보 없음'.",
+  "onchain_metrics": "Interpret computed_metrics numbers: tx count, holder count, top10 concentration. Flag risks. Cite sources.",
   "risk_matrix": {
-    "contractRisk": "Analysis of smart contract risk based on verification status.",
-    "liquidityMarketRisk": "Analysis of market risks: ATH drop percentage, 24h volume. If marketData.dexData is present, include DEX liquidity (dexData.liquidity) and 24h DEX volume (dexData.volume24h) and cite as [DexScreener].",
-    "goplusRisk": "GoPlus 보안 스캔 결과 요약. 허니팟 여부, 세금 비율, 소유권 리스크 명시. 데이터 없으면 'GoPlus 스캔 데이터 없음' 출력.",
-    "details": "Overall risk commentary."
+    "contractRisk": "Contract verification status interpretation. [Etherscan]",
+    "liquidityMarketRisk": "ATH drop%, DEX liquidity, 24h volume interpretation. [CoinGecko/DexScreener]",
+    "goplusRisk": "Interpret computed_metrics.goplus_flags exactly. List each flag found. [GoPlus Security]",
+    "holderConcentrationRisk": "Interpret computed_metrics.holder_concentration.top10_pct. Flag HIGH RISK if >50%. [Etherscan]",
+    "details": "Overall risk summary in 2 sentences."
   },
+  "holder_analysis_interpretation": "2-3 sentences interpreting top holder concentration and what it means for listing risk.",
+  "price_pattern_interpretation": "2-3 sentences interpreting volatility30d, volumeSpikeRatio, rangePercent30d from computed_metrics.",
+  "exchange_listing_interpretation": "2-3 sentences on current exchange presence, trust scores, and listing strategy recommendation.",
   "listing_assessment": {
     "grade": "A|B|C|D|F",
-    "summary": "Final verdict on exchange listing suitability."
+    "summary": "2-3 sentences: final verdict citing key positive and negative factors from computed_metrics."
   },
-  "data_sources": [
-    "CoinGecko API (Market Data)",
-    "Etherscan API (On-chain Data)",
-    "GoPlus Security API (Contract Risk Data)",
-    "CoinMarketCap API (Project Info)"
-  ]
+  "data_sources": ["CoinGecko API", "Etherscan API", "GoPlus Security API", "DexScreener API", "CoinMarketCap API"]
 }`;
 
 // ─── Mock Analysis ─────────────────────────────────────────────────────────────
@@ -159,8 +159,40 @@ function generateMockAnalysis(aggregatedData) {
         : "컨트랙트 소스코드 미검증 — 잠재적 취약점 주의 요망 [Etherscan]",
       liquidityMarketRisk,
       goplusRisk,
+      holderConcentrationRisk: (() => {
+        const ha = aggregatedData.holderAnalysis;
+        if (!ha) return "홀더 분포 데이터 없음 — Etherscan API 미연동";
+        return ha.isHighRisk
+          ? `⚠️ 상위 10개 지갑 보유 비율 ${ha.top10TotalPercent}% (HIGH RISK — 50% 초과) [Etherscan]`
+          : `상위 10개 지갑 보유 비율 ${ha.top10TotalPercent}% (정상 범위) [Etherscan]`;
+      })(),
       details: "현재 시장 변동성 외에 특별히 보고된 치명적 리스크는 관측되지 않음."
     },
+
+    holder_analysis_interpretation: (() => {
+      const ha = aggregatedData.holderAnalysis;
+      if (!ha) return "홀더 분포 데이터 없음";
+      return ha.isHighRisk
+        ? `⚠️ 상위 10개 지갑이 전체 공급량의 ${ha.top10TotalPercent}%를 보유 중으로 고집중 리스크가 존재합니다 [Etherscan]. 소수 대형 보유자의 매도 시 급격한 가격 하락 가능성이 높습니다. 상장 전 락업 조건 부과를 권고합니다.`
+        : `상위 10개 지갑의 보유 비율이 ${ha.top10TotalPercent}%로 적정 분산 수준입니다 [Etherscan]. 홀더 집중도 리스크는 낮으며 상장 후 덤핑 위험이 상대적으로 낮습니다.`;
+    })(),
+
+    price_pattern_interpretation: (() => {
+      const pp = aggregatedData.pricePattern;
+      if (!pp) return "가격 패턴 데이터 없음";
+      const volMsg = pp.volumeSpikeRatio && pp.volumeSpikeRatio > 5
+        ? `거래량 스파이크 비율 ${pp.volumeSpikeRatio}x로 비정상적 급등 이력이 감지됩니다 [CoinGecko].`
+        : `거래량 패턴이 비교적 안정적입니다 [CoinGecko].`;
+      return `30일 변동성 ${pp.volatility30d}%, 가격 범위 ${pp.rangePercent30d}% [CoinGecko]. ${volMsg}`;
+    })(),
+
+    exchange_listing_interpretation: (() => {
+      const ex = aggregatedData.exchangeListings;
+      if (!ex || ex.length === 0) return "현재 주요 거래소 상장 데이터 없음 — CoinGecko Tickers API 미연동 또는 미상장 토큰";
+      const greenCount = ex.filter(e => e.trustScore === 'green').length;
+      const topNames = ex.slice(0, 3).map(e => e.exchangeName).join(', ');
+      return `현재 ${ex.length}개 거래소에 상장되어 있으며 신뢰도 'green' 등급 ${greenCount}개 [CoinGecko]. 주요 상장처: ${topNames}. 추가 메이저 거래소 상장 시 유동성 개선 효과가 기대됩니다.`;
+    })(),
 
     listing_assessment: {
       grade: athDrop >= 90 ? "C" : "A",
@@ -168,11 +200,12 @@ function generateMockAnalysis(aggregatedData) {
     },
 
     data_sources: [
-      "CoinGecko API (Market Data)",
-      "Etherscan API (On-chain Data)",
-      "GoPlus Security API (Contract Risk Data)",
+      "CoinGecko API (Market Data & Exchange Tickers)",
+      "Etherscan API (On-chain Data & Holder Analysis)",
+      "GoPlus Security API (Contract Security)",
       "DexScreener API (DEX Liquidity & Trading Data)",
-      "CoinMarketCap API (Project Info)"
+      "CoinMarketCap API (Project Info)",
+      "Twitter API (Social Metrics)"
     ]
   };
 }
@@ -199,14 +232,59 @@ async function generateReport(aggregatedData) {
     const Anthropic = require('@anthropic-ai/sdk');
     const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 
-    const userMessage = `Analyze the following cryptocurrency token data and provide your structured analysis:
+    // Pre-compute key metrics so Claude interprets numbers, not derives them
+    const gp = aggregatedData.goplusSecurity;
+    const ath = aggregatedData.marketData?.ath || 0;
+    const price = aggregatedData.marketData?.current_price || 0;
+    const athDropPct = ath > 0 ? parseFloat(((ath - price) / ath * 100).toFixed(1)) : null;
+    const tokenAgeDays = aggregatedData.tokenCreationDate
+      ? Math.floor((Date.now() - new Date(aggregatedData.tokenCreationDate).getTime()) / 86400000)
+      : null;
 
---- TOKEN DATA ---
+    const computed_metrics = {
+      ath_drop_pct: athDropPct,
+      token_age_days: tokenAgeDays,
+      token_creation_date: aggregatedData.tokenCreationDate || null,
+      holder_concentration: aggregatedData.holderAnalysis ? {
+        top10_pct: aggregatedData.holderAnalysis.top10TotalPercent,
+        is_high_risk: aggregatedData.holderAnalysis.isHighRisk,
+        top_holders: aggregatedData.holderAnalysis.holders,
+      } : null,
+      price_pattern: aggregatedData.pricePattern || null,
+      exchange_count: aggregatedData.exchangeListings?.length || 0,
+      top_exchanges: (aggregatedData.exchangeListings || []).slice(0, 5).map(e => ({
+        name: e.exchangeName,
+        pair: e.pair,
+        volume24h_usd: e.volume24hUsd,
+        trust_score: e.trustScore,
+      })),
+      goplus_flags: gp ? {
+        is_honeypot: gp.isHoneypot,
+        buy_tax_pct: gp.buyTax,
+        sell_tax_pct: gp.sellTax,
+        can_take_back_ownership: gp.canTakeBackOwnership,
+        is_mintable: gp.isMintable,
+        is_open_source: gp.isOpenSource,
+        is_proxy: gp.isProxy,
+        ownership_renounced: gp.ownerAddress === '0x0000000000000000000000000000000000000000',
+        owner_address: gp.ownerAddress,
+      } : null,
+    };
+
+    const userMessage = `Analyze this token for exchange listing suitability. The computed_metrics object contains pre-calculated numbers — use them directly without recalculating.
+
+--- COMPUTED METRICS (use these exact numbers) ---
+${JSON.stringify(computed_metrics, null, 2)}
+
+--- FULL TOKEN DATA ---
 ${JSON.stringify({
-  ...aggregatedData,
-  goplusSecurity: aggregatedData.goplusSecurity || null
+  marketData: aggregatedData.marketData,
+  onchainData: aggregatedData.onchainData,
+  defiData: aggregatedData.defiData,
+  competitors: aggregatedData.competitors,
+  twitterData: aggregatedData.twitterData,
 }, null, 2)}
---- END TOKEN DATA ---
+--- END DATA ---
 
 Respond with ONLY the JSON object as specified. No additional text.`;
 

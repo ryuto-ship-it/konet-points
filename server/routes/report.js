@@ -92,6 +92,7 @@ router.get('/:coinId', async (req, res, next) => {
         athDate: marketData.ath_date,
         high24h: marketData.high_24h,
         low24h: marketData.low_24h,
+        dexData: marketData.dexData || null,
       },
 
       onchainData: {
@@ -100,8 +101,9 @@ router.get('/:coinId', async (req, res, next) => {
         transactionCount: onchainData.transactionCount,
         dailyTxEstimate: onchainData.dailyTxEstimate,
         holderCount: onchainData.holderCount || null,
-        topHolders: [],    
         contractVerified: onchainData.contractVerified,
+        contractName: onchainData.contractName || null,
+        tokenType: onchainData.tokenType || null,
       },
 
       defiData: {
@@ -115,6 +117,13 @@ router.get('/:coinId', async (req, res, next) => {
         prices: priceHistory.prices,
         volumes: priceHistory.volumes,
       },
+
+      // New data sections
+      exchangeListings: aggregatedData.exchangeListings || null,
+      holderAnalysis: aggregatedData.holderAnalysis || null,
+      pricePattern: aggregatedData.pricePattern || null,
+      tokenCreationDate: aggregatedData.tokenCreationDate || null,
+      goplusSecurity: aggregatedData.goplusSecurity || null,
 
       analysis: analysis,
 

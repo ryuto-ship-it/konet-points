@@ -371,6 +371,37 @@ async function getTopTokenHolders(contractAddress, chainId = 56) {
   }
 }
 
+async function getTokenCreationDate(contractAddress, chainId = 1) {
+  const cacheKey = `es:creation:${chainId}:${contractAddress}`;
+  const cached = cache.get(cacheKey);
+  if (cached !== undefined) return cached;
+
+  try {
+    const data = await fetchEtherscan({
+      module: 'account',
+      action: 'tokentx',
+      contractaddress: contractAddress,
+      page: '1',
+      offset: '1',
+      sort: 'asc',
+    }, chainId);
+
+    const firstTx = data.result?.[0];
+    if (!firstTx?.timeStamp) {
+      cache.set(cacheKey, null, CACHE_TTL);
+      return null;
+    }
+
+    const date = new Date(parseInt(firstTx.timeStamp) * 1000).toISOString();
+    cache.set(cacheKey, date, CACHE_TTL);
+    return date;
+  } catch (err) {
+    console.error(`[Etherscan] getTokenCreationDate failed: ${err.message}`);
+    cache.set(cacheKey, null, CACHE_TTL);
+    return null;
+  }
+}
+
 module.exports = {
   getTransactionCount,
   getTransactionList,
@@ -379,4 +410,5 @@ module.exports = {
   getNetworkStats,
   getTokenHolderCount,
   getTopTokenHolders,
+  getTokenCreationDate,
 };

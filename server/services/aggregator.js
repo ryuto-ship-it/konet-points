@@ -110,6 +110,8 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     topHoldersResult,
     dexDataResult,
     twitterResult,
+    tickersResult,
+    tokenCreationResult,
     competitorsResult,
   ] = await Promise.allSettled([
     // CoinGecko
@@ -169,6 +171,14 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
       ? twitter.getTwitterData(twitterHandle)
       : Promise.resolve(null),
 
+    // CoinGecko exchange tickers
+    coingecko.getTokenTickers(coinId),
+
+    // Token creation date (first ERC-20 tx)
+    resolvedAddress
+      ? etherscan.getTokenCreationDate(resolvedAddress, chainId)
+      : Promise.resolve(null),
+
     // Competitors logic
     (async () => {
       const categories = tokenDetails?.categories || [];
@@ -214,6 +224,8 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const topHoldersData = extract(topHoldersResult, []);
   const dexData = extract(dexDataResult);
   const twitterData = extract(twitterResult);
+  const tickersData = extract(tickersResult, []);
+  const tokenCreationDate = extract(tokenCreationResult);
   const rawCompetitors = extract(competitorsResult, []);
   const goplusData = extract(goplusSecurityResult);
 
@@ -328,6 +340,57 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
 
   console.log(`[Aggregator] Found ${validCompetitors.length} competitors within ±50% market cap.`);
 
+  // ── Compute holder concentration ─────────────────────────────────────────────
+  let holderAnalysis = null;
+  if (topHoldersData && topHoldersData.length > 0 && tokenInfoData.totalSupply) {
+    try {
+      const totalSupply = BigInt(tokenInfoData.totalSupply);
+      const holders = topHoldersData.slice(0, 10).map(h => {
+        let qty = BigInt(0);
+        try { qty = BigInt(h.TokenHolderQuantity || '0'); } catch {}
+        const pct = totalSupply > 0n
+          ? parseFloat((Number(qty * 10000n / totalSupply) / 100).toFixed(2))
+          : 0;
+        return { address: h.TokenHolderAddress, percentage: pct };
+      });
+      const top10Total = parseFloat(holders.reduce((s, h) => s + h.percentage, 0).toFixed(2));
+      holderAnalysis = { holders, top10TotalPercent: top10Total, isHighRisk: top10Total > 50 };
+    } catch (e) {
+      console.warn(`[Aggregator] Holder concentration calc failed: ${e.message}`);
+    }
+  }
+
+  // ── Compute price pattern ────────────────────────────────────────────────────
+  let pricePattern = null;
+  const prices = normalizedHistory.prices;
+  const volumes = normalizedHistory.volumes;
+  if (prices.length >= 7) {
+    const returns = [];
+    for (let i = 1; i < prices.length; i++) {
+      const prev = prices[i - 1][1], curr = prices[i][1];
+      if (prev > 0) returns.push((curr - prev) / prev);
+    }
+    if (returns.length > 0) {
+      const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
+      const variance = returns.reduce((a, b) => a + (b - mean) ** 2, 0) / returns.length;
+      const volatility30d = parseFloat((Math.sqrt(variance) * 100).toFixed(2));
+
+      const vols = volumes.map(v => v[1]).filter(v => v > 0);
+      const avgVol = vols.reduce((a, b) => a + b, 0) / vols.length;
+      const maxVol = Math.max(...vols);
+      const volumeSpikeRatio = avgVol > 0 ? parseFloat((maxVol / avgVol).toFixed(1)) : null;
+
+      const priceVals = prices.map(p => p[1]);
+      const maxP = Math.max(...priceVals), minP = Math.min(...priceVals);
+      const rangePercent30d = minP > 0 ? parseFloat(((maxP - minP) / minP * 100).toFixed(1)) : null;
+
+      pricePattern = { volatility30d, volumeSpikeRatio, rangePercent30d };
+    }
+  }
+
+  // ── Normalize exchange listings ───────────────────────────────────────────────
+  const exchangeListings = tickersData.length > 0 ? tickersData : null;
+
   return {
     actualChain,
     marketData,
@@ -337,6 +400,10 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     competitors: validCompetitors,
     goplusSecurity: goplusData,
     twitterData: twitterData || null,
+    exchangeListings,
+    holderAnalysis,
+    pricePattern,
+    tokenCreationDate: tokenCreationDate || null,
   };
 }
 

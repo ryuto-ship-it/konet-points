@@ -20,6 +20,10 @@ export default function RiskMatrix({ data }) {
           <h4 className="heading-4">보안 스캔 (GoPlus)</h4>
           <p className="body-base">{risks.goplusRisk || "GoPlus 보안 스캔 데이터 없음"}</p>
         </div>
+        <div style={{ marginBottom: '16px' }}>
+          <h4 className="heading-4">홀더 집중도 리스크</h4>
+          <p className="body-base">{risks.holderConcentrationRisk || "데이터 없음"}</p>
+        </div>
         <div>
           <h4 className="heading-4">종합 리스크 평가</h4>
           <p className="body-base">{risks.details || "데이터 없음"}</p>

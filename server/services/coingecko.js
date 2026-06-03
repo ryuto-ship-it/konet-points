@@ -391,6 +391,36 @@ async function getCoinIdByContract(contractAddress, platform = 'binance-smart-ch
   }
 }
 
+async function getTokenTickers(coinId) {
+  const cacheKey = `cg:tickers:${coinId}`;
+  const cached = cache.get(cacheKey);
+  if (cached !== undefined) return cached;
+
+  try {
+    const data = await fetchCoinGecko(
+      `/coins/${encodeURIComponent(coinId)}/tickers?page=1&order=volume_desc&depth=false`
+    );
+    const tickers = (data.tickers || [])
+      .filter(t => !t.is_anomaly && !t.is_stale)
+      .slice(0, 15)
+      .map(t => ({
+        exchangeName: t.market?.name || '',
+        exchangeId: t.market?.identifier || '',
+        pair: `${t.base}/${t.target}`,
+        priceUsd: t.converted_last?.usd || 0,
+        volume24hUsd: t.converted_volume?.usd || 0,
+        trustScore: t.trust_score || 'none',
+        tradeUrl: t.trade_url || null,
+      }));
+    cache.set(cacheKey, tickers, CACHE_TTL);
+    return tickers;
+  } catch (err) {
+    console.error(`[CoinGecko] getTokenTickers failed: ${err.message}`);
+    cache.set(cacheKey, [], CACHE_TTL);
+    return [];
+  }
+}
+
 module.exports = {
   searchTokens,
   getTokenMarketData,
@@ -400,4 +430,5 @@ module.exports = {
   getCategoriesList,
   getCoinsByCategory,
   getCoinIdByContract,
+  getTokenTickers,
 };
