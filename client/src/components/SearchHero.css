@@ -114,6 +114,7 @@
   width: 100%;
   max-width: 620px;
   margin-bottom: var(--space-8);
+  z-index: 10;
 }
 
 .search-bar {
@@ -330,6 +331,7 @@
   align-items: center;
   gap: var(--space-2);
   margin-bottom: var(--space-8);
+  z-index: 10;
   padding: var(--space-3) var(--space-6);
   background: var(--accent-crimson-dim);
   border: 1px solid rgba(255, 51, 102, 0.25);
@@ -363,6 +365,7 @@
   .hero-subtitle {
     font-size: var(--text-base);
     margin-bottom: var(--space-8);
+  z-index: 10;
   }
 
   .search-input {

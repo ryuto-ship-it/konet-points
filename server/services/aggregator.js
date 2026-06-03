@@ -97,6 +97,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     tokenInfoResult,
     networkStatsResult,
     defiProtocolResult,
+    competitorsResult,
   ] = await Promise.allSettled([
     // CoinGecko
     coingecko.getTokenMarketData(coinId),
@@ -126,6 +127,29 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
       if (symbol) return defillama.findProtocolByToken(symbol);
       return null;
     }),
+
+    // Competitors logic
+    (async () => {
+      const categories = tokenDetails?.categories || [];
+      if (categories.length === 0) return [];
+      
+      const allCategories = await coingecko.getCategoriesList();
+      if (!allCategories || allCategories.length === 0) return [];
+      
+      let catMatch = null;
+      for (const cat of categories) {
+        const target = cat.toLowerCase();
+        catMatch = allCategories.find(c => c.name.toLowerCase() === target);
+        if (catMatch) break;
+      }
+      
+      if (!catMatch) return [];
+      
+      const coins = await coingecko.getCoinsByCategory(catMatch.category_id);
+      if (!coins || coins.length === 0) return [];
+      
+      return coins;
+    })()
   ]);
 
   // ── Extract results (handle failures) ────────────────────────────────────────
@@ -144,6 +168,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const tokenInfo = extract(tokenInfoResult);
   const networkStats = extract(networkStatsResult);
   const defiProtocol = extract(defiProtocolResult);
+  const rawCompetitors = extract(competitorsResult, []);
 
   // ── Normalize market data ────────────────────────────────────────────────────
   const market = marketDataArr?.[0] || {};
@@ -233,7 +258,25 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     volumes: priceHistory.total_volumes || [],
   };
 
-  console.log('[Aggregator] Aggregation complete');
+  // ── Normalize competitors ────────────────────────────────────────────────────
+  const currentMcap = marketData.market_cap;
+  let validCompetitors = [];
+  if (currentMcap > 0 && rawCompetitors.length > 0) {
+    const minMcap = currentMcap * 0.5;
+    const maxMcap = currentMcap * 1.5;
+    validCompetitors = rawCompetitors
+      .filter(c => c.id !== coinId && c.market_cap >= minMcap && c.market_cap <= maxMcap)
+      .slice(0, 5) // keep up to 5
+      .map(c => ({
+        id: c.id,
+        name: c.name,
+        symbol: c.symbol,
+        market_cap: c.market_cap,
+        market_cap_rank: c.market_cap_rank
+      }));
+  }
+
+  console.log(`[Aggregator] Found ${validCompetitors.length} competitors within ±50% market cap.`);
 
   return {
     actualChain,
@@ -241,6 +284,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     onchainData,
     defiData,
     priceHistory: normalizedHistory,
+    competitors: validCompetitors,
   };
 }
 

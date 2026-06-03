@@ -334,10 +334,52 @@ async function getTokenByContract(platform, address) {
   }
 }
 
+/**
+ * Get the list of all coin categories.
+ */
+async function getCategoriesList() {
+  const cacheKey = 'cg:categories_list';
+  const cached = cache.get(cacheKey);
+  if (cached) return cached;
+
+  if (shouldUseMock()) return [];
+
+  try {
+    const data = await fetchCoinGecko('/coins/categories/list');
+    cache.set(cacheKey, data, CACHE_TTL * 12); // cache for 1 hour
+    return data;
+  } catch (err) {
+    console.error(`[CoinGecko] getCategoriesList failed: ${err.message}`);
+    return [];
+  }
+}
+
+/**
+ * Get coins by category for competitive analysis.
+ */
+async function getCoinsByCategory(categoryId) {
+  const cacheKey = `cg:category_coins:${categoryId}`;
+  const cached = cache.get(cacheKey);
+  if (cached) return cached;
+
+  if (shouldUseMock()) return [];
+
+  try {
+    const data = await fetchCoinGecko(`/coins/markets?vs_currency=usd&category=${encodeURIComponent(categoryId)}&per_page=100&page=1`);
+    cache.set(cacheKey, data, CACHE_TTL);
+    return data;
+  } catch (err) {
+    console.error(`[CoinGecko] getCoinsByCategory failed: ${err.message}`);
+    return [];
+  }
+}
+
 module.exports = {
   searchTokens,
   getTokenMarketData,
   getTokenDetails,
   getPriceHistory,
   getTokenByContract,
+  getCategoriesList,
+  getCoinsByCategory,
 };

@@ -1,24 +1,29 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import ReportHeader from './ReportHeader';
 import SectionNav from './SectionNav';
-import BasicInfo from './sections/BasicInfo';
+import ExecutiveSummary from './sections/ExecutiveSummary';
+import ProjectOverview from './sections/ProjectOverview';
+import Tokenomics from './sections/Tokenomics';
 import TeamInvestors from './sections/TeamInvestors';
-import CompetitiveLandscape from './sections/CompetitiveLandscape';
-import OnchainData from './sections/OnchainData';
-import RiskIndicators from './sections/RiskIndicators';
-import OverallAssessment from './sections/OverallAssessment';
+import OnchainMetrics from './sections/OnchainMetrics';
+import RiskMatrix from './sections/RiskMatrix';
+import ListingAssessment from './sections/ListingAssessment';
+import DataSources from './sections/DataSources';
 import './ReportView.css';
 
 const SECTIONS = [
-  { id: 'basic-info', label: '기본 정보 & 토크노믹스', labelEn: 'Basic Info & Tokenomics' },
+  { id: 'executive-summary', label: '요약', labelEn: 'Executive Summary' },
+  { id: 'project-overview', label: '개요', labelEn: 'Project Overview' },
+  { id: 'tokenomics', label: '토크노믹스', labelEn: 'Tokenomics' },
   { id: 'team-investors', label: '팀 & 투자자', labelEn: 'Team & Investors' },
-  { id: 'competitive-landscape', label: '경쟁 환경 분석', labelEn: 'Competitive Landscape' },
-  { id: 'onchain-data', label: '온체인 & 유틸리티', labelEn: 'On-chain & Utility' },
-  { id: 'risk-indicators', label: '리스크 & 상장 심사', labelEn: 'Risk & Listing Review' },
+  { id: 'onchain-metrics', label: '온체인 지표', labelEn: 'On-chain Metrics' },
+  { id: 'risk-matrix', label: '리스크 매트릭스', labelEn: 'Risk Matrix' },
+  { id: 'listing-assessment', label: '상장 심사', labelEn: 'Listing Assessment' },
+  { id: 'data-sources', label: '출처', labelEn: 'Data Sources' },
 ];
 
 export default function ReportView({ data, onBack }) {
-  const [activeSection, setActiveSection] = useState('basic-info');
+  const [activeSection, setActiveSection] = useState('executive-summary');
   const mainRef = useRef(null);
   const sectionRefs = useRef({});
 
@@ -70,21 +75,29 @@ export default function ReportView({ data, onBack }) {
 
         <main className="report-main" ref={mainRef}>
           <div className="report-content">
-            <div ref={setSectionRef('basic-info')}>
-              <BasicInfo data={data} />
+            <div ref={setSectionRef('executive-summary')}>
+              <ExecutiveSummary data={data} />
+            </div>
+            <div ref={setSectionRef('project-overview')}>
+              <ProjectOverview data={data} />
+            </div>
+            <div ref={setSectionRef('tokenomics')}>
+              <Tokenomics data={data} />
             </div>
             <div ref={setSectionRef('team-investors')}>
               <TeamInvestors data={data} />
             </div>
-            <div ref={setSectionRef('competitive-landscape')}>
-              <CompetitiveLandscape data={data} />
+            <div ref={setSectionRef('onchain-metrics')}>
+              <OnchainMetrics data={data} />
             </div>
-            <div ref={setSectionRef('onchain-data')}>
-              <OnchainData data={data} />
+            <div ref={setSectionRef('risk-matrix')}>
+              <RiskMatrix data={data} />
             </div>
-            <div ref={setSectionRef('risk-indicators')}>
-              <RiskIndicators data={data} />
-              <OverallAssessment data={data} />
+            <div ref={setSectionRef('listing-assessment')}>
+              <ListingAssessment data={data} />
+            </div>
+            <div ref={setSectionRef('data-sources')}>
+              <DataSources data={data} />
             </div>
 
             {/* Report Footer */}
