@@ -4,6 +4,14 @@ export default function HolderAnalysis({ data }) {
 
   const shortAddr = (addr) => addr ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : '—';
 
+  const fmtBalance = (n) => {
+    if (n == null) return '—';
+    if (n >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
+    if (n >= 1e6) return `${(n / 1e6).toFixed(2)}M`;
+    if (n >= 1e3) return `${(n / 1e3).toFixed(0)}K`;
+    return n.toLocaleString();
+  };
+
   return (
     <section className="report-section">
       <div className="section-header">
@@ -59,23 +67,27 @@ export default function HolderAnalysis({ data }) {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-glass)', color: 'var(--text-tertiary)' }}>
-                  <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 600 }}>#</th>
-                  <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 600 }}>지갑 주소</th>
-                  <th style={{ textAlign: 'right', padding: '8px 12px', fontWeight: 600 }}>보유 비율</th>
+                  <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 600 }}>순위</th>
+                  <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 600 }}>주소</th>
+                  <th style={{ textAlign: 'right', padding: '8px 12px', fontWeight: 600 }}>보유량</th>
+                  <th style={{ textAlign: 'right', padding: '8px 12px', fontWeight: 600 }}>비율</th>
                   <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 600 }}>비율 바</th>
                 </tr>
               </thead>
               <tbody>
                 {ha.holders.map((h, i) => (
                   <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <td style={{ padding: '8px 12px', color: 'var(--text-tertiary)' }}>{i + 1}</td>
+                    <td style={{ padding: '8px 12px', color: 'var(--text-tertiary)' }}>{h.rank ?? i + 1}</td>
                     <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontSize: '12px' }}>
                       {shortAddr(h.address)}
+                    </td>
+                    <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace', fontSize: '12px' }}>
+                      {fmtBalance(h.balance)}
                     </td>
                     <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600 }}>
                       {h.percentage}%
                     </td>
-                    <td style={{ padding: '8px 12px', minWidth: '120px' }}>
+                    <td style={{ padding: '8px 12px', minWidth: '100px' }}>
                       <div style={{ height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
                         <div style={{
                           height: '100%',

@@ -12,6 +12,7 @@ const goplus = require('./goplus');
 const cmc = require('./coinmarketcap');
 const dexscreener = require('./dexscreener');
 const twitter = require('./twitter');
+const bscscan = require('./bscscan');
 
 /**
  * Aggregate token data from all API sources.
@@ -112,6 +113,9 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     twitterResult,
     tickersResult,
     tokenCreationResult,
+    bscHoldersResult,
+    bscCreationDateResult,
+    bscHolderCountResult,
     competitorsResult,
   ] = await Promise.allSettled([
     // CoinGecko
@@ -179,6 +183,17 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
       ? etherscan.getTokenCreationDate(resolvedAddress, chainId)
       : Promise.resolve(null),
 
+    // BSC-specific: BscScan holder data (Etherscan V2 chainid=56)
+    actualChain === 'bsc' && resolvedAddress
+      ? bscscan.getTokenHolders(resolvedAddress)
+      : Promise.resolve(null),
+    actualChain === 'bsc' && resolvedAddress
+      ? bscscan.getTokenCreationDate(resolvedAddress)
+      : Promise.resolve(null),
+    actualChain === 'bsc' && resolvedAddress
+      ? bscscan.getTokenTotalHolderCount(resolvedAddress)
+      : Promise.resolve(null),
+
     // Competitors logic
     (async () => {
       const categories = tokenDetails?.categories || [];
@@ -226,6 +241,9 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const twitterData = extract(twitterResult);
   const tickersData = extract(tickersResult, []);
   const tokenCreationDate = extract(tokenCreationResult);
+  const bscHoldersData = extract(bscHoldersResult);
+  const bscCreationDate = extract(bscCreationDateResult);
+  const bscHolderCountData = extract(bscHolderCountResult);
   const rawCompetitors = extract(competitorsResult, []);
   const goplusData = extract(goplusSecurityResult);
 
@@ -291,8 +309,12 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     tokenName: tokenInfoData.tokenName || null,
     tokenType: tokenInfoData.tokenType || null,
     tokenDecimals: tokenInfoData.divisor || null,
-    holderCount: holderCountData || coinGeckoHolderCount,
+    holderCount: bscHolderCountData || holderCountData || coinGeckoHolderCount,
     topHolders: topHoldersData,
+    // BSC-specific pre-computed holder data
+    bscTopHolders: bscHoldersData?.topHolders || null,
+    top10Concentration: bscHoldersData?.top10Concentration ?? null,
+    tokenCreationDate: (actualChain === 'bsc' ? bscCreationDate : null) || tokenCreationDate || null,
   };
 
   // ── Normalize DeFi data ──────────────────────────────────────────────────────
@@ -342,7 +364,19 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
 
   // ── Compute holder concentration ─────────────────────────────────────────────
   let holderAnalysis = null;
-  if (topHoldersData && topHoldersData.length > 0 && tokenInfoData.totalSupply) {
+
+  if (actualChain === 'bsc' && bscHoldersData?.topHolders?.length > 0) {
+    // BSC: use bscscan data, recalculate percentages with actual total supply if available
+    const actualTotalSupply = marketData.total_supply || 0;
+    const holders = bscHoldersData.topHolders.map(h => {
+      const pct = actualTotalSupply > 0
+        ? parseFloat((h.balance / actualTotalSupply * 100).toFixed(2))
+        : parseFloat(h.percentage); // fall back to bscscan's own calc
+      return { rank: h.rank, address: h.address, balance: h.balance, percentage: pct };
+    });
+    const top10Total = parseFloat(holders.reduce((s, h) => s + h.percentage, 0).toFixed(2));
+    holderAnalysis = { holders, top10TotalPercent: top10Total, isHighRisk: top10Total > 50 };
+  } else if (topHoldersData && topHoldersData.length > 0 && tokenInfoData.totalSupply) {
     try {
       const totalSupply = BigInt(tokenInfoData.totalSupply);
       const holders = topHoldersData.slice(0, 10).map(h => {
@@ -403,7 +437,8 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     exchangeListings,
     holderAnalysis,
     pricePattern,
-    tokenCreationDate: tokenCreationDate || null,
+    // BSC creation date takes priority over generic Etherscan tokentx result
+    tokenCreationDate: (actualChain === 'bsc' ? bscCreationDate : null) || tokenCreationDate || null,
   };
 }
 
