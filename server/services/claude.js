@@ -28,6 +28,7 @@ CRITICAL RULES:
 3. HIGHLIGHT SEVERE RISKS: If the token has fallen 90% or more from its All-Time High (ATH), or if other severe red flags exist, you MUST place a "⚠️" warning emoji at the beginning of the relevant section and describe the negative impact bluntly. Do NOT sugarcoat negative metrics.
 4. STRICT COMPETITOR RULES: You are provided with a 'competitors' array of actual tokens within a ±50% market cap range. You MUST ONLY compare the token to the entities in this specific array. Do NOT use your pre-trained knowledge to invent competitors. If the 'competitors' array is empty, you MUST state "유사 시총 프로젝트 데이터 없음".
 5. GOPLUS SECURITY DATA: When goplusSecurity data is provided, you MUST use it for the risk_matrix section. Specifically flag: is_honeypot=true as CRITICAL risk, sell_tax above 10% as HIGH risk, can_take_back_ownership=true as HIGH risk, is_mintable=true as MEDIUM risk. Always cite as [GoPlus Security].
+6. COINMARKETCAP DATA: Use cmcData (projectDescription, website, twitter, telegram, tags, certikScore) if provided to enrich the project_overview and team_investors sections. Cite as [CoinMarketCap].
 
 You MUST output ONLY valid JSON in the exact structure below:
 
@@ -50,7 +51,8 @@ You MUST output ONLY valid JSON in the exact structure below:
   "data_sources": [
     "CoinGecko API (Market Data)",
     "Etherscan API (On-chain Data)",
-    "GoPlus Security API (Contract Risk Data)"
+    "GoPlus Security API (Contract Risk Data)",
+    "CoinMarketCap API (Project Info)"
   ]
 }`;
 
@@ -109,7 +111,8 @@ function generateMockAnalysis(aggregatedData) {
     data_sources: [
       "CoinGecko API (Market Data)",
       "Etherscan API (On-chain Data)",
-      "GoPlus Security API (Contract Risk Data)"
+      "GoPlus Security API (Contract Risk Data)",
+      "CoinMarketCap API (Project Info)"
     ]
   };
 }

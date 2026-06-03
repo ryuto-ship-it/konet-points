@@ -9,6 +9,7 @@ const coingecko = require('./coingecko');
 const etherscan = require('./etherscan');
 const defillama = require('./defillama');
 const goplus = require('./goplus');
+const cmc = require('./coinmarketcap');
 
 /**
  * Aggregate token data from all API sources.
@@ -99,6 +100,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     networkStatsResult,
     defiProtocolResult,
     goplusSecurityResult,
+    cmcResult,
     competitorsResult,
   ] = await Promise.allSettled([
     // CoinGecko
@@ -133,6 +135,11 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     // GoPlus Security
     resolvedAddress
       ? goplus.getTokenSecurity(resolvedAddress, String(chainId))
+      : Promise.resolve(null),
+
+    // CoinMarketCap
+    resolvedAddress
+      ? cmc.getProjectInfoByContract(resolvedAddress)
       : Promise.resolve(null),
 
     // Competitors logic
@@ -175,6 +182,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const tokenInfo = extract(tokenInfoResult);
   const networkStats = extract(networkStatsResult);
   const defiProtocol = extract(defiProtocolResult);
+  const cmcData = extract(cmcResult);
   const rawCompetitors = extract(competitorsResult, []);
   const goplusData = extract(goplusSecurityResult);
 
@@ -187,7 +195,8 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     name: details.name || market.name || coinId,
     symbol: details.symbol || market.symbol || '',
     image: details.image?.large || market.image || '',
-    description: details.description?.en || '',
+    description: details.description?.en || cmcData?.description || '',
+    cmcData: cmcData || null,
     categories: details.categories || [],
     genesisDate: details.genesis_date || null,
     links: details.links || {},
