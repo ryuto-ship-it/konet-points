@@ -1,5 +1,7 @@
 export default function HolderAnalysis({ data }) {
   const ha = data.holderAnalysis;
+  const wa = data.walletAgeAnalysis;
+  const dp = data.distributionPattern;
   const interpretation = data.analysis?.holder_analysis_interpretation;
 
   const shortAddr = (addr) => addr ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : '—';
@@ -12,6 +14,12 @@ export default function HolderAnalysis({ data }) {
     return n.toLocaleString();
   };
 
+  // Build wallet age lookup by address
+  const walletAgeMap = {};
+  if (wa?.walletDetails) {
+    wa.walletDetails.forEach(w => { walletAgeMap[w.address?.toLowerCase()] = w; });
+  }
+
   return (
     <section className="report-section">
       <div className="section-header">
@@ -22,6 +30,32 @@ export default function HolderAnalysis({ data }) {
       {interpretation && (
         <div className="glass-card" style={{ marginBottom: '16px' }}>
           <p className="body-base">{interpretation}</p>
+        </div>
+      )}
+
+      {/* Airdrop / distribution pattern warnings */}
+      {(wa?.isAirdropPattern || dp?.isAirdropLaunch) && (
+        <div className="glass-card" style={{ marginBottom: '16px', borderColor: 'rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.06)' }}>
+          <p style={{ fontSize: '13px', color: 'var(--accent-crimson)', fontWeight: 600 }}>
+            ⚠️ 에어드랍/봇 패턴 감지
+          </p>
+          {wa?.isAirdropPattern && (
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+              상위 홀더의 {wa.newWalletRatio}%가 신생 지갑(3개월 미만) — 에어드랍 또는 봇 의심
+            </p>
+          )}
+          {dp?.isAirdropLaunch && (
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+              배포 후 24시간 내 {dp.initialReceivers}개 지갑으로 분산 — 에어드랍 런치 패턴
+            </p>
+          )}
+        </div>
+      )}
+      {wa && !wa.isAirdropPattern && wa.isOrganicHolders && (
+        <div className="glass-card" style={{ marginBottom: '16px', borderColor: 'rgba(16,185,129,0.3)', background: 'rgba(16,185,129,0.04)' }}>
+          <p style={{ fontSize: '13px', color: 'var(--accent-emerald)' }}>
+            ✅ 실유저 기반 — 상위 홀더 신생 지갑 비율 {wa.newWalletRatio}% (낮음)
+          </p>
         </div>
       )}
 
@@ -71,6 +105,7 @@ export default function HolderAnalysis({ data }) {
                   <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 600 }}>주소</th>
                   <th style={{ textAlign: 'right', padding: '8px 12px', fontWeight: 600 }}>보유량</th>
                   <th style={{ textAlign: 'right', padding: '8px 12px', fontWeight: 600 }}>비율</th>
+                  <th style={{ textAlign: 'center', padding: '8px 12px', fontWeight: 600 }}>지갑 나이</th>
                   <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 600 }}>비율 바</th>
                 </tr>
               </thead>
@@ -86,6 +121,20 @@ export default function HolderAnalysis({ data }) {
                     </td>
                     <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600 }}>
                       {h.percentage}%
+                    </td>
+                    <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                      {(() => {
+                        const wa = walletAgeMap[h.address?.toLowerCase()];
+                        if (!wa) return <span style={{ color: 'var(--text-tertiary)', fontSize: '11px' }}>—</span>;
+                        return (
+                          <span style={{
+                            fontSize: '11px', fontWeight: 600,
+                            color: wa.isNewWallet ? 'var(--accent-crimson)' : 'var(--accent-emerald)',
+                          }}>
+                            {wa.isNewWallet ? '🔴' : '🟢'} {wa.walletAgeMonths}개월
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td style={{ padding: '8px 12px', minWidth: '100px' }}>
                       <div style={{ height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>

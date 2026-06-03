@@ -33,7 +33,10 @@ CRITICAL RULES:
 8. TWITTER: If twitterData present, include followers/activity in team_investors. followers < 1000 → LOW engagement flag.
 9. CONTRACT SOURCE ANALYSIS: When computed_metrics.contract_analysis is provided, use each flag in risk_matrix.contractRisk. Format: ✅ flag=false (safe), ⚠️ flag=true (risk). hasMint→무한발행, hasOwnerControl→소유자 권한 존재, hasTax→세금 함수, hasBlacklist→지갑 차단 가능, hasPause→거래 중단 가능, hasMaxTx→최대 거래량 제한, hasProxy→프록시 컨트랙트. hasRenounceOwnership=true→✅ 소유권 포기 완료. Cite as [Contract Source Code, Etherscan].
 10. DATA SOURCES: Use marketData.priceDataSource to determine citation. priceDataSource='CoinMarketCap' → cite price/volume as [CoinMarketCap]; otherwise [CoinGecko].
-11. LISTING ASSESSMENT GRADE: Use computed_metrics.listing_score for the listing_assessment. The composite score (0-100) is pre-calculated as: exchange 40% + onchain 30% + price stability 30%. Use composite_grade as the base, but you may adjust ±1 grade based on qualitative factors (e.g. contract risks, community size). Cite tierCounts: "T1×N, T2×N, T3×N" format. TIER1 상장 여부가 가장 중요한 지표임.
+11. VOLUME HEALTH: If volumeHealth is present in data: cite volMcapRatioPct (정상 1-30%, 과열 30%+, 유동성부족 <1%). If isDumpingSignal=true → ⚠️ 매도 압력 집중 (sellRatioPct%). If isWashTrading=true → ⚠️ 워시트레이딩 의심. Include in onchain_metrics.
+12. WALLET AGE & DISTRIBUTION: If walletAgeAnalysis.isAirdropPattern=true → ⚠️ 상위 홀더 신생 지갑 비율 {newWalletRatio}% — 에어드랍/봇 의심. If distributionPattern.isAirdropLaunch=true → ⚠️ 초기 배포 {initialReceivers}개 지갑 — 에어드랍 런치 패턴. Include in holder_analysis_interpretation.
+13. UNLISTED TOKEN: If exchangeListings is null or empty, state "현재 중앙화 거래소 미상장" in exchange_listing_interpretation. Assess DEX listing status and compare against exchange listing criteria: DEX volume $1M+/day, 1,000+ holders, 6+ months operation.
+14. LISTING ASSESSMENT GRADE: Use computed_metrics.listing_score for the listing_assessment. The composite score (0-100) is pre-calculated as: exchange 40% + onchain 30% + price stability 30%. Use composite_grade as the base, but you may adjust ±1 grade based on qualitative factors (e.g. contract risks, community size). Cite tierCounts: "T1×N, T2×N, T3×N" format. TIER1 상장 여부가 가장 중요한 지표임.
 
 You MUST output ONLY valid JSON in this exact structure:
 
@@ -262,6 +265,25 @@ async function generateReport(aggregatedData) {
       token_creation_date: aggregatedData.tokenCreationDate || null,
       contract_analysis: aggregatedData.contractAnalysis || null,
       price_data_source: aggregatedData.marketData?.priceDataSource || 'CoinGecko',
+      volume_health: aggregatedData.volumeHealth ? {
+        vol_mcap_ratio_pct: aggregatedData.volumeHealth.volMcapRatioPct,
+        health_label: aggregatedData.volumeHealth.volHealthLabel,
+        sell_ratio_pct: aggregatedData.volumeHealth.sellRatioPct,
+        is_dumping_signal: aggregatedData.volumeHealth.isDumpingSignal,
+        is_wash_trading: aggregatedData.volumeHealth.isWashTrading,
+      } : null,
+      wallet_age_analysis: aggregatedData.walletAgeAnalysis ? {
+        new_wallet_ratio: aggregatedData.walletAgeAnalysis.newWalletRatio,
+        is_airdrop_pattern: aggregatedData.walletAgeAnalysis.isAirdropPattern,
+        is_organic_holders: aggregatedData.walletAgeAnalysis.isOrganicHolders,
+      } : null,
+      distribution_pattern: aggregatedData.distributionPattern ? {
+        deploy_date: aggregatedData.distributionPattern.deployDate,
+        first_24h_tx_count: aggregatedData.distributionPattern.first24hTxCount,
+        initial_receivers: aggregatedData.distributionPattern.initialReceivers,
+        is_airdrop_launch: aggregatedData.distributionPattern.isAirdropLaunch,
+      } : null,
+      exchange_is_unlisted: !aggregatedData.exchangeListings || aggregatedData.exchangeListings.length === 0,
       listing_score: aggregatedData.listingScore ? {
         composite_score: aggregatedData.listingScore.composite,
         composite_grade: aggregatedData.listingScore.compositeGrade,

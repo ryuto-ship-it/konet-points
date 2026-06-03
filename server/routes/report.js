@@ -125,6 +125,9 @@ router.get('/:coinId', async (req, res, next) => {
       tokenCreationDate: aggregatedData.tokenCreationDate || null,
       goplusSecurity: aggregatedData.goplusSecurity || null,
       listingScore: aggregatedData.listingScore || null,
+      volumeHealth: aggregatedData.volumeHealth || null,
+      walletAgeAnalysis: aggregatedData.walletAgeAnalysis || null,
+      distributionPattern: aggregatedData.distributionPattern || null,
 
       analysis: analysis,
 

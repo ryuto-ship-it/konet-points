@@ -134,6 +134,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     bscHoldersResult,
     bscCreationDateResult,
     bscHolderCountResult,
+    bscDistributionResult,
     competitorsResult,
   ] = await Promise.allSettled([
     // CoinGecko
@@ -237,6 +238,11 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
       ? bscscan.getTokenTotalHolderCount(resolvedAddress)
       : Promise.resolve(null),
 
+    // BSC distribution pattern (first 100 txs, airdrop detection)
+    actualChain === 'bsc' && resolvedAddress
+      ? bscscan.analyzeDistributionPattern(resolvedAddress, chainId)
+      : Promise.resolve(null),
+
     // Competitors logic
     (async () => {
       const categories = tokenDetails?.categories || [];
@@ -291,6 +297,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const bscHoldersData = extract(bscHoldersResult);
   const bscCreationDate = extract(bscCreationDateResult);
   const bscHolderCountData = extract(bscHolderCountResult);
+  const bscDistributionData = extract(bscDistributionResult);
   const rawCompetitors = extract(competitorsResult, []);
 
   // CMC Twitter URL fallback: try if CoinGecko had no handle
@@ -488,6 +495,48 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     }
   }
 
+  // ── Volume health analysis ────────────────────────────────────────────────────
+  let volumeHealth = null;
+  const dex = marketData.dexData;
+  if (dex) {
+    const vol24h = dex.volume24h || 0;
+    const mcap = marketData.market_cap || 0;
+    const volMcapRatio = mcap > 0 ? parseFloat((vol24h / mcap * 100).toFixed(2)) : null;
+    let volHealthLabel = null;
+    if (volMcapRatio !== null) {
+      if (volMcapRatio >= 30) volHealthLabel = '과열 (워시트레이딩 의심)';
+      else if (volMcapRatio >= 1) volHealthLabel = '정상';
+      else volHealthLabel = '유동성 부족';
+    }
+
+    const buys = dex.buys24h ?? 0;
+    const sells = dex.sells24h ?? 0;
+    const sellRatioCalc = (buys + sells) > 0 ? parseFloat((sells / (buys + sells) * 100).toFixed(1)) : null;
+
+    volumeHealth = {
+      volume24h: vol24h,
+      volumeH6: dex.volumeH6,
+      volumeH1: dex.volumeH1,
+      volMcapRatioPct: volMcapRatio,
+      volHealthLabel,
+      buys24h: buys,
+      sells24h: sells,
+      sellRatioPct: sellRatioCalc,
+      isDumpingSignal: sellRatioCalc !== null && sellRatioCalc >= 70,
+      isWashTrading: volMcapRatio !== null && volMcapRatio >= 30,
+    };
+  }
+
+  // ── Holder wallet age + distribution pattern (BSC, best-effort) ──────────────
+  let walletAgeAnalysis = null;
+  if (actualChain === 'bsc' && holderAnalysis?.holders?.length > 0) {
+    try {
+      walletAgeAnalysis = await bscscan.analyzeHolderWalletAge(holderAnalysis.holders, chainId);
+    } catch (e) {
+      console.warn(`[Aggregator] Wallet age analysis failed: ${e.message}`);
+    }
+  }
+
   // ── Compute price pattern ────────────────────────────────────────────────────
   let pricePattern = null;
   const prices = normalizedHistory.prices;
@@ -580,6 +629,9 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     tokenCreationDate: (actualChain === 'bsc' ? bscCreationDate : null) || tokenCreationDate || null,
     contractAnalysis: contractAnalysis || null,
     listingScore,
+    volumeHealth: volumeHealth || null,
+    walletAgeAnalysis: walletAgeAnalysis || null,
+    distributionPattern: bscDistributionData || null,
   };
 }
 
