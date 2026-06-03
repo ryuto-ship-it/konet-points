@@ -11,6 +11,7 @@ const defillama = require('./defillama');
 const goplus = require('./goplus');
 const cmc = require('./coinmarketcap');
 const dexscreener = require('./dexscreener');
+const twitter = require('./twitter');
 
 /**
  * Aggregate token data from all API sources.
@@ -90,6 +91,9 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     }
   }
 
+  // Extract Twitter handle from CoinGecko links (available from Step 1)
+  const twitterHandle = tokenDetails?.links?.twitter_screen_name || null;
+
   // ── Step 2: Run all remaining API calls in parallel ──────────────────────────
   const [
     marketDataResult,
@@ -105,6 +109,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     holderCountResult,
     topHoldersResult,
     dexDataResult,
+    twitterResult,
     competitorsResult,
   ] = await Promise.allSettled([
     // CoinGecko
@@ -159,6 +164,11 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
       ? dexscreener.getPairData(resolvedAddress)
       : Promise.resolve(null),
 
+    // Twitter social metrics (24h cache, graceful fail)
+    twitterHandle
+      ? twitter.getTwitterData(twitterHandle)
+      : Promise.resolve(null),
+
     // Competitors logic
     (async () => {
       const categories = tokenDetails?.categories || [];
@@ -203,6 +213,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const holderCountData = extract(holderCountResult);
   const topHoldersData = extract(topHoldersResult, []);
   const dexData = extract(dexDataResult);
+  const twitterData = extract(twitterResult);
   const rawCompetitors = extract(competitorsResult, []);
   const goplusData = extract(goplusSecurityResult);
 
@@ -324,7 +335,8 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     defiData,
     priceHistory: normalizedHistory,
     competitors: validCompetitors,
-    goplusSecurity: goplusData
+    goplusSecurity: goplusData,
+    twitterData: twitterData || null,
   };
 }
 

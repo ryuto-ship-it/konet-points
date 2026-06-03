@@ -29,6 +29,7 @@ CRITICAL RULES:
 4. STRICT COMPETITOR RULES: You are provided with a 'competitors' array of actual tokens within a ±50% market cap range. You MUST ONLY compare the token to the entities in this specific array. Do NOT use your pre-trained knowledge to invent competitors. If the 'competitors' array is empty, you MUST state "유사 시총 프로젝트 데이터 없음".
 5. GOPLUS SECURITY DATA: When goplusSecurity data is provided, you MUST use it for the risk_matrix section. Specifically flag: is_honeypot=true as CRITICAL risk, sell_tax above 10% as HIGH risk, can_take_back_ownership=true as HIGH risk, is_mintable=true as MEDIUM risk. Always cite as [GoPlus Security].
 6. COINMARKETCAP DATA: Use cmcData (projectDescription, website, twitter, telegram, tags, certikScore) if provided to enrich the project_overview and team_investors sections. Cite as [CoinMarketCap].
+7. TWITTER DATA: When twitterData is provided, include in team_investors: follower count (cite as [Twitter API]), account creation date, recent 7-day tweet activity, and verified status. If followersCount < 1000, flag as LOW community engagement. If recentTweetCount7d === 0, flag as INACTIVE account.
 
 You MUST output ONLY valid JSON in the exact structure below:
 
@@ -36,7 +37,7 @@ You MUST output ONLY valid JSON in the exact structure below:
   "executive_summary": "2-3 sentences summarizing the token. Be honest about both positive and negative aspects.",
   "project_overview": "Write 3-4 sentences covering: (1) what the project actually does based on description field, (2) which blockchain it runs on, (3) current development stage. If description is empty or null, output '공개된 프로젝트 설명 없음'. DO NOT invent any description. [Source: CoinGecko/DexScreener]",
   "tokenomics": "Details on token distribution, circulating supply ratio, max supply, and market cap to FDV ratio.",
-  "team_investors": "Details on the team and backing investors. If not explicitly provided in the data, output '공개 정보 없음'.",
+  "team_investors": "Details on the team and backing investors. Include Twitter social metrics if twitterData is present: follower count [Twitter API], account created date [Twitter API], recent 7-day tweet count [Twitter API], verified status. If not explicitly provided in the data, output '공개 정보 없음'.",
   "onchain_metrics": "Analyze ALL of the following if data exists: - Total transactions and daily average - Holder count and top holder concentration - Top 10 holder ratio (flag if >50% as HIGH RISK) - Recent large transactions - Contract verification status - GoPlus: honeypot status, buy/sell tax, mintable, owner renounced Cite each metric with its source in brackets.",
   "risk_matrix": {
     "contractRisk": "Analysis of smart contract risk based on verification status.",
@@ -127,7 +128,28 @@ function generateMockAnalysis(aggregatedData) {
 
     tokenomics: `유통량 비율은 전체 공급량 대비 99.8% [CoinGecko]로 매우 건전하며, 시가총액 대비 거래량은 약 ${volPercent}% [CoinGecko] 수준을 기록하고 있습니다.`,
 
-    team_investors: `공개 정보 없음`,
+    team_investors: (() => {
+      const tw = aggregatedData.twitterData;
+      if (!tw) return '공개 정보 없음';
+      const followers = tw.followersCount !== null
+        ? `팔로워 ${tw.followersCount.toLocaleString()}명 [Twitter API]`
+        : null;
+      const created = tw.createdAt
+        ? `계정 생성일 ${tw.createdAt.slice(0, 10)} [Twitter API]`
+        : null;
+      const activity = tw.recentTweetCount7d !== null
+        ? `최근 7일 트윗 ${tw.recentTweetCount7d}건 [Twitter API]`
+        : null;
+      const verified = tw.verified ? '인증 계정 ✓ [Twitter API]' : null;
+      const low = tw.followersCount !== null && tw.followersCount < 1000
+        ? '⚠️ 팔로워 1,000명 미만 — 낮은 커뮤니티 참여도'
+        : null;
+      const inactive = tw.recentTweetCount7d === 0
+        ? '⚠️ 최근 7일 트윗 없음 — 비활성 계정'
+        : null;
+      return [followers, created, activity, verified, low, inactive]
+        .filter(Boolean).join('. ') || '공개 정보 없음';
+    })(),
 
     onchain_metrics: `${aggregatedData.onchainData?.transactionCount ? `총 트랜잭션 수치 ${aggregatedData.onchainData.transactionCount}건 [Etherscan]` : '데이터 없음 — 해당 API 미연동'}`,
 
