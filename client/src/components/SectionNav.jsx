@@ -41,7 +41,7 @@ export default function SectionNav({ sections, activeSection, onNavigate }) {
     <nav className="section-nav">
       <div className="nav-label caption">Report Sections</div>
       <ul className="nav-list">
-        {sections.map((section, i) => (
+        {sections.map((section) => (
           <li key={section.id}>
             <button
               className={`nav-item ${activeSection === section.id ? 'nav-item--active' : ''}`}

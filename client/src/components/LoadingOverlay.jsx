@@ -8,7 +8,7 @@ const STEPS = [
   { label: 'Generating AI analysis...', icon: 'ai' },
 ];
 
-export default function LoadingOverlay({ tokenName, onComplete, hasData }) {
+export default function LoadingOverlay({ tokenName, onComplete }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
   const timerRef = useRef(null);

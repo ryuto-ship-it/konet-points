@@ -6,7 +6,6 @@ export default function ReportHeader({ data, onBack }) {
   const [copied, setCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
   const token = data?.token || {};
-  const market = data?.marketData || {};
 
   const networkBadge = getNetworkBadge(token.network);
 
