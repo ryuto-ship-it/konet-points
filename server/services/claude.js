@@ -31,7 +31,8 @@ CRITICAL RULES:
 6. GOPLUS: Use computed_metrics.goplus_flags exactly. ownership_renounced=true → "소유권 포기 완료 ✓". is_honeypot=true → CRITICAL. sell_tax>10 → HIGH risk. can_take_back_ownership=true → HIGH risk. is_mintable=true → MEDIUM risk.
 7. HOLDER RISK: computed_metrics.holder_concentration.top10_pct > 50% → flag as HIGH RISK in risk_matrix.holderConcentrationRisk.
 8. TWITTER: If twitterData present, include followers/activity in team_investors. followers < 1000 → LOW engagement flag.
-9. CONTRACT SOURCE ANALYSIS: When computed_metrics.contract_analysis is provided, use each flag in risk_matrix.contractRisk. Format: ✅ flag=false (safe), ⚠️ flag=true (risk). hasMint→무한발행, hasOwnerControl→소유자 권한 존재, hasTax→세금 함수, hasBlacklist→지갑 차단 가능, hasPause→거래 중단 가능, hasMaxTx→최대 거래량 제한, hasProxy→프록시 컨트랙트. hasRenounceOwnership=true→✅ 소유권 포기 완료. Cite as [Contract Source Code, Etherscan].
+9. WHITEPAPER TOKENOMICS: If computed_metrics.whitepaper_found=true, analyze whitepaper_content for the tokenomics section. Extract: 팀 물량 %, 생태계/마케팅 %, 커뮤니티/에어드랍 %, 투자자 %, 베스팅 스케줄. If content doesn't clearly state these, output "백서에서 명시적 수치 없음". If whitepaper_found=false, output "백서 데이터 없음 — 수동 확인 필요".
+10. CONTRACT SOURCE ANALYSIS: When computed_metrics.contract_analysis is provided, use each flag in risk_matrix.contractRisk. Format: ✅ flag=false (safe), ⚠️ flag=true (risk). hasMint→무한발행, hasOwnerControl→소유자 권한 존재, hasTax→세금 함수, hasBlacklist→지갑 차단 가능, hasPause→거래 중단 가능, hasMaxTx→최대 거래량 제한, hasProxy→프록시 컨트랙트. hasRenounceOwnership=true→✅ 소유권 포기 완료. Cite as [Contract Source Code, Etherscan].
 10. DATA SOURCES: Use marketData.priceDataSource to determine citation. priceDataSource='CoinMarketCap' → cite price/volume as [CoinMarketCap]; otherwise [CoinGecko].
 11. VOLUME HEALTH: If volumeHealth is present in data: cite volMcapRatioPct (정상 1-30%, 과열 30%+, 유동성부족 <1%). If isDumpingSignal=true → ⚠️ 매도 압력 집중 (sellRatioPct%). If isWashTrading=true → ⚠️ 워시트레이딩 의심. Include in onchain_metrics.
 12. WALLET AGE & DISTRIBUTION: If walletAgeAnalysis.isAirdropPattern=true → ⚠️ 상위 홀더 신생 지갑 비율 {newWalletRatio}% — 에어드랍/봇 의심. If distributionPattern.isAirdropLaunch=true → ⚠️ 초기 배포 {initialReceivers}개 지갑 — 에어드랍 런치 패턴. Include in holder_analysis_interpretation.
@@ -266,6 +267,8 @@ async function generateReport(aggregatedData) {
       ath_drop_pct: athDropPct,
       token_age_days: tokenAgeDays,
       token_creation_date: aggregatedData.tokenCreationDate || null,
+      whitepaper_found: !!(aggregatedData.whitepaperContent?.found),
+      whitepaper_source: aggregatedData.whitepaperContent?.source || null,
       contract_analysis: aggregatedData.contractAnalysis || null,
       price_data_source: aggregatedData.marketData?.priceDataSource || 'CoinGecko',
       volume_health: aggregatedData.volumeHealth ? {
@@ -357,6 +360,10 @@ async function generateReport(aggregatedData) {
       } : null,
     };
 
+    const whitepaperSection = aggregatedData.whitepaperContent?.found
+      ? `\n--- WHITEPAPER / DOCS CONTENT (use for tokenomics section) ---\nSource: ${aggregatedData.whitepaperContent.source}\n${aggregatedData.whitepaperContent.content}\n--- END WHITEPAPER ---`
+      : '';
+
     const userMessage = `Analyze this token for exchange listing suitability. The computed_metrics object contains pre-calculated numbers — use them directly without recalculating.
 
 --- COMPUTED METRICS (use these exact numbers) ---
@@ -370,7 +377,7 @@ ${JSON.stringify({
   competitors: aggregatedData.competitors,
   twitterData: aggregatedData.twitterData,
 }, null, 2)}
---- END DATA ---
+--- END DATA ---${whitepaperSection}
 
 Respond with ONLY the JSON object as specified. No additional text.`;
 

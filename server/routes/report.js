@@ -132,6 +132,7 @@ router.get('/:coinId', async (req, res, next) => {
       socialAnalysis: aggregatedData.socialAnalysis || null,
       liquidityAnalysis: aggregatedData.liquidityAnalysis || null,
       githubActivity: aggregatedData.githubActivity || null,
+      whitepaperContent: aggregatedData.whitepaperContent || null,
 
       analysis: analysis,
 

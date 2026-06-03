@@ -17,6 +17,7 @@ const bscscan = require('./bscscan');
 const contractAnalyzer = require('./contractAnalyzer');
 const { getExchangeTier, calculateListingScore } = require('../data/exchangeTiers');
 const onchainVerifier = require('./onchainVerifier');
+const docsParser = require('./docsParser');
 const socialAnalyzer = require('./socialAnalyzer');
 const liquidityAnalyzer = require('./liquidityAnalyzer');
 const githubAnalyzer = require('./githubAnalyzer');
@@ -105,14 +106,14 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   // Extract GitHub URL from CoinGecko links
   const githubUrl = tokenDetails?.links?.repos_url?.github?.[0] || null;
 
-  // ── Step 1b: Resolve CMC ID (needed to call cmcInternal endpoints) ───────────
+  // ── Step 1b: Resolve CMC detail via slug (CoinGecko slug == CMC slug for most tokens) ──
+  let cmciDetailFromSlug = null;
   let cmcId = null;
-  if (resolvedAddress) {
-    try {
-      cmcId = await cmcInternal.getCmcIdByAddress(resolvedAddress);
-    } catch (err) {
-      console.warn(`[Aggregator] CMC ID resolution failed: ${err.message}`);
-    }
+  try {
+    cmciDetailFromSlug = await cmcInternal.getDetailBySlug(coinId);
+    cmcId = cmciDetailFromSlug?.id ?? null;
+  } catch (err) {
+    console.warn(`[Aggregator] CMC slug lookup failed: ${err.message}`);
   }
 
   // ── Step 2: Run all remaining API calls in parallel ──────────────────────────
@@ -129,9 +130,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     cmcResult,
     cmcMarketResult,
     cmcPairsResult,
-    cmciDetailResult,
     cmciPairsResult,
-    cmciHoldersResult,
     holderCountResult,
     topHoldersResult,
     dexDataResult,
@@ -146,6 +145,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     socialAnalysisResult,
     liquidityAnalysisResult,
     githubAnalysisResult,
+    whitepaperResult,
     competitorsResult,
   ] = await Promise.allSettled([
     // CoinGecko
@@ -197,20 +197,10 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
       ? cmc.getExchangePairsByContract(resolvedAddress)
       : Promise.resolve(null),
 
-    // CMC internal web API — full token detail (description, socials, tags)
-    cmcId
-      ? cmcInternal.getTokenDetail(cmcId)
-      : Promise.resolve(null),
-
-    // CMC internal web API — exchange market pairs (up to 40, no API key)
+    // CMC internal web API — exchange market pairs (up to 40, no API key needed)
     cmcId
       ? cmcInternal.getMarketPairs(cmcId, 40)
       : Promise.resolve([]),
-
-    // CMC internal web API — holder distribution
-    cmcId
-      ? cmcInternal.getHolderAggregated(cmcId)
-      : Promise.resolve(null),
 
     // BscScan / Etherscan Token Holders
     resolvedAddress
@@ -274,6 +264,14 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
       ? githubAnalyzer.analyzeGithub(githubUrl)
       : Promise.resolve(null),
 
+    // Whitepaper / docs parsing
+    docsParser.fetchAndParseWhitepaper({
+      whitepaper: tokenDetails?.links?.whitepaper || null,
+      website: tokenDetails?.links?.homepage?.[0] || cmciDetail?.website || null,
+      docs: null,
+      technicalDoc: cmciDetail?.technicalDoc || null,
+    }),
+
     // Competitors logic
     (async () => {
       const categories = tokenDetails?.categories || [];
@@ -317,9 +315,9 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const cmcData = extract(cmcResult);
   const cmcMarketData = extract(cmcMarketResult);
   const cmcPairsData = extract(cmcPairsResult, []);
-  const cmciDetail = extract(cmciDetailResult);
   const cmciPairs = extract(cmciPairsResult, []);
-  const cmciHolders = extract(cmciHoldersResult);
+  // cmciDetailFromSlug already resolved in Step 1b (before parallel calls)
+  const cmciDetail = cmciDetailFromSlug;
   const holderCountData = extract(holderCountResult);
   const topHoldersData = extract(topHoldersResult, []);
   const dexData = extract(dexDataResult);
@@ -333,6 +331,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const socialAnalysisData = extract(socialAnalysisResult);
   const liquidityAnalysisData = extract(liquidityAnalysisResult);
   const githubData = extract(githubAnalysisResult);
+  const whitepaperData = extract(whitepaperResult);
   const rawCompetitors = extract(competitorsResult, []);
 
   // CMC Twitter URL fallback: try if CoinGecko had no handle
@@ -484,24 +483,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   // ── Compute holder concentration ─────────────────────────────────────────────
   let holderAnalysis = null;
 
-  if (cmciHolders?.holders?.length > 0) {
-    // CMC internal has pre-computed percentages and labels — highest quality source
-    const holders = cmciHolders.holders.map(h => ({
-      rank: h.rank,
-      address: h.address,
-      balance: h.balance,
-      percentage: parseFloat(h.percentage),
-      label: h.label,
-    }));
-    const top10Total = parseFloat(holders.slice(0, 10).reduce((s, h) => s + h.percentage, 0).toFixed(2));
-    holderAnalysis = {
-      holders,
-      top10TotalPercent: cmciHolders.top10Pct != null ? parseFloat(Number(cmciHolders.top10Pct).toFixed(2)) : top10Total,
-      isHighRisk: (cmciHolders.top10Pct ?? top10Total) > 50,
-      totalHolders: cmciHolders.totalHolders || null,
-      source: 'CoinMarketCap',
-    };
-  } else if (actualChain === 'bsc' && bscHoldersData?.topHolders?.length > 0) {
+  if (actualChain === 'bsc' && bscHoldersData?.topHolders?.length > 0) {
     // BSC: use bscscan data, recalculate percentages with actual total supply if available
     const actualTotalSupply = marketData.total_supply || 0;
     const holders = bscHoldersData.topHolders.map(h => {
@@ -671,6 +653,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     socialAnalysis: socialAnalysisData || null,
     liquidityAnalysis: liquidityAnalysisData || null,
     githubActivity: githubData || null,
+    whitepaperContent: (whitepaperData?.found && whitepaperData?.content) ? whitepaperData : null,
   };
 }
 
