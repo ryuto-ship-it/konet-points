@@ -31,6 +31,8 @@ CRITICAL RULES:
 6. GOPLUS: Use computed_metrics.goplus_flags exactly. ownership_renounced=true → "소유권 포기 완료 ✓". is_honeypot=true → CRITICAL. sell_tax>10 → HIGH risk. can_take_back_ownership=true → HIGH risk. is_mintable=true → MEDIUM risk.
 7. HOLDER RISK: computed_metrics.holder_concentration.top10_pct > 50% → flag as HIGH RISK in risk_matrix.holderConcentrationRisk.
 8. TWITTER: If twitterData present, include followers/activity in team_investors. followers < 1000 → LOW engagement flag.
+9. CONTRACT SOURCE ANALYSIS: When computed_metrics.contract_analysis is provided, use each flag in risk_matrix.contractRisk. Format: ✅ flag=false (safe), ⚠️ flag=true (risk). hasMint→무한발행, hasOwnerControl→소유자 권한 존재, hasTax→세금 함수, hasBlacklist→지갑 차단 가능, hasPause→거래 중단 가능, hasMaxTx→최대 거래량 제한, hasProxy→프록시 컨트랙트. hasRenounceOwnership=true→✅ 소유권 포기 완료. Cite as [Contract Source Code, Etherscan].
+10. DATA SOURCES: Use marketData.priceDataSource to determine citation. priceDataSource='CoinMarketCap' → cite price/volume as [CoinMarketCap]; otherwise [CoinGecko].
 
 You MUST output ONLY valid JSON in this exact structure:
 
@@ -154,9 +156,21 @@ function generateMockAnalysis(aggregatedData) {
     onchain_metrics: `${aggregatedData.onchainData?.transactionCount ? `총 트랜잭션 수치 ${aggregatedData.onchainData.transactionCount}건 [Etherscan]` : '데이터 없음 — 해당 API 미연동'}`,
 
     risk_matrix: {
-      contractRisk: aggregatedData.onchainData?.contractVerified
-        ? "스마트 컨트랙트 검증 완료 [Etherscan]"
-        : "컨트랙트 소스코드 미검증 — 잠재적 취약점 주의 요망 [Etherscan]",
+      contractRisk: (() => {
+        const ca = aggregatedData.contractAnalysis;
+        const verified = aggregatedData.onchainData?.contractVerified;
+        if (!verified) return "컨트랙트 소스코드 미검증 — 잠재적 취약점 주의 요망 [Etherscan]";
+        if (!ca) return "스마트 컨트랙트 검증 완료 [Etherscan]";
+        const flags = [
+          ca.hasMint ? "⚠️ 무한발행(mint) 함수 존재" : "✅ 무한발행 없음",
+          ca.hasOwnerControl ? "⚠️ onlyOwner 권한 함수 존재" : "✅ 소유자 권한 제한적",
+          ca.hasTax ? "⚠️ 세금(tax/fee) 함수 감지" : "✅ 세금 함수 없음",
+          ca.hasBlacklist ? "⚠️ 지갑 차단(blacklist) 기능 존재" : "✅ 블랙리스트 없음",
+          ca.hasPause ? "⚠️ 거래 중단(pause) 기능 존재" : "✅ 거래 중단 없음",
+          ca.hasRenounceOwnership ? "✅ 소유권 포기(renounceOwnership) 가능" : "",
+        ].filter(Boolean);
+        return flags.join(". ") + " [Contract Source Code, Etherscan]";
+      })(),
       liquidityMarketRisk,
       goplusRisk,
       holderConcentrationRisk: (() => {
@@ -245,6 +259,8 @@ async function generateReport(aggregatedData) {
       ath_drop_pct: athDropPct,
       token_age_days: tokenAgeDays,
       token_creation_date: aggregatedData.tokenCreationDate || null,
+      contract_analysis: aggregatedData.contractAnalysis || null,
+      price_data_source: aggregatedData.marketData?.priceDataSource || 'CoinGecko',
       holder_concentration: aggregatedData.holderAnalysis ? {
         top10_pct: aggregatedData.holderAnalysis.top10TotalPercent,
         is_high_risk: aggregatedData.holderAnalysis.isHighRisk,
