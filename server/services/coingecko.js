@@ -374,6 +374,23 @@ async function getCoinsByCategory(categoryId) {
   }
 }
 
+/**
+ * Resolve a contract address to a CoinGecko coin ID.
+ *
+ * @param {string} contractAddress - Contract address
+ * @param {string} [platform='binance-smart-chain'] - Platform ID
+ * @returns {Promise<string|null>} CoinGecko coin ID
+ */
+async function getCoinIdByContract(contractAddress, platform = 'binance-smart-chain') {
+  try {
+    const data = await fetchCoinGecko(`/coins/${encodeURIComponent(platform)}/contract/${encodeURIComponent(contractAddress)}`);
+    return data.id || null;
+  } catch (err) {
+    console.error(`[CoinGecko] getCoinIdByContract failed: ${err.message}`);
+    return null;
+  }
+}
+
 module.exports = {
   searchTokens,
   getTokenMarketData,
@@ -382,4 +399,5 @@ module.exports = {
   getTokenByContract,
   getCategoriesList,
   getCoinsByCategory,
+  getCoinIdByContract,
 };

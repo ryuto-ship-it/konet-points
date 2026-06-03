@@ -24,12 +24,30 @@ const REPORT_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
  */
 router.get('/:coinId', async (req, res, next) => {
   try {
-    const { coinId } = req.params;
+    let { coinId } = req.params;
     const address = req.query.address || null;
     const chain = req.query.chain || null;
 
     if (!coinId) {
       return res.status(400).json({ error: 'Missing required parameter: coinId' });
+    }
+
+    if (coinId.startsWith('0x')) {
+      const coingecko = require('../services/coingecko');
+      const platformMap = {
+        bsc: 'binance-smart-chain',
+        ethereum: 'ethereum',
+        polygon: 'polygon-pos',
+        base: 'base',
+        arbitrum: 'arbitrum-one'
+      };
+      const platform = platformMap[chain] || 'binance-smart-chain';
+      
+      const resolvedId = await coingecko.getCoinIdByContract(coinId, platform);
+      if (!resolvedId) {
+        return res.status(404).json({ error: '해당 컨트랙트 주소를 CoinGecko에서 찾을 수 없습니다. 소형 토큰이거나 미등록 토큰일 수 있습니다.' });
+      }
+      coinId = resolvedId;
     }
 
     // ── Check cache ────────────────────────────────────────────────────────────
@@ -81,7 +99,7 @@ router.get('/:coinId', async (req, res, next) => {
         networkStats: onchainData.networkStats || null,
         transactionCount: onchainData.transactionCount,
         dailyTxEstimate: onchainData.dailyTxEstimate,
-        holderCount: onchainData.holderCount || null, // CoinGecko fallback holderCount mapped
+        holderCount: onchainData.holderCount || null,
         topHolders: [],    
         contractVerified: onchainData.contractVerified,
       },
@@ -98,51 +116,7 @@ router.get('/:coinId', async (req, res, next) => {
         volumes: priceHistory.volumes,
       },
 
-      analysis: {
-        basicInfoAnalysis: analysis.basic_info_analysis || '',
-        onchainAnalysis: analysis.onchain_analysis || '',
-        utilityAnalysis: {
-          text: analysis.utility_analysis?.text || '',
-          hasBurn: analysis.utility_analysis?.hasBurn || false,
-          hasStaking: analysis.utility_analysis?.hasStaking || false,
-          hasGovernance: analysis.utility_analysis?.hasGovernance || false,
-        },
-        teamInvestors: {
-          coreTeam: analysis.team_investors?.core_team || '',
-          backingInvestors: analysis.team_investors?.backing_investors || '',
-          transparencyRating: analysis.team_investors?.transparency_rating || 'medium',
-        },
-        tokenomicsAllocation: {
-          supplyDistribution: analysis.tokenomics_allocation?.supply_distribution || '',
-          circulationRatio: analysis.tokenomics_allocation?.circulation_ratio || 'N/A',
-          mcapFdvRatio: analysis.tokenomics_allocation?.mcap_fdv_ratio || 'N/A',
-        },
-        competitiveLandscape: {
-          summary: analysis.competitive_landscape?.summary || '',
-          competitors: analysis.competitive_landscape?.competitors || [],
-        },
-        riskAnalysis: {
-          concentrationRisk: analysis.risk_analysis?.concentrationRisk || 'unknown',
-          liquidityRisk: analysis.risk_analysis?.liquidityRisk || 'unknown',
-          volumeAnomaly: analysis.risk_analysis?.volumeAnomaly || 'unknown',
-          overallRiskLevel: analysis.risk_analysis?.overallRiskLevel || 'unknown',
-          details: analysis.risk_analysis?.details || '',
-        },
-        overallAssessment: {
-          summary: analysis.overall_assessment?.summary || '',
-          strengths: analysis.overall_assessment?.strengths || [],
-          weaknesses: analysis.overall_assessment?.weaknesses || [],
-          risks: analysis.overall_assessment?.risks || [],
-          investmentPerspective: analysis.overall_assessment?.investmentPerspective || '',
-          listingGrade: analysis.overall_assessment?.listingGrade || 'B',
-          listingScoreMatrix: {
-            circulation: analysis.overall_assessment?.listingScoreMatrix?.circulation || 'Fair',
-            volume: analysis.overall_assessment?.listingScoreMatrix?.volume || 'Fair',
-            onchain: analysis.overall_assessment?.listingScoreMatrix?.onchain || 'Fair',
-            team: analysis.overall_assessment?.listingScoreMatrix?.team || 'Fair',
-          },
-        },
-      },
+      analysis: analysis,
 
       generatedAt: new Date().toISOString(),
     };

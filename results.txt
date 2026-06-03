@@ -1,0 +1,4 @@
+--- /api/health ---
+{"status":"ok","timestamp":"2026-06-03T10:05:58.229Z","uptime":2.018092167,"services":{"coingecko":false,"etherscan":false,"anthropic":true,"goplus":false}}
+--- Report Generation ---
+HTTP Status: 200

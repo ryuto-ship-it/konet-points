@@ -98,8 +98,8 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     tokenInfoResult,
     networkStatsResult,
     defiProtocolResult,
-    competitorsResult,
     goplusSecurityResult,
+    competitorsResult,
   ] = await Promise.allSettled([
     // CoinGecko
     coingecko.getTokenMarketData(coinId),
