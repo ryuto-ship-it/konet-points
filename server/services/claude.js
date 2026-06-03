@@ -35,7 +35,10 @@ CRITICAL RULES:
 10. DATA SOURCES: Use marketData.priceDataSource to determine citation. priceDataSource='CoinMarketCap' → cite price/volume as [CoinMarketCap]; otherwise [CoinGecko].
 11. VOLUME HEALTH: If volumeHealth is present in data: cite volMcapRatioPct (정상 1-30%, 과열 30%+, 유동성부족 <1%). If isDumpingSignal=true → ⚠️ 매도 압력 집중 (sellRatioPct%). If isWashTrading=true → ⚠️ 워시트레이딩 의심. Include in onchain_metrics.
 12. WALLET AGE & DISTRIBUTION: If walletAgeAnalysis.isAirdropPattern=true → ⚠️ 상위 홀더 신생 지갑 비율 {newWalletRatio}% — 에어드랍/봇 의심. If distributionPattern.isAirdropLaunch=true → ⚠️ 초기 배포 {initialReceivers}개 지갑 — 에어드랍 런치 패턴. Include in holder_analysis_interpretation.
-13. UNLISTED TOKEN: If exchangeListings is null or empty, state "현재 중앙화 거래소 미상장" in exchange_listing_interpretation. Assess DEX listing status and compare against exchange listing criteria: DEX volume $1M+/day, 1,000+ holders, 6+ months operation.
+13. ONCHAIN VERIFICATION: If computed_metrics.onchain_verify.wash_trading_risk='HIGH' → ⚠️ 세탁거래 위험 HIGH, pingPongPairs 수 및 uniqueAddressRatio 명시. uniqueAddressRatio < 50% → ⚠️ 거래 다양성 부족. Include in onchain_metrics.
+14. SOCIAL ANALYSIS: If socialAnalysis present: cite healthGrade and healthScore. isNewAccount=true → ⚠️ 신규 계정(계정 나이 {accountAgeMonths}개월). healthGrade='WEAK' → 커뮤니티 기반 취약. If githubActivity present: isDormant=true → ⚠️ 개발 중단 의심, recentCommits 수치 명시. Include in team_investors.
+15. LIQUIDITY ANALYSIS: If liquidityAnalysis present: liquidityHealth='CRITICAL' → 상장 부적합. isWashTradingSuspect=true → ⚠️ 유동성 대비 거래량 이상. sellRatio>70 → ⚠️ 매도 압력 집중. Include in onchain_metrics.
+16. UNLISTED TOKEN: If exchangeListings is null or empty, state "현재 중앙화 거래소 미상장" in exchange_listing_interpretation. Assess DEX listing status and compare against exchange listing criteria: DEX volume $1M+/day, 1,000+ holders, 6+ months operation.
 14. LISTING ASSESSMENT GRADE: Use computed_metrics.listing_score for the listing_assessment. The composite score (0-100) is pre-calculated as: exchange 40% + onchain 30% + price stability 30%. Use composite_grade as the base, but you may adjust ±1 grade based on qualitative factors (e.g. contract risks, community size). Cite tierCounts: "T1×N, T2×N, T3×N" format. TIER1 상장 여부가 가장 중요한 지표임.
 
 You MUST output ONLY valid JSON in this exact structure:
@@ -282,6 +285,37 @@ async function generateReport(aggregatedData) {
         first_24h_tx_count: aggregatedData.distributionPattern.first24hTxCount,
         initial_receivers: aggregatedData.distributionPattern.initialReceivers,
         is_airdrop_launch: aggregatedData.distributionPattern.isAirdropLaunch,
+      } : null,
+      onchain_verify: aggregatedData.onchainVerification ? {
+        wash_trading_risk: aggregatedData.onchainVerification.washTradingRisk,
+        wash_trading_score: aggregatedData.onchainVerification.washTradingScore,
+        unique_address_ratio: aggregatedData.onchainVerification.uniqueAddressRatio,
+        ping_pong_pairs: aggregatedData.onchainVerification.pingPongPairs,
+        is_bot_pattern: aggregatedData.onchainVerification.isBotPattern,
+      } : null,
+      social_analysis: aggregatedData.socialAnalysis ? {
+        followers: aggregatedData.socialAnalysis.followers,
+        health_grade: aggregatedData.socialAnalysis.healthGrade,
+        health_score: aggregatedData.socialAnalysis.healthScore,
+        account_age_months: aggregatedData.socialAnalysis.accountAgeMonths,
+        is_new_account: aggregatedData.socialAnalysis.isNewAccount,
+        follower_ratio: aggregatedData.socialAnalysis.followerRatio,
+      } : null,
+      github_activity: aggregatedData.githubActivity ? {
+        stars: aggregatedData.githubActivity.stars,
+        recent_commits: aggregatedData.githubActivity.recentCommits,
+        is_active: aggregatedData.githubActivity.isActive,
+        is_dormant: aggregatedData.githubActivity.isDormant,
+        last_update: aggregatedData.githubActivity.lastUpdate,
+      } : null,
+      liquidity_analysis: aggregatedData.liquidityAnalysis ? {
+        liquidity_usd: aggregatedData.liquidityAnalysis.liquidity,
+        liquidity_health: aggregatedData.liquidityAnalysis.liquidityHealth,
+        sell_ratio: aggregatedData.liquidityAnalysis.sellRatio,
+        is_wash_trading_suspect: aggregatedData.liquidityAnalysis.isWashTradingSuspect,
+        vol_liq_ratio: aggregatedData.liquidityAnalysis.volLiqRatio,
+        is_new_pair: aggregatedData.liquidityAnalysis.isNewPair,
+        pair_age_days: aggregatedData.liquidityAnalysis.pairAgeInDays,
       } : null,
       exchange_is_unlisted: !aggregatedData.exchangeListings || aggregatedData.exchangeListings.length === 0,
       listing_score: aggregatedData.listingScore ? {

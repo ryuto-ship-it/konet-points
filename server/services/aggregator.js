@@ -16,6 +16,10 @@ const twitter = require('./twitter');
 const bscscan = require('./bscscan');
 const contractAnalyzer = require('./contractAnalyzer');
 const { getExchangeTier, calculateListingScore } = require('../data/exchangeTiers');
+const onchainVerifier = require('./onchainVerifier');
+const socialAnalyzer = require('./socialAnalyzer');
+const liquidityAnalyzer = require('./liquidityAnalyzer');
+const githubAnalyzer = require('./githubAnalyzer');
 
 /**
  * Aggregate token data from all API sources.
@@ -98,6 +102,9 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   // Extract Twitter handle from CoinGecko links (available from Step 1)
   const twitterHandle = tokenDetails?.links?.twitter_screen_name || null;
 
+  // Extract GitHub URL from CoinGecko links
+  const githubUrl = tokenDetails?.links?.repos_url?.github?.[0] || null;
+
   // ── Step 1b: Resolve CMC ID (needed to call cmcInternal endpoints) ───────────
   let cmcId = null;
   if (resolvedAddress) {
@@ -135,6 +142,10 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     bscCreationDateResult,
     bscHolderCountResult,
     bscDistributionResult,
+    onchainVerifyResult,
+    socialAnalysisResult,
+    liquidityAnalysisResult,
+    githubAnalysisResult,
     competitorsResult,
   ] = await Promise.allSettled([
     // CoinGecko
@@ -243,6 +254,26 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
       ? bscscan.analyzeDistributionPattern(resolvedAddress, chainId)
       : Promise.resolve(null),
 
+    // Onchain transaction verification (wash trading, bot detection)
+    resolvedAddress
+      ? onchainVerifier.analyzeTransactionPatterns(resolvedAddress, chainId)
+      : Promise.resolve(null),
+
+    // Social analysis (Twitter health score)
+    twitterHandle
+      ? socialAnalyzer.analyzeTwitterAccount(twitterHandle)
+      : Promise.resolve(null),
+
+    // Liquidity analysis (DexScreener, sell ratio, wash trading)
+    resolvedAddress
+      ? liquidityAnalyzer.analyzeLiquidity(resolvedAddress)
+      : Promise.resolve(null),
+
+    // GitHub activity
+    githubUrl
+      ? githubAnalyzer.analyzeGithub(githubUrl)
+      : Promise.resolve(null),
+
     // Competitors logic
     (async () => {
       const categories = tokenDetails?.categories || [];
@@ -298,6 +329,10 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const bscCreationDate = extract(bscCreationDateResult);
   const bscHolderCountData = extract(bscHolderCountResult);
   const bscDistributionData = extract(bscDistributionResult);
+  const onchainVerifyData = extract(onchainVerifyResult);
+  const socialAnalysisData = extract(socialAnalysisResult);
+  const liquidityAnalysisData = extract(liquidityAnalysisResult);
+  const githubData = extract(githubAnalysisResult);
   const rawCompetitors = extract(competitorsResult, []);
 
   // CMC Twitter URL fallback: try if CoinGecko had no handle
@@ -632,6 +667,10 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     volumeHealth: volumeHealth || null,
     walletAgeAnalysis: walletAgeAnalysis || null,
     distributionPattern: bscDistributionData || null,
+    onchainVerification: onchainVerifyData || null,
+    socialAnalysis: socialAnalysisData || null,
+    liquidityAnalysis: liquidityAnalysisData || null,
+    githubActivity: githubData || null,
   };
 }
 

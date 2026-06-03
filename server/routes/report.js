@@ -128,6 +128,10 @@ router.get('/:coinId', async (req, res, next) => {
       volumeHealth: aggregatedData.volumeHealth || null,
       walletAgeAnalysis: aggregatedData.walletAgeAnalysis || null,
       distributionPattern: aggregatedData.distributionPattern || null,
+      onchainVerification: aggregatedData.onchainVerification || null,
+      socialAnalysis: aggregatedData.socialAnalysis || null,
+      liquidityAnalysis: aggregatedData.liquidityAnalysis || null,
+      githubActivity: aggregatedData.githubActivity || null,
 
       analysis: analysis,
 

@@ -10,6 +10,8 @@ import RiskMatrix from './sections/RiskMatrix';
 import ExchangeListings from './sections/ExchangeListings';
 import HolderAnalysis from './sections/HolderAnalysis';
 import PricePattern from './sections/PricePattern';
+import OnchainVerification from './sections/OnchainVerification';
+import SocialDev from './sections/SocialDev';
 import ListingAssessment from './sections/ListingAssessment';
 import DataSources from './sections/DataSources';
 import './ReportView.css';
@@ -23,6 +25,8 @@ const SECTIONS = [
   { id: 'exchange-listings', label: '거래소 현황', labelEn: 'Exchange Listings' },
   { id: 'holder-analysis', label: '홀더 분석', labelEn: 'Holder Analysis' },
   { id: 'price-pattern', label: '가격 패턴', labelEn: 'Price Pattern' },
+  { id: 'onchain-verification', label: '온체인 진위', labelEn: 'Onchain Verification' },
+  { id: 'social-dev', label: '소셜 & 개발', labelEn: 'Social & Dev' },
   { id: 'risk-matrix', label: '리스크 매트릭스', labelEn: 'Risk Matrix' },
   { id: 'listing-assessment', label: '상장 심사', labelEn: 'Listing Assessment' },
   { id: 'data-sources', label: '출처', labelEn: 'Data Sources' },
@@ -104,6 +108,12 @@ export default function ReportView({ data, onBack }) {
             </div>
             <div ref={setSectionRef('price-pattern')}>
               <PricePattern data={data} />
+            </div>
+            <div ref={setSectionRef('onchain-verification')}>
+              <OnchainVerification data={data} />
+            </div>
+            <div ref={setSectionRef('social-dev')}>
+              <SocialDev data={data} />
             </div>
             <div ref={setSectionRef('risk-matrix')}>
               <RiskMatrix data={data} />
