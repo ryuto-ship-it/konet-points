@@ -26,7 +26,7 @@ router.get('/:coinId', async (req, res, next) => {
   try {
     const { coinId } = req.params;
     const address = req.query.address || null;
-    const chain = req.query.chain || 'ethereum';
+    const chain = req.query.chain || null;
 
     if (!coinId) {
       return res.status(400).json({ error: 'Missing required parameter: coinId' });
@@ -55,7 +55,7 @@ router.get('/:coinId', async (req, res, next) => {
       token: {
         name: marketData.name,
         symbol: marketData.symbol,
-        network: chain,
+        network: aggregatedData.actualChain,
         contractAddress: address,
         image: marketData.image,
       },

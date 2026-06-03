@@ -3,11 +3,11 @@ import { searchTokens } from '../api/client';
 import './SearchHero.css';
 
 const QUICK_TOKENS = [
-  { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
-  { id: 'binancecoin', name: 'BNB', symbol: 'BNB', image: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png' },
-  { id: 'chainlink', name: 'Chainlink', symbol: 'LINK', image: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png' },
-  { id: 'uniswap', name: 'Uniswap', symbol: 'UNI', image: 'https://assets.coingecko.com/coins/images/12504/small/uni.jpg' },
-  { id: 'aave', name: 'Aave', symbol: 'AAVE', image: 'https://assets.coingecko.com/coins/images/12645/small/aave-token.png' },
+  { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png', chain: 'ethereum' },
+  { id: 'binancecoin', name: 'BNB', symbol: 'BNB', image: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png', chain: 'bsc' },
+  { id: 'chainlink', name: 'Chainlink', symbol: 'LINK', image: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png', chain: 'ethereum' },
+  { id: 'uniswap', name: 'Uniswap', symbol: 'UNI', image: 'https://assets.coingecko.com/coins/images/12504/small/uni.jpg', chain: 'ethereum' },
+  { id: 'aave', name: 'Aave', symbol: 'AAVE', image: 'https://assets.coingecko.com/coins/images/12645/small/aave-token.png', chain: 'ethereum' },
 ];
 
 export default function SearchHero({ onTokenSelect, error }) {

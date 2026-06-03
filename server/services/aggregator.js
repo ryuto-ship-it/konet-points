@@ -17,8 +17,42 @@ const defillama = require('./defillama');
  * @param {string} [chain='ethereum'] - Blockchain network name
  * @returns {Promise<{ marketData: Object, onchainData: Object, defiData: Object, priceHistory: Object }>}
  */
-async function aggregateTokenData(coinId, contractAddress = null, chain = 'ethereum') {
-  console.log(`[Aggregator] Aggregating data for coinId=${coinId}, address=${contractAddress}, chain=${chain}`);
+async function aggregateTokenData(coinId, contractAddress = null, chain = null) {
+  let actualChain = chain;
+
+  // ── Step 1: Pre-fetch token details to resolve contract address if needed ─────
+  let tokenDetails = {};
+  try {
+    tokenDetails = await coingecko.getTokenDetails(coinId);
+  } catch (err) {
+    console.error(`[Aggregator] Failed to pre-fetch CoinGecko token details: ${err.message}`);
+  }
+
+  // Infer chain if not provided
+  if (!actualChain || actualChain === 'ethereum') {
+    if (coinId === 'binancecoin') actualChain = 'bsc';
+    else if (coinId === 'matic-network') actualChain = 'polygon';
+    else if (coinId === 'avalanche-2') actualChain = 'avalanche';
+    else if (coinId === 'solana') actualChain = 'solana';
+    else if (tokenDetails && tokenDetails.asset_platform_id) {
+      const revPlatformMap = {
+        'ethereum': 'ethereum',
+        'polygon-pos': 'polygon',
+        'arbitrum-one': 'arbitrum',
+        'optimistic-ethereum': 'optimism',
+        'base': 'base',
+        'binance-smart-chain': 'bsc',
+        'avalanche': 'avalanche'
+      };
+      if (revPlatformMap[tokenDetails.asset_platform_id]) {
+        actualChain = revPlatformMap[tokenDetails.asset_platform_id];
+      }
+    }
+  }
+  
+  if (!actualChain) actualChain = 'ethereum';
+
+  console.log(`[Aggregator] Aggregating data for coinId=${coinId}, address=${contractAddress}, chain=${actualChain}`);
 
   // Map chain names to Etherscan chain IDs
   const chainIdMap = {
@@ -30,7 +64,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = 'ether
     bsc: 56,
     avalanche: 43114,
   };
-  const chainId = chainIdMap[chain] || 1;
+  const chainId = chainIdMap[actualChain] || 1;
 
   const platformMap = {
     ethereum: 'ethereum',
@@ -41,15 +75,9 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = 'ether
     bsc: 'binance-smart-chain',
     avalanche: 'avalanche',
   };
-  const platformId = platformMap[chain] || 'ethereum';
+  const platformId = platformMap[actualChain] || 'ethereum';
 
-  // ── Step 1: Pre-fetch token details to resolve contract address if needed ─────
-  let tokenDetails = {};
-  try {
-    tokenDetails = await coingecko.getTokenDetails(coinId);
-  } catch (err) {
-    console.error(`[Aggregator] Failed to pre-fetch CoinGecko token details: ${err.message}`);
-  }
+
 
   let resolvedAddress = contractAddress;
   if (!resolvedAddress && tokenDetails && tokenDetails.platforms) {
@@ -208,6 +236,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = 'ether
   console.log('[Aggregator] Aggregation complete');
 
   return {
+    actualChain,
     marketData,
     onchainData,
     defiData,
