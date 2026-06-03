@@ -27,6 +27,7 @@ CRITICAL RULES:
 2. CITATIONS REQUIRED: Every numerical figure or factual metric MUST include an inline citation in brackets indicating the data source (e.g., "$1.1M [CoinGecko]"). The sources available are CoinGecko, Etherscan, and DefiLlama.
 3. HIGHLIGHT SEVERE RISKS: If the token has fallen 90% or more from its All-Time High (ATH), or if other severe red flags exist, you MUST place a "⚠️" warning emoji at the beginning of the relevant section and describe the negative impact bluntly. Do NOT sugarcoat negative metrics.
 4. STRICT COMPETITOR RULES: You are provided with a 'competitors' array of actual tokens within a ±50% market cap range. You MUST ONLY compare the token to the entities in this specific array. Do NOT use your pre-trained knowledge to invent competitors. If the 'competitors' array is empty, you MUST state "유사 시총 프로젝트 데이터 없음".
+5. GOPLUS SECURITY DATA: When goplusSecurity data is provided, you MUST use it for the risk_matrix section. Specifically flag: is_honeypot=true as CRITICAL risk, sell_tax above 10% as HIGH risk, can_take_back_ownership=true as HIGH risk, is_mintable=true as MEDIUM risk. Always cite as [GoPlus Security].
 
 You MUST output ONLY valid JSON in the exact structure below:
 
@@ -39,6 +40,7 @@ You MUST output ONLY valid JSON in the exact structure below:
   "risk_matrix": {
     "contractRisk": "Analysis of smart contract risk based on verification status.",
     "liquidityMarketRisk": "Analysis of market risks (e.g. ATH drop, volume).",
+    "goplusRisk": "GoPlus 보안 스캔 결과 요약. 허니팟 여부, 세금 비율, 소유권 리스크 명시.",
     "details": "Overall risk commentary."
   },
   "listing_assessment": {
@@ -47,7 +49,8 @@ You MUST output ONLY valid JSON in the exact structure below:
   },
   "data_sources": [
     "CoinGecko API (Market Data)",
-    "Etherscan API (On-chain Data)"
+    "Etherscan API (On-chain Data)",
+    "GoPlus Security API (Contract Risk Data)"
   ]
 }`;
 
@@ -94,6 +97,7 @@ function generateMockAnalysis(aggregatedData) {
     risk_matrix: {
       contractRisk: aggregatedData.onchainData?.contractVerified ? "스마트 컨트랙트 검증 완료 [Etherscan]" : "컨트랙트 소스코드 미검증 — 잠재적 취약점 주의 요망 [Etherscan]",
       liquidityMarketRisk: athDrop >= 90 ? \`고위험 (ATH 대비 \${athDrop.toFixed(1)}% 하락) [CoinGecko]\` : "보통 (유동성 정상)",
+      goplusRisk: "GoPlus 보안 스캔 결과 요약. 허니팟 여부, 세금 비율, 소유권 리스크 명시.",
       details: "현재 시장 변동성 외에 특별히 보고된 치명적 리스크는 관측되지 않음."
     },
     
@@ -104,7 +108,8 @@ function generateMockAnalysis(aggregatedData) {
     
     data_sources: [
       "CoinGecko API (Market Data)",
-      "Etherscan API (On-chain Data)"
+      "Etherscan API (On-chain Data)",
+      "GoPlus Security API (Contract Risk Data)"
     ]
   };
 }

@@ -8,6 +8,7 @@
 const coingecko = require('./coingecko');
 const etherscan = require('./etherscan');
 const defillama = require('./defillama');
+const goplus = require('./goplus');
 
 /**
  * Aggregate token data from all API sources.
@@ -98,6 +99,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     networkStatsResult,
     defiProtocolResult,
     competitorsResult,
+    goplusSecurityResult,
   ] = await Promise.allSettled([
     // CoinGecko
     coingecko.getTokenMarketData(coinId),
@@ -127,6 +129,11 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
       if (symbol) return defillama.findProtocolByToken(symbol);
       return null;
     }),
+
+    // GoPlus Security
+    resolvedAddress
+      ? goplus.getTokenSecurity(resolvedAddress, String(chainId))
+      : Promise.resolve(null),
 
     // Competitors logic
     (async () => {
@@ -169,6 +176,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const networkStats = extract(networkStatsResult);
   const defiProtocol = extract(defiProtocolResult);
   const rawCompetitors = extract(competitorsResult, []);
+  const goplusData = extract(goplusSecurityResult);
 
   // ── Normalize market data ────────────────────────────────────────────────────
   const market = marketDataArr?.[0] || {};
@@ -230,7 +238,8 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     tokenName: tokenInfoData.tokenName || null,
     tokenType: tokenInfoData.tokenType || null,
     tokenDecimals: tokenInfoData.divisor || null,
-    holderCount: coinGeckoHolderCount, // CoinGecko fallback
+    goplusSecurity: goplusData,
+    holderCount: goplusData?.holderCount || coinGeckoHolderCount,
   };
 
   // ── Normalize DeFi data ──────────────────────────────────────────────────────

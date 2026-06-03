@@ -51,6 +51,7 @@ app.get('/api/health', (req, res) => {
       coingecko: !!process.env.COINGECKO_API_KEY && process.env.COINGECKO_API_KEY !== 'your_coingecko_demo_key',
       etherscan: !!process.env.ETHERSCAN_API_KEY && process.env.ETHERSCAN_API_KEY !== 'your_etherscan_key',
       anthropic: !!process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== 'your_anthropic_key',
+      goplus: !!process.env.GOPLUS_API_KEY,
     },
   });
 });
