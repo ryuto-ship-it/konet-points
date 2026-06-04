@@ -1,21 +1,27 @@
+import { Radar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS, RadialLinearScale, PointElement,
+  LineElement, Filler, Tooltip,
+} from 'chart.js';
+
+ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip);
+
 const GRADE_COLOR = {
-  'A+': 'var(--accent-emerald)', 'A': 'var(--accent-emerald)',
-  'B+': 'var(--accent-cyan)',    'B': 'var(--accent-cyan)',
-  'C+': 'var(--accent-amber)',   'C': 'var(--accent-amber)',
-  'D+': '#F97316',               'D': '#F97316',
-  'F':  'var(--accent-crimson)',
+  'A+': '#10b981', 'A': '#10b981',
+  'B+': '#00e5ff', 'B': '#00e5ff',
+  'C+': '#f59e0b', 'C': '#f59e0b',
+  'D+': '#f97316', 'D': '#f97316',
+  'F':  '#ef4444',
 };
 
 function ScoreBar({ label, score, level, detail, weight }) {
-  const color = score >= 70 ? 'var(--accent-emerald)' : score >= 40 ? 'var(--accent-amber)' : 'var(--accent-crimson)';
+  const color = score >= 70 ? '#10b981' : score >= 40 ? '#f59e0b' : '#ef4444';
   return (
-    <div style={{ marginBottom: '16px' }}>
+    <div style={{ marginBottom: '14px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
         <span style={{ fontSize: '13px', fontWeight: 600 }}>
           {label}
-          <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginLeft: '6px' }}>
-            (가중치 {weight}%)
-          </span>
+          <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginLeft: '6px' }}>({weight}%)</span>
         </span>
         <span style={{ fontSize: '13px', fontWeight: 700, color }}>
           {score}/100
@@ -24,9 +30,8 @@ function ScoreBar({ label, score, level, detail, weight }) {
       </div>
       <div style={{ height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
         <div style={{
-          height: '100%', width: `${score}%`,
-          background: color, borderRadius: '3px',
-          transition: 'width 0.5s ease',
+          height: '100%', width: `${score}%`, background: color,
+          borderRadius: '3px', transition: 'width 0.5s ease',
         }} />
       </div>
       {detail && <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '4px' }}>{detail}</p>}
@@ -37,8 +42,84 @@ function ScoreBar({ label, score, level, detail, weight }) {
 export default function ListingAssessment({ data }) {
   const assessment = data.analysis?.listing_assessment || {};
   const ls = data.listingScore;
+  const certik = data.certik;
+  const sa = data.socialAnalysis;
+
   const grade = assessment.grade || ls?.compositeGrade || '?';
   const gradeColor = GRADE_COLOR[grade] || 'var(--text-tertiary)';
+
+  // Radar chart: 5 dimensions
+  const securityScore = certik
+    ? Math.round(certik.rating / 5 * 100)
+    : data.goplusSecurity && !data.goplusSecurity.isHoneypot
+      ? 60
+      : 30;
+
+  const communityScore = sa?.healthScore
+    ?? (data.twitterData?.followersCount
+      ? Math.min(100, Math.round(Math.log10(data.twitterData.followersCount + 1) / 5 * 100))
+      : 30);
+
+  const radarScores = [
+    ls?.exchange?.score ?? 0,
+    ls?.onchain?.score ?? 0,
+    ls?.priceStability?.score ?? 0,
+    securityScore,
+    communityScore,
+  ];
+
+  const radarData = {
+    labels: ['거래소', '온체인', '가격안정성', '보안', '커뮤니티'],
+    datasets: [{
+      label: '점수',
+      data: radarScores,
+      backgroundColor: 'rgba(0, 229, 255, 0.12)',
+      borderColor: '#00e5ff',
+      borderWidth: 2,
+      pointBackgroundColor: '#00e5ff',
+      pointBorderColor: '#0a0b0f',
+      pointBorderWidth: 2,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+    }],
+  };
+
+  const radarOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(10,11,15,0.95)',
+        borderColor: 'rgba(255,255,255,0.08)',
+        borderWidth: 1,
+        titleColor: '#8899aa',
+        bodyColor: '#e8ecf4',
+        padding: 10,
+        cornerRadius: 8,
+        callbacks: {
+          label: ctx => ` ${ctx.label}: ${ctx.parsed.r}/100`,
+        },
+      },
+    },
+    scales: {
+      r: {
+        min: 0, max: 100,
+        ticks: {
+          stepSize: 25,
+          color: '#445566',
+          font: { size: 9 },
+          backdropColor: 'transparent',
+        },
+        grid: { color: 'rgba(255,255,255,0.06)' },
+        angleLines: { color: 'rgba(255,255,255,0.06)' },
+        pointLabels: {
+          color: '#8899aa',
+          font: { size: 12, family: 'Inter' },
+        },
+      },
+    },
+  };
 
   return (
     <section className="report-section">
@@ -47,29 +128,38 @@ export default function ListingAssessment({ data }) {
         <span className="badge badge-ethereum">Listing Assessment</span>
       </div>
 
-      {/* Overall grade */}
-      <div className="glass-card" style={{ display: 'flex', gap: '24px', alignItems: 'center', marginBottom: '16px' }}>
-        <div style={{
-          fontSize: '52px', fontWeight: 800, color: gradeColor,
-          background: `${gradeColor}18`,
-          padding: '16px 36px', borderRadius: '16px',
-          border: `1px solid ${gradeColor}44`,
-          minWidth: '100px', textAlign: 'center',
-          flexShrink: 0,
-        }}>
-          {grade}
-        </div>
-        <div style={{ flex: 1 }}>
+      {/* Grade + radar side by side */}
+      <div className="glass-card" style={{ display: 'flex', gap: '24px', alignItems: 'stretch', marginBottom: '16px', flexWrap: 'wrap' }}>
+        {/* Grade */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '120px' }}>
+          <div style={{
+            fontSize: '60px', fontWeight: 800, color: gradeColor,
+            background: `${gradeColor}18`, padding: '16px 32px',
+            borderRadius: '16px', border: `1px solid ${gradeColor}44`,
+            textAlign: 'center', lineHeight: 1,
+          }}>
+            {grade}
+          </div>
           {ls && (
-            <p style={{ fontSize: '20px', fontWeight: 700, marginBottom: '4px' }}>
-              종합 점수: <span style={{ color: gradeColor }}>{ls.composite}/100</span>
+            <p style={{ fontSize: '14px', fontWeight: 700, marginTop: '10px', color: gradeColor }}>
+              {ls.composite}/100
             </p>
           )}
-          <p className="body-base" style={{ color: 'var(--text-secondary)' }}>
-            {assessment.summary || '—'}
-          </p>
+          <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '4px', textAlign: 'center' }}>종합 점수</p>
+        </div>
+
+        {/* Radar chart */}
+        <div style={{ flex: 1, minWidth: '260px', height: '260px' }}>
+          <Radar data={radarData} options={radarOptions} />
         </div>
       </div>
+
+      {/* AI summary */}
+      {assessment.summary && (
+        <div className="glass-card" style={{ marginBottom: '16px' }}>
+          <p className="body-base">{assessment.summary}</p>
+        </div>
+      )}
 
       {/* Score breakdown */}
       {ls && (
@@ -98,7 +188,27 @@ export default function ListingAssessment({ data }) {
             weight={30}
           />
 
-          {/* Tier counts summary */}
+          {/* Security & Community (참고) */}
+          <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '10px' }}>참고 지표 (레이더 차트)</p>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              {[
+                { label: '보안', score: securityScore, src: certik ? `CertiK ${certik.rating}/5.0` : 'GoPlus' },
+                { label: '커뮤니티', score: communityScore, src: sa ? `Twitter ${sa.healthGrade}` : '—' },
+              ].map(({ label, score, src }) => {
+                const c = score >= 70 ? '#10b981' : score >= 40 ? '#f59e0b' : '#ef4444';
+                return (
+                  <div key={label} style={{ flex: '1 1 140px', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: 'var(--border-glass) 1px solid' }}>
+                    <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '4px' }}>{label}</p>
+                    <p style={{ fontSize: '16px', fontWeight: 700, color: c }}>{score}/100</p>
+                    <p style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>{src}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Tier counts */}
           {ls.exchange.tierCounts && (
             <div style={{ marginTop: '16px', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
               <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '6px' }}>거래소 티어 분포</p>
