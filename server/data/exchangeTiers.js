@@ -110,12 +110,14 @@ function calculateListingScore(exchanges) {
     reason = '미검증 거래소만 상장 또는 미상장';
   }
 
-  return {
-    score: Math.round(totalScore / exchanges.length),
-    grade,
-    reason,
-    tierCounts
-  };
+  // Base score: tier average
+  const baseScore = Math.round(totalScore / exchanges.length);
+
+  // T1/T2 bonus points
+  const bonus = (tierCounts.TIER1 * 30) + (tierCounts.TIER2 * 15);
+  const score = Math.min(100, baseScore + bonus);
+
+  return { score, grade, reason, tierCounts };
 }
 
 module.exports = { getExchangeTier, calculateListingScore, EXCHANGE_TIERS };

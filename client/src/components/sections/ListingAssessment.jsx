@@ -48,16 +48,33 @@ export default function ListingAssessment({ data }) {
   const grade = assessment.grade || ls?.compositeGrade || '?';
   const gradeColor = GRADE_COLOR[grade] || 'var(--text-tertiary)';
 
-  // Radar chart: 5 dimensions
-  const securityScore = certik
-    ? Math.round(certik.rating / 5 * 100)
-    : data.goplusSecurity && !data.goplusSecurity.isHoneypot
-      ? 60
-      : 30;
+  // 6-axis radar: 거래소 / 온체인 / 가격안정성 / 보안(CertiK) / 커뮤니티 / 유동성
+  const gp = data.goplusSecurity;
 
+  // Security: CertiK score (0-100) or GoPlus-derived estimate
+  const securityScore = certik
+    ? Math.round(certik.score)                          // 0–100 direct
+    : gp
+      ? (!gp.isHoneypot && gp.isOpenSource && !gp.isMintable ? 65
+        : gp.isHoneypot ? 5
+        : 40)
+      : 35;
+
+  // Community: Twitter health score
   const communityScore = sa?.healthScore
     ?? (data.twitterData?.followersCount
       ? Math.min(100, Math.round(Math.log10(data.twitterData.followersCount + 1) / 5 * 100))
+      : 30);
+
+  // Liquidity: from liquidityAnalysis or dexData
+  const la = data.liquidityAnalysis;
+  const liquidityScore = la
+    ? (la.liquidityHealth === 'STRONG' ? 100
+      : la.liquidityHealth === 'MODERATE' ? 70
+      : la.liquidityHealth === 'WEAK' ? 40
+      : 10)
+    : (data.marketData?.dexData?.liquidity
+      ? Math.min(100, Math.round(Math.log10(data.marketData.dexData.liquidity + 1) / 6 * 100))
       : 30);
 
   const radarScores = [
@@ -66,10 +83,11 @@ export default function ListingAssessment({ data }) {
     ls?.priceStability?.score ?? 0,
     securityScore,
     communityScore,
+    liquidityScore,
   ];
 
   const radarData = {
-    labels: ['거래소', '온체인', '가격안정성', '보안', '커뮤니티'],
+    labels: ['거래소', '온체인', '가격안정성', '보안', '커뮤니티', '유동성'],
     datasets: [{
       label: '점수',
       data: radarScores,
@@ -193,8 +211,9 @@ export default function ListingAssessment({ data }) {
             <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '10px' }}>참고 지표 (레이더 차트)</p>
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               {[
-                { label: '보안', score: securityScore, src: certik ? `CertiK ${certik.rating}/5.0` : 'GoPlus' },
+                { label: '보안', score: securityScore, src: certik ? `CertiK ${certik.score.toFixed(1)}/100` : 'GoPlus 추정' },
                 { label: '커뮤니티', score: communityScore, src: sa ? `Twitter ${sa.healthGrade}` : '—' },
+                { label: '유동성', score: liquidityScore, src: la ? `DexScreener ${la.liquidityHealth}` : '—' },
               ].map(({ label, score, src }) => {
                 const c = score >= 70 ? '#10b981' : score >= 40 ? '#f59e0b' : '#ef4444';
                 return (

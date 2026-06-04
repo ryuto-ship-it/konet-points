@@ -32,7 +32,8 @@ CRITICAL RULES:
 6b. GOPLUS: Use computed_metrics.goplus_flags exactly. ownership_renounced=true → "소유권 포기 완료 ✓". is_honeypot=true → CRITICAL. sell_tax>10 → HIGH risk. can_take_back_ownership=true → HIGH risk. is_mintable=true → MEDIUM risk.
 7. HOLDER RISK: If computed_metrics.holder_concentration is present, use top10_pct in risk_matrix.holderConcentrationRisk. top10_pct >= 47% → ⚠️ 집중도 위험. top10_pct > 50% → HIGH RISK. If holder_count_bscscan is present, mention actual holder count. Cite as [Etherscan/BscScan].
 8. TWITTER: If twitterData present, include followers/activity in team_investors. followers < 1000 → LOW engagement flag.
-9. WHITEPAPER TOKENOMICS: If computed_metrics.whitepaper_found=true, analyze whitepaper_content for the tokenomics section. Extract: 팀 물량 %, 생태계/마케팅 %, 커뮤니티/에어드랍 %, 투자자 %, 베스팅 스케줄. If content doesn't clearly state these, output "백서에서 명시적 수치 없음". If whitepaper_found=false, output "백서 데이터 없음 — 수동 확인 필요".
+9. TOKEN AGE: If computed_metrics.token_age_days_dex < 30, do NOT calculate or show 30-day volatility or 30-day price range in price_pattern_interpretation. Instead output "데이터 부족 — 토큰 출시 N일 (30일 지표 산출 불가)" where N = token_age_days_dex value. Only apply this rule when token_age_days_dex is explicitly < 30.
+9b. WHITEPAPER TOKENOMICS: If computed_metrics.whitepaper_found=true, analyze whitepaper_content for the tokenomics section. Extract: 팀 물량 %, 생태계/마케팅 %, 커뮤니티/에어드랍 %, 투자자 %, 베스팅 스케줄. If content doesn't clearly state these, output "백서에서 명시적 수치 없음". If whitepaper_found=false, output "백서 데이터 없음 — 수동 확인 필요".
 10. CONTRACT SOURCE ANALYSIS: When computed_metrics.contract_analysis is provided, use each flag in risk_matrix.contractRisk. Format: ✅ flag=false (safe), ⚠️ flag=true (risk). hasMint→무한발행, hasOwnerControl→소유자 권한 존재, hasTax→세금 함수, hasBlacklist→지갑 차단 가능, hasPause→거래 중단 가능, hasMaxTx→최대 거래량 제한, hasProxy→프록시 컨트랙트. hasRenounceOwnership=true→✅ 소유권 포기 완료. Cite as [Contract Source Code, Etherscan].
 10. DATA SOURCES: Use marketData.priceDataSource to determine citation. priceDataSource='CoinMarketCap' → cite price/volume as [CoinMarketCap]; otherwise [CoinGecko].
 11. VOLUME HEALTH: If volumeHealth is present in data: cite volMcapRatioPct (정상 1-30%, 과열 30%+, 유동성부족 <1%). If isDumpingSignal=true → ⚠️ 매도 압력 집중 (sellRatioPct%). If isWashTrading=true → ⚠️ 워시트레이딩 의심. Include in onchain_metrics.
@@ -279,6 +280,7 @@ async function generateReport(aggregatedData) {
       ath_drop_pct: athDropPct,
       token_age_days: tokenAgeDays,
       token_creation_date: aggregatedData.tokenCreationDate || null,
+      token_age_days_dex: aggregatedData.tokenAgeInDays,
       whitepaper_found: !!(aggregatedData.whitepaperContent?.found),
       whitepaper_source: aggregatedData.whitepaperContent?.source || null,
       contract_analysis: aggregatedData.contractAnalysis || null,

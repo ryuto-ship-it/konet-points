@@ -606,9 +606,23 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   // ── Composite listing score (exchange 40% + onchain 30% + price stability 30%) ─
   const exchangeScoreResult = calculateListingScore(exchangeListings);
 
+  // Token age from DexScreener pairCreatedAt (ms timestamp)
+  const pairCreatedAt = dexData?.pairCreatedAt ?? null;
+  const tokenAgeInDays = pairCreatedAt
+    ? Math.floor((Date.now() - pairCreatedAt) / 86400000)
+    : null;
+
   const dailyTx = onchainData.dailyTxEstimate || 0;
-  const onchainScore = dailyTx >= 4000 ? 100 : dailyTx >= 1000 ? 70 : dailyTx >= 100 ? 40 : 10;
-  const onchainLevel = dailyTx >= 4000 ? '높음' : dailyTx >= 1000 ? '보통' : dailyTx >= 100 ? '낮음' : '매우 낮음';
+  const onchainScore = dailyTx >= 10000 ? 100
+    : dailyTx >= 5000 ? 80
+    : dailyTx >= 1000 ? 60
+    : dailyTx >= 100  ? 40
+    : 20;
+  const onchainLevel = dailyTx >= 10000 ? '매우 높음'
+    : dailyTx >= 5000 ? '높음'
+    : dailyTx >= 1000 ? '보통'
+    : dailyTx >= 100  ? '낮음'
+    : '매우 낮음';
 
   const athDrop = marketData.ath > 0 && marketData.current_price > 0
     ? ((marketData.ath - marketData.current_price) / marketData.ath) * 100
@@ -649,6 +663,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     tokenCreationDate: (actualChain === 'bsc' ? bscCreationDate : null) || tokenCreationDate || null,
     contractAnalysis: contractAnalysis || null,
     certik: cmciDetail?.certik || null,
+    tokenAgeInDays: tokenAgeInDays,
     listingScore,
     volumeHealth: volumeHealth || null,
     walletAgeAnalysis: walletAgeAnalysis || null,
