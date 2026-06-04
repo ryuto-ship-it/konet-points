@@ -93,6 +93,8 @@ router.get('/:coinId', async (req, res, next) => {
         high24h: marketData.high_24h,
         low24h: marketData.low_24h,
         dexData: marketData.dexData || null,
+        cmciDetail: marketData.cmciDetail || null,
+        priceDataSource: marketData.priceDataSource || 'CoinGecko',
       },
 
       onchainData: {

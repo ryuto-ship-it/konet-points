@@ -267,9 +267,9 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     // Whitepaper / docs parsing
     docsParser.fetchAndParseWhitepaper({
       whitepaper: tokenDetails?.links?.whitepaper || null,
-      website: tokenDetails?.links?.homepage?.[0] || cmciDetail?.website || null,
+      website: tokenDetails?.links?.homepage?.[0] || cmciDetailFromSlug?.website || null,
       docs: null,
-      technicalDoc: cmciDetail?.technicalDoc || null,
+      technicalDoc: cmciDetailFromSlug?.technicalDoc || null,
     }),
 
     // Competitors logic
