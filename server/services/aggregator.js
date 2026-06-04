@@ -657,6 +657,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     competitors: validCompetitors,
     goplusSecurity: goplusData,
     twitterData: twitterData || null,
+    twitterHandle: twitterHandle || null,
     exchangeListings,
     holderAnalysis,
     pricePattern,

@@ -142,7 +142,12 @@ function generateMockAnalysis(aggregatedData) {
 
     team_investors: (() => {
       const tw = aggregatedData.twitterData;
-      if (!tw) return '공개 정보 없음';
+      if (!tw) {
+        const handle = aggregatedData.twitterHandle;
+        return handle
+          ? `트위터 계정: @${handle} [CoinGecko]. Twitter API 미연동으로 팔로워 수 등 상세 지표 없음.`
+          : '공개 정보 없음';
+      }
       const followers = tw.followersCount !== null
         ? `팔로워 ${tw.followersCount.toLocaleString()}명 [Twitter API]`
         : null;

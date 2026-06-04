@@ -138,6 +138,7 @@ router.get('/:coinId', async (req, res, next) => {
       onchainVerification: aggregatedData.onchainVerification || null,
       socialAnalysis: aggregatedData.socialAnalysis || null,
       twitterData: aggregatedData.twitterData || null,
+      twitterHandle: aggregatedData.twitterHandle || null,
       liquidityAnalysis: aggregatedData.liquidityAnalysis || null,
       githubActivity: aggregatedData.githubActivity || null,
       whitepaperContent: aggregatedData.whitepaperContent || null,
