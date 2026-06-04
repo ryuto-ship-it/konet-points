@@ -390,8 +390,11 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     circulating_supply: cmcMarketData?.circulatingSupply || market.circulating_supply || detailMarket.circulating_supply || 0,
     total_supply: cmcMarketData?.totalSupply || market.total_supply || detailMarket.total_supply || 0,
     max_supply: cmcMarketData?.maxSupply || market.max_supply || detailMarket.max_supply || null,
-    ath: market.ath || detailMarket.ath?.usd || 0,
-    ath_date: market.ath_date || detailMarket.ath_date?.usd || null,
+    ath: cmciDetail?.ath || market.ath || detailMarket.ath?.usd || 0,
+    ath_date: cmciDetail?.athTimestamp || market.ath_date || detailMarket.ath_date?.usd || null,
+    atl: cmciDetail?.atl || null,
+    atl_date: cmciDetail?.atlTimestamp || null,
+    ath_change_percent: cmciDetail?.athChangePercent || null,
     // Data source tracking for citation
     priceDataSource: hasCmcMarket ? 'CoinMarketCap' : 'CoinGecko',
   };
@@ -645,6 +648,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     pricePattern,
     tokenCreationDate: (actualChain === 'bsc' ? bscCreationDate : null) || tokenCreationDate || null,
     contractAnalysis: contractAnalysis || null,
+    certik: cmciDetail?.certik || null,
     listingScore,
     volumeHealth: volumeHealth || null,
     walletAgeAnalysis: walletAgeAnalysis || null,

@@ -28,8 +28,9 @@ CRITICAL RULES:
 3. INTERPRETATION ONLY: For each section, your role is to interpret the pre-computed numbers in 2-3 concise sentences. Do NOT pad with generic text.
 4. SEVERE RISK FLAGS: ATH drop ≥90% → prepend "⚠️". Honeypot detected → prepend "🚨 CRITICAL".
 5. COMPETITOR RULE: Only reference tokens in the provided competitors array. Empty array → "유사 시총 프로젝트 데이터 없음".
-6. GOPLUS: Use computed_metrics.goplus_flags exactly. ownership_renounced=true → "소유권 포기 완료 ✓". is_honeypot=true → CRITICAL. sell_tax>10 → HIGH risk. can_take_back_ownership=true → HIGH risk. is_mintable=true → MEDIUM risk.
-7. HOLDER RISK: computed_metrics.holder_concentration.top10_pct > 50% → flag as HIGH RISK in risk_matrix.holderConcentrationRisk.
+6. CERTIK: If computed_metrics.certik is present, include in risk_matrix.contractRisk: "CertiK 점수 {score}/100 (등급 {rating}/5.0) [CertiK]". rating < 3.0 → ⚠️ 낮은 보안 점수. rating >= 4.0 → ✅ 우수한 보안 점수.
+6b. GOPLUS: Use computed_metrics.goplus_flags exactly. ownership_renounced=true → "소유권 포기 완료 ✓". is_honeypot=true → CRITICAL. sell_tax>10 → HIGH risk. can_take_back_ownership=true → HIGH risk. is_mintable=true → MEDIUM risk.
+7. HOLDER RISK: If computed_metrics.holder_concentration is present, use top10_pct in risk_matrix.holderConcentrationRisk. top10_pct >= 47% → ⚠️ 집중도 위험. top10_pct > 50% → HIGH RISK. If holder_count_bscscan is present, mention actual holder count. Cite as [Etherscan/BscScan].
 8. TWITTER: If twitterData present, include followers/activity in team_investors. followers < 1000 → LOW engagement flag.
 9. WHITEPAPER TOKENOMICS: If computed_metrics.whitepaper_found=true, analyze whitepaper_content for the tokenomics section. Extract: 팀 물량 %, 생태계/마케팅 %, 커뮤니티/에어드랍 %, 투자자 %, 베스팅 스케줄. If content doesn't clearly state these, output "백서에서 명시적 수치 없음". If whitepaper_found=false, output "백서 데이터 없음 — 수동 확인 필요".
 10. CONTRACT SOURCE ANALYSIS: When computed_metrics.contract_analysis is provided, use each flag in risk_matrix.contractRisk. Format: ✅ flag=false (safe), ⚠️ flag=true (risk). hasMint→무한발행, hasOwnerControl→소유자 권한 존재, hasTax→세금 함수, hasBlacklist→지갑 차단 가능, hasPause→거래 중단 가능, hasMaxTx→최대 거래량 제한, hasProxy→프록시 컨트랙트. hasRenounceOwnership=true→✅ 소유권 포기 완료. Cite as [Contract Source Code, Etherscan].
@@ -167,17 +168,28 @@ function generateMockAnalysis(aggregatedData) {
       contractRisk: (() => {
         const ca = aggregatedData.contractAnalysis;
         const verified = aggregatedData.onchainData?.contractVerified;
-        if (!verified) return "컨트랙트 소스코드 미검증 — 잠재적 취약점 주의 요망 [Etherscan]";
-        if (!ca) return "스마트 컨트랙트 검증 완료 [Etherscan]";
+        const ck = aggregatedData.certik;
+        const certikStr = ck
+          ? (ck.rating >= 4.0
+              ? `✅ CertiK ${ck.score.toFixed(1)}/100 (등급 ${ck.rating}/5.0) [CertiK]`
+              : ck.rating < 3.0
+                ? `⚠️ CertiK ${ck.score.toFixed(1)}/100 (등급 ${ck.rating}/5.0 — 낮은 보안 점수) [CertiK]`
+                : `CertiK ${ck.score.toFixed(1)}/100 (등급 ${ck.rating}/5.0) [CertiK]`)
+          : null;
+        if (!verified) {
+          const base = "컨트랙트 소스코드 미검증 — 잠재적 취약점 주의 요망 [Etherscan]";
+          return certikStr ? `${base}. ${certikStr}` : base;
+        }
         const flags = [
-          ca.hasMint ? "⚠️ 무한발행(mint) 함수 존재" : "✅ 무한발행 없음",
-          ca.hasOwnerControl ? "⚠️ onlyOwner 권한 함수 존재" : "✅ 소유자 권한 제한적",
-          ca.hasTax ? "⚠️ 세금(tax/fee) 함수 감지" : "✅ 세금 함수 없음",
-          ca.hasBlacklist ? "⚠️ 지갑 차단(blacklist) 기능 존재" : "✅ 블랙리스트 없음",
-          ca.hasPause ? "⚠️ 거래 중단(pause) 기능 존재" : "✅ 거래 중단 없음",
-          ca.hasRenounceOwnership ? "✅ 소유권 포기(renounceOwnership) 가능" : "",
+          certikStr,
+          ca ? (ca.hasMint ? "⚠️ 무한발행(mint) 함수 존재" : "✅ 무한발행 없음") : null,
+          ca ? (ca.hasOwnerControl ? "⚠️ onlyOwner 권한 함수 존재" : "✅ 소유자 권한 제한적") : null,
+          ca ? (ca.hasTax ? "⚠️ 세금(tax/fee) 함수 감지" : "✅ 세금 함수 없음") : null,
+          ca ? (ca.hasBlacklist ? "⚠️ 지갑 차단(blacklist) 기능 존재" : "✅ 블랙리스트 없음") : null,
+          ca ? (ca.hasPause ? "⚠️ 거래 중단(pause) 기능 존재" : "✅ 거래 중단 없음") : null,
+          ca?.hasRenounceOwnership ? "✅ 소유권 포기(renounceOwnership) 가능" : null,
         ].filter(Boolean);
-        return flags.join(". ") + " [Contract Source Code, Etherscan]";
+        return (flags.length ? flags.join(". ") : "스마트 컨트랙트 검증 완료") + " [Contract Source Code, Etherscan]";
       })(),
       liquidityMarketRisk,
       goplusRisk,
@@ -271,6 +283,16 @@ async function generateReport(aggregatedData) {
       whitepaper_source: aggregatedData.whitepaperContent?.source || null,
       contract_analysis: aggregatedData.contractAnalysis || null,
       price_data_source: aggregatedData.marketData?.priceDataSource || 'CoinGecko',
+      certik: aggregatedData.certik ? {
+        score: aggregatedData.certik.score,
+        rating: aggregatedData.certik.rating,
+        update_time: aggregatedData.certik.updateTime,
+        link: aggregatedData.certik.link,
+      } : null,
+      atl: aggregatedData.marketData?.atl ?? null,
+      atl_date: aggregatedData.marketData?.atl_date ?? null,
+      ath_change_percent: aggregatedData.marketData?.ath_change_percent ?? null,
+      holder_count_bscscan: aggregatedData.onchainData?.holderCount ?? null,
       volume_health: aggregatedData.volumeHealth ? {
         vol_mcap_ratio_pct: aggregatedData.volumeHealth.volMcapRatioPct,
         health_label: aggregatedData.volumeHealth.volHealthLabel,

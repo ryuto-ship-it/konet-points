@@ -30,12 +30,17 @@ async function getDetailBySlug(slug) {
     const d = data?.data;
     if (!d) { cache.set(cacheKey, null, CACHE_TTL); return null; }
 
+    const stats = d.statistics || {};
+
+    // CertiK audit score from cryptoRating array
+    const certikEntry = (d.cryptoRating || []).find(r => r.type === 'CertiK');
+
     const result = {
       id: d.id,
       name: d.name || '',
       symbol: d.symbol || '',
       slug: d.slug || slug,
-      cmcRank: d.cmcRank ?? null,
+      cmcRank: stats.rank ?? d.cmcRank ?? null,
       description: d.description || '',
       logo: d.logo || '',
       tags: (d.tags || []).map(t => t.name || t.slug || t),
@@ -47,6 +52,33 @@ async function getDetailBySlug(slug) {
       github: d.urls?.sourceCode?.[0] || null,
       technicalDoc: d.urls?.technical_doc?.[0] || null,
       category: d.category || null,
+
+      // Price / supply from statistics
+      price: stats.price ?? null,
+      volume24h: stats.volume24h ?? null,
+      totalSupply: stats.totalSupply ?? null,
+      circulatingSupply: stats.circulatingSupply ?? null,
+      marketCap: stats.marketCap ?? null,
+      fdv: stats.fullyDilutedMarketCap ?? null,
+
+      // ATH / ATL
+      ath: stats.highAllTime ?? null,
+      athTimestamp: stats.highAllTimeTimestamp ?? null,
+      athChangePercent: stats.highAllTimeChangePercentage ?? null,
+      atl: stats.lowAllTime ?? null,
+      atlTimestamp: stats.lowAllTimeTimestamp ?? null,
+
+      // CertiK audit
+      certik: certikEntry ? {
+        score: certikEntry.score,       // e.g. 66.62 (0-100)
+        rating: certikEntry.rating,     // e.g. 3.3 (0-5)
+        updateTime: certikEntry.updateTime,
+        link: certikEntry.link,
+      } : null,
+
+      // Holder data (often empty for small tokens)
+      cdpTotalHolder: d.cdpTotalHolder || null,
+      holderListAvailable: d.holderListFlag === true,
     };
 
     cache.set(cacheKey, result, CACHE_TTL);
