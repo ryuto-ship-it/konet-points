@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import ReportHeader from './ReportHeader';
+import DashboardHeader from './DashboardHeader';
 import SectionNav from './SectionNav';
+import ScorePanel from './ScorePanel';
 import ExecutiveSummary from './sections/ExecutiveSummary';
 import ProjectOverview from './sections/ProjectOverview';
 import Tokenomics from './sections/Tokenomics';
@@ -16,39 +17,48 @@ import ListingAssessment from './sections/ListingAssessment';
 import DataSources from './sections/DataSources';
 import './ReportView.css';
 
-const SECTIONS = [
-  { id: 'executive-summary', label: '요약', labelEn: 'Executive Summary' },
-  { id: 'project-overview', label: '개요', labelEn: 'Project Overview' },
-  { id: 'tokenomics', label: '토크노믹스', labelEn: 'Tokenomics' },
-  { id: 'team-investors', label: '팀 & 투자자', labelEn: 'Team & Investors' },
-  { id: 'onchain-metrics', label: '온체인 지표', labelEn: 'On-chain Metrics' },
-  { id: 'exchange-listings', label: '거래소 현황', labelEn: 'Exchange Listings' },
-  { id: 'holder-analysis', label: '홀더 분석', labelEn: 'Holder Analysis' },
-  { id: 'price-pattern', label: '가격 패턴', labelEn: 'Price Pattern' },
-  { id: 'onchain-verification', label: '온체인 진위', labelEn: 'Onchain Verification' },
-  { id: 'social-dev', label: '소셜 & 개발', labelEn: 'Social & Dev' },
-  { id: 'risk-matrix', label: '리스크 매트릭스', labelEn: 'Risk Matrix' },
-  { id: 'listing-assessment', label: '상장 심사', labelEn: 'Listing Assessment' },
-  { id: 'data-sources', label: '출처', labelEn: 'Data Sources' },
+// 7 nav tabs with section group mappings
+const NAV_TABS = [
+  { id: 'overview',   label: 'Overview',   targetId: 'executive-summary',  sectionIds: ['executive-summary', 'project-overview', 'tokenomics'] },
+  { id: 'security',   label: 'Security',   targetId: 'onchain-verification', sectionIds: ['onchain-verification'] },
+  { id: 'market',     label: 'Market',     targetId: 'price-pattern',       sectionIds: ['price-pattern', 'holder-analysis'] },
+  { id: 'community',  label: 'Community',  targetId: 'team-investors',      sectionIds: ['team-investors', 'social-dev'] },
+  { id: 'onchain',    label: 'On-chain',   targetId: 'onchain-metrics',     sectionIds: ['onchain-metrics'] },
+  { id: 'listing',    label: 'Listing',    targetId: 'exchange-listings',   sectionIds: ['exchange-listings', 'listing-assessment', 'data-sources'] },
+  { id: 'risk',       label: 'Risk',       targetId: 'risk-matrix',         sectionIds: ['risk-matrix'] },
+];
+
+// Reverse map: section ID → tab ID
+const SECTION_TO_TAB = {};
+NAV_TABS.forEach(tab => {
+  tab.sectionIds.forEach(sid => { SECTION_TO_TAB[sid] = tab.id; });
+});
+
+// All section IDs in DOM order (must match render order below)
+const ALL_SECTION_IDS = [
+  'executive-summary', 'project-overview', 'tokenomics',
+  'team-investors', 'onchain-metrics', 'exchange-listings',
+  'holder-analysis', 'price-pattern', 'onchain-verification',
+  'social-dev', 'risk-matrix', 'listing-assessment', 'data-sources',
 ];
 
 export default function ReportView({ data, onBack }) {
-  const [activeSection, setActiveSection] = useState('executive-summary');
+  const [activeTab, setActiveTab] = useState('overview');
   const mainRef = useRef(null);
   const sectionRefs = useRef({});
 
-  // Track scroll to update active section
+  // Update active tab based on scroll position
   useEffect(() => {
     const container = mainRef.current;
     if (!container) return;
 
     const handleScroll = () => {
-      const scrollTop = container.scrollTop + 120;
-
-      for (let i = SECTIONS.length - 1; i >= 0; i--) {
-        const el = sectionRefs.current[SECTIONS[i].id];
+      const scrollTop = container.scrollTop + 140;
+      for (let i = ALL_SECTION_IDS.length - 1; i >= 0; i--) {
+        const el = sectionRefs.current[ALL_SECTION_IDS[i]];
         if (el && el.offsetTop <= scrollTop) {
-          setActiveSection(SECTIONS[i].id);
+          const tabId = SECTION_TO_TAB[ALL_SECTION_IDS[i]];
+          if (tabId) setActiveTab(tabId);
           break;
         }
       }
@@ -58,13 +68,12 @@ export default function ReportView({ data, onBack }) {
     return () => container.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleNavClick = useCallback((sectionId) => {
-    const el = sectionRefs.current[sectionId];
+  const handleTabClick = useCallback((tabId) => {
+    const tab = NAV_TABS.find(t => t.id === tabId);
+    if (!tab) return;
+    const el = sectionRefs.current[tab.targetId];
     if (el && mainRef.current) {
-      mainRef.current.scrollTo({
-        top: el.offsetTop - 80,
-        behavior: 'smooth',
-      });
+      mainRef.current.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
     }
   }, []);
 
@@ -74,17 +83,17 @@ export default function ReportView({ data, onBack }) {
 
   return (
     <div className="report-view animate-fade-in">
-      <ReportHeader data={data} onBack={onBack} />
+      <DashboardHeader data={data} onBack={onBack} />
 
       <div className="report-layout">
         <SectionNav
-          sections={SECTIONS}
-          activeSection={activeSection}
-          onNavigate={handleNavClick}
+          tabs={NAV_TABS}
+          activeTab={activeTab}
+          onTabClick={handleTabClick}
         />
 
         <main className="report-main" ref={mainRef}>
-          <div className="report-content">
+          <div className="report-content" id="report-content-pdf">
             <div ref={setSectionRef('executive-summary')}>
               <ExecutiveSummary data={data} />
             </div>
@@ -125,19 +134,18 @@ export default function ReportView({ data, onBack }) {
               <DataSources data={data} />
             </div>
 
-            {/* Report Footer */}
             <footer className="report-footer">
-              <p>
-                Report generated at {data.generatedAt ? new Date(data.generatedAt).toLocaleString() : 'N/A'}
-              </p>
-              <p>Dorphin Research — AI-Powered Token Intelligence Platform</p>
+              <p>Generated {data.generatedAt ? new Date(data.generatedAt).toLocaleString() : 'N/A'}</p>
+              <p>Dorphin Research — AI-Powered Token Intelligence</p>
               <p className="report-disclaimer">
-                This report is for informational purposes only and does not constitute financial advice.
+                For informational purposes only. Not financial advice.
                 Always conduct your own research before making investment decisions.
               </p>
             </footer>
           </div>
         </main>
+
+        <ScorePanel data={data} />
       </div>
     </div>
   );

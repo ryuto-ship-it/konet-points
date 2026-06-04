@@ -1,35 +1,38 @@
-/* ── Report View Layout ────────────────────────────────────── */
+/* ── Report View ────────────────────────────────────────────── */
 .report-view {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--bg-primary);
+  background: #0a0b0f;
 }
 
+/* ── 3-column layout ─────────────────────────────────────────── */
 .report-layout {
   display: flex;
   flex: 1;
   overflow: hidden;
-  height: calc(100vh - var(--header-height));
+  height: calc(100vh - 64px);
 }
 
+/* ── Main scrollable area ────────────────────────────────────── */
 .report-main {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: var(--space-8);
+  min-width: 0;
   scroll-behavior: smooth;
 }
 
 .report-content {
-  max-width: var(--content-max-width);
+  max-width: 900px;
   margin: 0 auto;
+  padding: 28px 28px 0;
 }
 
-/* ── Report Footer ─────────────────────────────────────────── */
+/* ── Report Footer ───────────────────────────────────────────── */
 .report-footer {
   margin-top: var(--space-16);
-  padding: var(--space-8) 0;
+  padding: var(--space-8) 0 var(--space-12);
   border-top: 1px solid var(--border-glass);
   text-align: center;
   color: var(--text-dim);
@@ -38,27 +41,33 @@
 }
 
 .report-disclaimer {
-  max-width: 600px;
-  margin: var(--space-4) auto 0;
-  line-height: 1.5;
-  opacity: 0.7;
+  max-width: 560px;
+  margin: var(--space-3) auto 0;
+  line-height: 1.6;
+  opacity: 0.6;
 }
 
-/* ── Responsive ────────────────────────────────────────────── */
+/* ── Tablet: hide both sidebars ──────────────────────────────── */
 @media (max-width: 1024px) {
-  .report-main {
-    padding: var(--space-6) var(--space-4);
+  .report-content {
+    padding: 20px 20px 0;
   }
 }
 
+/* ── Mobile: vertical stack ──────────────────────────────────── */
 @media (max-width: 640px) {
   .report-layout {
+    flex-direction: column;
     height: auto;
+    overflow: visible;
   }
 
   .report-main {
     height: auto;
     overflow-y: visible;
-    padding: var(--space-4);
+  }
+
+  .report-content {
+    padding: 16px 14px 0;
   }
 }
