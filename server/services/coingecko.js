@@ -9,7 +9,7 @@ const cache = require('../utils/cache');
 
 const BASE_URL = 'https://api.coingecko.com/api/v3';
 const API_KEY = process.env.COINGECKO_API_KEY;
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 60 * 1000; // 60 seconds — keep price data fresh
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 

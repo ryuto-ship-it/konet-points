@@ -14,8 +14,9 @@ export default function DashboardHeader({ data, onBack }) {
     return `${isCurrency ? '$' : ''}${num.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
   };
 
-  const priceChange = market.priceChange24h || 0;
+  const priceChange = market.priceChangePercent24h || 0;
   const isPositive = priceChange >= 0;
+  const priceSource = market.priceDataSource || 'CoinGecko';
 
   return (
     <header className="dashboard-header">
@@ -49,6 +50,7 @@ export default function DashboardHeader({ data, onBack }) {
             {isPositive ? '▲' : '▼'} {Math.abs(priceChange).toFixed(2)}%
           </span>
         </div>
+        <span className="price-source">가격 기준: {priceSource}</span>
       </div>
 
       <div className="header-right">
@@ -64,7 +66,7 @@ export default function DashboardHeader({ data, onBack }) {
         <div className="metric-divider" />
         <div className="metric-group">
           <span className="metric-label">FDV</span>
-          <span className="metric-value">{formatNumber(market.fullyDilutedValuation, true)}</span>
+          <span className="metric-value">{formatNumber(market.fdv, true)}</span>
         </div>
         <div className="metric-divider" />
         <div className="metric-group">

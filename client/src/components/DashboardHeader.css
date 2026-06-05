@@ -114,6 +114,12 @@
 .price-change.positive { color: var(--success); }
 .price-change.negative { color: var(--danger); }
 
+.price-source {
+  font-size: 10px;
+  color: var(--text-tertiary, #556677);
+  margin-top: 2px;
+}
+
 .header-right {
   flex: 1;
   display: flex;
