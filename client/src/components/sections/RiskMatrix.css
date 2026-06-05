@@ -1,0 +1,27 @@
+.risk-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.risk-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.risk-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.risk-card-desc {
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .risk-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}

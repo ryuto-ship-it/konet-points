@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import DashboardHeader from './DashboardHeader';
-import SectionNav from './SectionNav';
+import ReportNav from './ReportNav';
 import ScorePanel from './ScorePanel';
 import ExecutiveSummary from './sections/ExecutiveSummary';
 import ProjectOverview from './sections/ProjectOverview';
@@ -17,24 +17,22 @@ import ListingAssessment from './sections/ListingAssessment';
 import DataSources from './sections/DataSources';
 import './ReportView.css';
 
-// 7 nav tabs with section group mappings
+// 7 nav tabs mapping
 const NAV_TABS = [
-  { id: 'overview',   label: 'Overview',   targetId: 'executive-summary',  sectionIds: ['executive-summary', 'project-overview', 'tokenomics'] },
-  { id: 'security',   label: 'Security',   targetId: 'onchain-verification', sectionIds: ['onchain-verification'] },
-  { id: 'market',     label: 'Market',     targetId: 'price-pattern',       sectionIds: ['price-pattern', 'holder-analysis'] },
-  { id: 'community',  label: 'Community',  targetId: 'team-investors',      sectionIds: ['team-investors', 'social-dev'] },
-  { id: 'onchain',    label: 'On-chain',   targetId: 'onchain-metrics',     sectionIds: ['onchain-metrics'] },
-  { id: 'listing',    label: 'Listing',    targetId: 'exchange-listings',   sectionIds: ['exchange-listings', 'listing-assessment', 'data-sources'] },
-  { id: 'risk',       label: 'Risk',       targetId: 'risk-matrix',         sectionIds: ['risk-matrix'] },
+  { id: 'overview',   targetId: 'executive-summary',  sectionIds: ['executive-summary', 'project-overview', 'tokenomics'] },
+  { id: 'security',   targetId: 'onchain-verification', sectionIds: ['onchain-verification'] },
+  { id: 'market',     targetId: 'price-pattern',       sectionIds: ['price-pattern', 'holder-analysis'] },
+  { id: 'community',  targetId: 'team-investors',      sectionIds: ['team-investors', 'social-dev'] },
+  { id: 'onchain',    targetId: 'onchain-metrics',     sectionIds: ['onchain-metrics'] },
+  { id: 'listing',    targetId: 'exchange-listings',   sectionIds: ['exchange-listings', 'listing-assessment', 'data-sources'] },
+  { id: 'risk',       targetId: 'risk-matrix',         sectionIds: ['risk-matrix'] },
 ];
 
-// Reverse map: section ID → tab ID
 const SECTION_TO_TAB = {};
 NAV_TABS.forEach(tab => {
   tab.sectionIds.forEach(sid => { SECTION_TO_TAB[sid] = tab.id; });
 });
 
-// All section IDs in DOM order (must match render order below)
 const ALL_SECTION_IDS = [
   'executive-summary', 'project-overview', 'tokenomics',
   'team-investors', 'onchain-metrics', 'exchange-listings',
@@ -47,7 +45,6 @@ export default function ReportView({ data, onBack }) {
   const mainRef = useRef(null);
   const sectionRefs = useRef({});
 
-  // Update active tab based on scroll position
   useEffect(() => {
     const container = mainRef.current;
     if (!container) return;
@@ -75,6 +72,7 @@ export default function ReportView({ data, onBack }) {
     if (el && mainRef.current) {
       mainRef.current.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
     }
+    setActiveTab(tabId);
   }, []);
 
   const setSectionRef = useCallback((id) => (el) => {
@@ -86,11 +84,7 @@ export default function ReportView({ data, onBack }) {
       <DashboardHeader data={data} onBack={onBack} />
 
       <div className="report-layout">
-        <SectionNav
-          tabs={NAV_TABS}
-          activeTab={activeTab}
-          onTabClick={handleTabClick}
-        />
+        <ReportNav activeTab={activeTab} onTabClick={handleTabClick} />
 
         <main className="report-main" ref={mainRef}>
           <div className="report-content" id="report-content-pdf">
@@ -103,8 +97,20 @@ export default function ReportView({ data, onBack }) {
             <div ref={setSectionRef('tokenomics')}>
               <Tokenomics data={data} />
             </div>
+            <div ref={setSectionRef('onchain-verification')}>
+              <OnchainVerification data={data} />
+            </div>
+            <div ref={setSectionRef('price-pattern')}>
+              <PricePattern data={data} />
+            </div>
+            <div ref={setSectionRef('holder-analysis')}>
+              <HolderAnalysis data={data} />
+            </div>
             <div ref={setSectionRef('team-investors')}>
               <TeamInvestors data={data} />
+            </div>
+            <div ref={setSectionRef('social-dev')}>
+              <SocialDev data={data} />
             </div>
             <div ref={setSectionRef('onchain-metrics')}>
               <OnchainMetrics data={data} />
@@ -112,23 +118,11 @@ export default function ReportView({ data, onBack }) {
             <div ref={setSectionRef('exchange-listings')}>
               <ExchangeListings data={data} />
             </div>
-            <div ref={setSectionRef('holder-analysis')}>
-              <HolderAnalysis data={data} />
-            </div>
-            <div ref={setSectionRef('price-pattern')}>
-              <PricePattern data={data} />
-            </div>
-            <div ref={setSectionRef('onchain-verification')}>
-              <OnchainVerification data={data} />
-            </div>
-            <div ref={setSectionRef('social-dev')}>
-              <SocialDev data={data} />
+            <div ref={setSectionRef('listing-assessment')}>
+              <ListingAssessment data={data} />
             </div>
             <div ref={setSectionRef('risk-matrix')}>
               <RiskMatrix data={data} />
-            </div>
-            <div ref={setSectionRef('listing-assessment')}>
-              <ListingAssessment data={data} />
             </div>
             <div ref={setSectionRef('data-sources')}>
               <DataSources data={data} />

@@ -59,38 +59,44 @@ table {
   /* Backgrounds */
   --bg-primary: #0a0b0f;
   --bg-secondary: #111318;
-  --bg-tertiary: #161a22;
-  --bg-card: rgba(17, 19, 24, 0.9);
-  --bg-card-hover: rgba(22, 26, 34, 0.95);
-  --bg-overlay: rgba(6, 11, 15, 0.9);
-
+  --bg-tertiary: #1a1d24;
+  
   /* Borders */
+  --border: #1e2430;
+  --border-hover: #2a3040;
   --border-glass: #1e2430;
-  --border-hover: rgba(255, 255, 255, 0.1);
-  --border-active: rgba(0, 229, 255, 0.3);
 
-  /* Accent Colors */
+  /* Colors */
+  --text-primary: #ffffff;
+  --text-secondary: #8b9ab5;
+  --text-muted: #4a5568;
+  --text-dim: #4a5568;
+  --text-inverse: #000000;
+  
+  --accent: #00e5ff;
+  --accent-dim: rgba(0, 229, 255, 0.1);
   --accent-cyan: #00e5ff;
   --accent-cyan-dim: rgba(0, 229, 255, 0.1);
-  --accent-cyan-glow: rgba(0, 229, 255, 0.35);
+  
+  --success: #00ff88;
   --accent-emerald: #00ff88;
   --accent-emerald-dim: rgba(0, 255, 136, 0.1);
-  --accent-crimson: #ff4444;
-  --accent-crimson-dim: rgba(255, 68, 68, 0.12);
+  
+  --warning: #ffaa00;
   --accent-amber: #ffaa00;
   --accent-amber-dim: rgba(255, 170, 0, 0.12);
   --accent-orange: #ff8c00;
-  --accent-purple: #A855F7;
+  
+  --danger: #ff4444;
+  --danger-dim: rgba(255, 68, 68, 0.1);
+  --accent-crimson: #ff4444;
+  --accent-crimson-dim: rgba(255, 68, 68, 0.12);
 
-  /* Text */
-  --text-primary: #E8ECF4;
-  --text-secondary: #8899AA;
-  --text-dim: #556677;
-  --text-inverse: #060B14;
+  --accent-purple: #A855F7;
 
   /* Fonts */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
   /* Font Sizes */
   --text-xs: 0.6875rem;    /* 11px */
@@ -114,44 +120,18 @@ table {
   --space-8: 2rem;
   --space-10: 2.5rem;
   --space-12: 3rem;
-  --space-16: 4rem;
-  --space-20: 5rem;
-  --space-24: 6rem;
 
   /* Radii */
   --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   --radius-full: 9999px;
 
-  /* Shadows */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-  --shadow-xl: 0 16px 64px rgba(0, 0, 0, 0.6);
-  --shadow-cyan: 0 0 20px rgba(0, 229, 255, 0.15);
-  --shadow-cyan-lg: 0 0 40px rgba(0, 229, 255, 0.2);
-  --shadow-emerald: 0 0 20px rgba(0, 220, 130, 0.15);
-  --shadow-crimson: 0 0 20px rgba(255, 51, 102, 0.15);
-
-  /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-base: 250ms ease;
-  --transition-slow: 400ms ease;
-  --transition-spring: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
-
-  /* Z-index scale */
-  --z-base: 1;
-  --z-dropdown: 100;
-  --z-sticky: 200;
-  --z-overlay: 500;
-  --z-modal: 1000;
-
   /* Layout */
-  --sidebar-width: 190px;
+  --sidebar-width: 180px;
+  --score-panel-width: 280px;
   --header-height: 64px;
-  --content-max-width: 900px;
 }
 
 /* ── Body Styling ──────────────────────────────────────────── */
@@ -195,33 +175,47 @@ body {
 
 /* ── Card / Panel Styles ────────────────────────────────────── */
 .glass-panel {
-  background: #111318;
-  border: 1px solid #1e2430;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  transition: border-color var(--transition-base);
+  transition: border-color 0.2s;
 }
 
 .glass-panel:hover {
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-hover);
 }
 
 .glass-card {
-  background: #111318;
-  border: 1px solid #1e2430;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  padding: var(--space-6);
-  transition: border-color var(--transition-base);
+  padding: 24px;
+  transition: border-color 0.2s;
 }
 
 .glass-card:hover {
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-hover);
 }
 
 .glass-card-static {
-  background: #111318;
-  border: 1px solid #1e2430;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  padding: var(--space-6);
+  padding: 24px;
+}
+
+.score-progress-container {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-tertiary);
+  overflow: hidden;
+}
+
+.score-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease-out;
 }
 
 /* ── Typography Scale ──────────────────────────────────────── */

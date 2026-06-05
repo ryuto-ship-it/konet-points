@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/purity */
 export default function TeamInvestors({ data }) {
   const text = data.analysis?.team_investors || "데이터 없음";
   const tw = data.twitterData;

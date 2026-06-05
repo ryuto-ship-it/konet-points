@@ -160,8 +160,8 @@ export default function ExchangeListings({ data }) {
           {/* Table */}
           <div className="glass-card" style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-glass)', color: 'var(--text-tertiary)' }}>
+              <thead style={{ background: 'var(--bg-tertiary)' }}>
+                <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
                   <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 600 }}>#</th>
                   <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 600 }}>티어</th>
                   <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 600 }}>거래소</th>
@@ -200,8 +200,17 @@ export default function ExchangeListings({ data }) {
                       <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontSize: '12px' }}>{ex.pair}</td>
                       <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace' }}>{fmtPrice(ex.priceUsd)}</td>
                       <td style={{ padding: '8px 12px', textAlign: 'right' }}>{fmt(vol)}</td>
-                      <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-tertiary)' }}>
-                        {pct !== '—' ? `${pct}%` : '—'}
+                      <td style={{ padding: '8px 12px' }}>
+                        {pct !== '—' ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
+                            <div style={{ width: '60px', height: '4px', background: 'var(--bg-primary)', borderRadius: '2px', overflow: 'hidden' }}>
+                              <div style={{ width: `${pct}%`, height: '100%', background: badge.color, borderRadius: '2px' }} />
+                            </div>
+                            <span style={{ color: 'var(--text-secondary)', fontSize: '12px', width: '36px', textAlign: 'right' }}>{pct}%</span>
+                          </div>
+                        ) : (
+                          <span style={{ color: 'var(--text-secondary)' }}>—</span>
+                        )}
                       </td>
                     </tr>
                   );

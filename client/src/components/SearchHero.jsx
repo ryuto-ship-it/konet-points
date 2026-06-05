@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { searchTokens } from '../api/client';
 import './SearchHero.css';

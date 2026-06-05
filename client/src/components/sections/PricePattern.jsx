@@ -1,3 +1,19 @@
+/* eslint-disable react-hooks/purity */
+const StatCard = ({ label, value, sub, warn }) => (
+  <div style={{
+    flex: '1 1 140px',
+    background: 'rgba(255,255,255,0.03)',
+    border: `1px solid ${warn ? 'rgba(239,68,68,0.3)' : 'var(--border-glass)'}`,
+    borderRadius: '12px', padding: '16px',
+  }}>
+    <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '6px' }}>{label}</p>
+    <p style={{ fontSize: '18px', fontWeight: 700, color: warn ? 'var(--accent-crimson)' : 'var(--text-primary)' }}>
+      {value ?? '—'}
+    </p>
+    {sub && <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '4px' }}>{sub}</p>}
+  </div>
+);
+
 export default function PricePattern({ data }) {
   const pp = data.pricePattern;
   const interpretation = data.analysis?.price_pattern_interpretation;
@@ -30,21 +46,6 @@ export default function PricePattern({ data }) {
     if (p < 1) return `$${p.toFixed(6)}`;
     return `$${p.toLocaleString(undefined, { maximumFractionDigits: 4 })}`;
   };
-
-  const StatCard = ({ label, value, sub, warn }) => (
-    <div style={{
-      flex: '1 1 140px',
-      background: 'rgba(255,255,255,0.03)',
-      border: `1px solid ${warn ? 'rgba(239,68,68,0.3)' : 'var(--border-glass)'}`,
-      borderRadius: '12px', padding: '16px',
-    }}>
-      <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '6px' }}>{label}</p>
-      <p style={{ fontSize: '18px', fontWeight: 700, color: warn ? 'var(--accent-crimson)' : 'var(--text-primary)' }}>
-        {value ?? '—'}
-      </p>
-      {sub && <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '4px' }}>{sub}</p>}
-    </div>
-  );
 
   return (
     <section className="report-section">
