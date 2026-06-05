@@ -7,7 +7,7 @@ export default function Tokenomics({ data }) {
         <h2 className="heading-3">토크노믹스</h2>
         <span className="badge badge-ethereum">Tokenomics</span>
       </div>
-      <div className="glass-card">
+      <div className="section-card">
         <p className="body-lg">{text}</p>
       </div>
     </section>

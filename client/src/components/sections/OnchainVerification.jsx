@@ -26,7 +26,7 @@ export default function OnchainVerification({ data }) {
       </div>
 
       {ov && (
-        <div className="glass-card" style={{ marginBottom: '16px' }}>
+        <div className="section-card" style={{ marginBottom: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h4 className="heading-4">세탁거래 위험도</h4>
             <RiskBadge risk={ov.washTradingRisk} />
@@ -58,7 +58,7 @@ export default function OnchainVerification({ data }) {
       )}
 
       {la && (
-        <div className="glass-card">
+        <div className="section-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h4 className="heading-4">유동성 건전성</h4>
             <span style={{

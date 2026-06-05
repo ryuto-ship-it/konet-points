@@ -107,14 +107,14 @@ export default function HolderAnalysis({ data }) {
       </div>
 
       {interpretation && (
-        <div className="glass-card" style={{ marginBottom: '16px' }}>
+        <div className="section-card" style={{ marginBottom: '16px' }}>
           <p className="body-base">{interpretation}</p>
         </div>
       )}
 
       {/* Airdrop / distribution warnings */}
       {(wa?.isAirdropPattern || dp?.isAirdropLaunch) && (
-        <div className="glass-card" style={{ marginBottom: '16px', borderColor: 'rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.06)' }}>
+        <div className="section-card" style={{ marginBottom: '16px', borderColor: 'rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.06)' }}>
           <p style={{ fontSize: '13px', color: 'var(--accent-crimson)', fontWeight: 600 }}>⚠️ 에어드랍/봇 패턴 감지</p>
           {wa?.isAirdropPattern && (
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
@@ -129,7 +129,7 @@ export default function HolderAnalysis({ data }) {
         </div>
       )}
       {wa && !wa.isAirdropPattern && wa.isOrganicHolders && (
-        <div className="glass-card" style={{ marginBottom: '16px', borderColor: 'rgba(16,185,129,0.3)', background: 'rgba(16,185,129,0.04)' }}>
+        <div className="section-card" style={{ marginBottom: '16px', borderColor: 'rgba(16,185,129,0.3)', background: 'rgba(16,185,129,0.04)' }}>
           <p style={{ fontSize: '13px', color: 'var(--accent-emerald)' }}>
             ✅ 실유저 기반 — 상위 홀더 신생 지갑 비율 {wa.newWalletRatio}% (낮음)
           </p>
@@ -137,13 +137,13 @@ export default function HolderAnalysis({ data }) {
       )}
 
       {!ha ? (
-        <div className="glass-card">
+        <div className="section-card">
           <p className="body-base" style={{ color: 'var(--text-tertiary)' }}>홀더 데이터 없음 — 컨트랙트 주소 필요</p>
         </div>
       ) : (
         <>
           {/* Doughnut + concentration bar */}
-          <div className="glass-card" style={{ marginBottom: '16px', display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="section-card" style={{ marginBottom: '16px', display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
             {/* Doughnut chart */}
             <div style={{ width: '200px', height: '200px', flexShrink: 0 }}>
               <Doughnut data={doughnutData} options={doughnutOptions} plugins={[centerTextPlugin]} />
@@ -186,7 +186,7 @@ export default function HolderAnalysis({ data }) {
           </div>
 
           {/* Holder table */}
-          <div className="glass-card" style={{ overflowX: 'auto' }}>
+          <div className="section-card" style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-glass)', color: 'var(--text-tertiary)' }}>

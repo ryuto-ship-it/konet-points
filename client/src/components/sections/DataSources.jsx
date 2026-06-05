@@ -7,7 +7,7 @@ export default function DataSources({ data }) {
         <h2 className="heading-3">데이터 출처</h2>
         <span className="badge badge-ethereum">Data Sources</span>
       </div>
-      <div className="glass-card">
+      <div className="section-card">
         <ul style={{ listStyleType: 'disc', paddingLeft: '20px', color: 'var(--text-secondary)' }}>
           {sources.length > 0 ? sources.map((s, i) => (
             <li key={i}>{s}</li>

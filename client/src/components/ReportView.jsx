@@ -84,7 +84,7 @@ export default function ReportView({ data, onBack }) {
       <DashboardHeader data={data} onBack={onBack} />
 
       <div className="report-layout">
-        <ReportNav activeTab={activeTab} onTabClick={handleTabClick} />
+        <ReportNav activeSection={activeTab} onNavigate={handleTabClick} />
 
         <main className="report-main" ref={mainRef}>
           <div className="report-content" id="report-content-pdf">
@@ -128,12 +128,12 @@ export default function ReportView({ data, onBack }) {
               <DataSources data={data} />
             </div>
 
-            <footer className="report-footer">
-              <p>Generated {data.generatedAt ? new Date(data.generatedAt).toLocaleString() : 'N/A'}</p>
-              <p>Dorphin Research — AI-Powered Token Intelligence</p>
-              <p className="report-disclaimer">
-                For informational purposes only. Not financial advice.
-                Always conduct your own research before making investment decisions.
+            <footer className="report-footer" style={{ borderTop: '1px solid var(--border-subtle)', padding: '20px', textAlign: 'center', marginTop: '40px' }}>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                🐬 Dorphin Research — AI-Powered Token Intelligence
+              </p>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                Dive deeper. Surface smarter.
               </p>
             </footer>
           </div>

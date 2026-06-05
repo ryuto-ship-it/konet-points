@@ -1,32 +1,45 @@
-
+import { LayoutDashboard, Shield, TrendingUp, Users, Link as LinkIcon, Building2, AlertTriangle } from 'lucide-react';
 import './ReportNav.css';
 
-const TABS = [
-  { id: 'overview', label: 'Overview', icon: '📊' },
-  { id: 'security', label: 'Security', icon: '🔒' },
-  { id: 'market', label: 'Market', icon: '📈' },
-  { id: 'community', label: 'Community', icon: '👥' },
-  { id: 'onchain', label: 'On-chain', icon: '⛓' },
-  { id: 'listing', label: 'Listing', icon: '🏛' },
-  { id: 'risk', label: 'Risk', icon: '⚠' }
+const SECTIONS = [
+  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+  { id: 'security', label: 'Security', icon: Shield },
+  { id: 'market', label: 'Market', icon: TrendingUp },
+  { id: 'community', label: 'Community', icon: Users },
+  { id: 'onchain', label: 'On-chain', icon: LinkIcon },
+  { id: 'listing', label: 'Listing', icon: Building2 },
+  { id: 'risk', label: 'Risk', icon: AlertTriangle },
 ];
 
-export default function ReportNav({ activeTab, onTabClick }) {
+export default function ReportNav({ activeSection, onNavigate }) {
   return (
     <nav className="report-nav">
-      <ul className="nav-list">
-        {TABS.map(tab => (
-          <li key={tab.id}>
+      <div className="nav-header">
+        <span className="nav-label">REPORT SECTIONS</span>
+      </div>
+
+      <div className="nav-list">
+        {SECTIONS.map((sec) => {
+          const Icon = sec.icon;
+          const isActive = activeSection === sec.id;
+          return (
             <button
-              className={`nav-btn ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => onTabClick(tab.id)}
+              key={sec.id}
+              className={`nav-item ${isActive ? 'active' : ''}`}
+              onClick={() => onNavigate(sec.id)}
             >
-              <span className="nav-icon">{tab.icon}</span>
-              <span className="nav-label">{tab.label}</span>
+              <Icon size={18} className="nav-icon" />
+              <span>{sec.label}</span>
             </button>
-          </li>
-        ))}
-      </ul>
+          );
+        })}
+      </div>
+
+      <div className="nav-footer">
+        <div className="nav-divider" />
+        <span className="nav-brand">🐬 Dorphin Research</span>
+        <span className="nav-tagline">Dive deeper. Surface smarter.</span>
+      </div>
     </nav>
   );
 }

@@ -147,7 +147,7 @@ export default function ListingAssessment({ data }) {
       </div>
 
       {/* Grade + radar side by side */}
-      <div className="glass-card" style={{ display: 'flex', gap: '24px', alignItems: 'stretch', marginBottom: '16px', flexWrap: 'wrap' }}>
+      <div className="section-card" style={{ display: 'flex', gap: '24px', alignItems: 'stretch', marginBottom: '16px', flexWrap: 'wrap' }}>
         {/* Grade */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '120px' }}>
           <div style={{
@@ -174,14 +174,14 @@ export default function ListingAssessment({ data }) {
 
       {/* AI summary */}
       {assessment.summary && (
-        <div className="glass-card" style={{ marginBottom: '16px' }}>
+        <div className="section-card" style={{ marginBottom: '16px' }}>
           <p className="body-base">{assessment.summary}</p>
         </div>
       )}
 
       {/* Score breakdown */}
       {ls && (
-        <div className="glass-card">
+        <div className="section-card">
           <h4 className="heading-4" style={{ marginBottom: '16px' }}>점수 산출 기준</h4>
 
           <ScoreBar

@@ -55,14 +55,14 @@ export default function PricePattern({ data }) {
       </div>
 
       {interpretation && (
-        <div className="glass-card" style={{ marginBottom: '16px' }}>
+        <div className="section-card" style={{ marginBottom: '16px' }}>
           <p className="body-base">{interpretation}</p>
         </div>
       )}
 
       {/* ATH / ATL / Current timeline gauge */}
       {ath > 0 && (
-        <div className="glass-card" style={{ marginBottom: '16px' }}>
+        <div className="section-card" style={{ marginBottom: '16px' }}>
           <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '16px' }}>
             ATH → ATL 범위 내 현재가 위치
           </p>
@@ -121,7 +121,7 @@ export default function PricePattern({ data }) {
       )}
 
       {/* Stat cards */}
-      <div className="glass-card">
+      <div className="section-card">
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
           <StatCard
             label="토큰 생성일"

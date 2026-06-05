@@ -7,7 +7,13 @@ export default function ExecutiveSummary({ data }) {
       <div className="section-header">
         <h2 className="heading-3">Executive Summary</h2>
       </div>
-      <div className={`glass-card ${hasWarning ? 'border-warning' : ''}`} style={hasWarning ? { borderColor: 'var(--accent-crimson)', background: 'rgba(255,51,102,0.05)' } : {}}>
+      <div 
+        className="section-card" 
+        style={{ 
+          borderLeft: `3px solid ${hasWarning ? 'var(--danger)' : 'var(--accent-cyan)'}`, 
+          paddingLeft: '24px' 
+        }}
+      >
         <p className="body-lg">{text}</p>
       </div>
     </section>

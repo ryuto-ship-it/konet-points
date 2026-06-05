@@ -1,72 +1,99 @@
-
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
+import { CheckCircle2, XCircle } from 'lucide-react';
 import './ScorePanel.css';
 
 export default function ScorePanel({ data }) {
-  const ls = data?.listingScore || {};
-  const score = ls.composite ?? 0;
-  const grade = ls.compositeGrade || 'N/A';
+  const score = data?.analysis?.overall_score || 0;
+  
+  const getScoreColor = (s) => {
+    if (s >= 80) return 'var(--success)';
+    if (s >= 60) return 'var(--warning)';
+    if (s >= 40) return '#ff8c00';
+    return 'var(--danger)';
+  };
+  
+  const getScoreGrade = (s) => {
+    if (s >= 90) return { grade: 'A+', class: 'grade-a' };
+    if (s >= 80) return { grade: 'A', class: 'grade-a' };
+    if (s >= 70) return { grade: 'B+', class: 'grade-b' };
+    if (s >= 60) return { grade: 'B', class: 'grade-b' };
+    if (s >= 50) return { grade: 'C+', class: 'grade-c' };
+    if (s >= 40) return { grade: 'C', class: 'grade-c' };
+    if (s >= 30) return { grade: 'D', class: 'grade-d' };
+    return { grade: 'F', class: 'grade-f' };
+  };
 
-  let scoreColor = 'var(--danger)';
-  if (score >= 80) scoreColor = 'var(--success)';
-  else if (score >= 60) scoreColor = 'var(--warning)';
-  else if (score >= 40) scoreColor = '#ff8c00';
+  const color = getScoreColor(score);
+  const gradeInfo = getScoreGrade(score);
 
+  // Radar chart data mapping
+  const sd = data?.securityData;
+  const md = data?.marketData;
   const radarData = [
-    { subject: 'Security', A: data?.goplusSecurity ? (data.goplusSecurity.isHoneypot ? 0 : 70) : 60, fullMark: 100 },
-    { subject: 'Market', A: ls.priceStability?.score ?? 50, fullMark: 100 },
-    { subject: 'Community', A: data?.twitterData?.followersCount ? Math.min(100, Math.floor(data.twitterData.followersCount / 1000)) : 40, fullMark: 100 },
-    { subject: 'On-chain', A: ls.onchain?.score ?? 50, fullMark: 100 },
-    { subject: 'Listing', A: ls.exchange?.score ?? 30, fullMark: 100 },
-    { subject: 'Fundamentals', A: data?.onchainData?.contractVerified ? 75 : 50, fullMark: 100 },
+    { subject: '보안', value: sd?.is_open_source ? 90 : 50 },
+    { subject: '시장', value: md?.marketCap > 10000000 ? 80 : 40 },
+    { subject: '커뮤니티', value: data?.twitterData ? 85 : 30 },
+    { subject: '온체인', value: 70 }, // Placeholder
+    { subject: '거래소', value: md?.tickers?.length > 5 ? 85 : 45 },
+    { subject: '펀더멘탈', value: score },
   ];
 
-  const onchain = data?.onchainData || {};
-  const sec = data?.goplusSecurity || {};
-  const isContractVerified = onchain.contractVerified || sec.isOpenSource;
-
   const badges = [
-    { label: 'Audit', completed: false }, // Placeholder logic
-    { label: 'KYC', completed: false },
-    { label: 'Bug Bounty', completed: false },
-    { label: 'Verified', completed: !!isContractVerified }
+    { label: '감사 완료', done: sd?.is_open_source === '1' || false },
+    { label: '팀 KYC', done: false },
+    { label: '버그 바운티', done: false },
+    { label: '컨트랙트 검증', done: sd?.is_open_source === '1' || false }
   ];
 
   return (
     <aside className="score-panel">
-      <div className="glass-card score-card">
-        <h3 className="score-label">Overall Score</h3>
-        <div className="score-main">
-          <span className="score-number" style={{ color: scoreColor }}>{score}</span>
-          <span className="score-grade" style={{ backgroundColor: scoreColor }}>{grade}</span>
+      
+      {/* Composite Score Card */}
+      <div className="score-card" style={{ '--score-color': color }}>
+        <div className="score-header">
+          <span className="score-label">COMPOSITE SCORE</span>
+        </div>
+        <div className="score-value-wrap">
+          <span className="score-value">{score}</span>
+        </div>
+        <div className={`score-badge ${gradeInfo.class}`}>
+          {gradeInfo.grade}
         </div>
       </div>
 
-      <div className="glass-card radar-card">
-        <ResponsiveContainer width="100%" height={220}>
+      {/* Radar Chart */}
+      <div className="radar-card">
+        <ResponsiveContainer width="100%" height={200}>
           <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
-            <PolarGrid stroke="var(--border)" />
-            <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} />
+            <PolarGrid stroke="rgba(255,255,255,0.08)" />
+            <PolarAngleAxis 
+              dataKey="subject" 
+              tick={{ fill: 'var(--text-muted)', fontSize: 11, fontFamily: 'var(--font-sans)' }} 
+            />
             <Radar
               name="Score"
-              dataKey="A"
-              stroke="var(--accent)"
-              fill="rgba(0, 229, 255, 0.1)"
+              dataKey="value"
+              stroke="var(--accent-cyan)"
+              strokeWidth={2}
+              fill="rgba(0,229,255,0.1)"
               fillOpacity={1}
             />
           </RadarChart>
         </ResponsiveContainer>
       </div>
 
-      <div className="glass-card badges-card">
-        <div className="badges-grid">
-          {badges.map((b, idx) => (
-            <div key={idx} className={`badge-item ${b.completed ? 'completed' : 'pending'}`}>
-              <span className="badge-icon">{b.completed ? '✓' : '−'}</span>
-              <span className="badge-text">{b.label}</span>
-            </div>
-          ))}
-        </div>
+      {/* Verification Badges */}
+      <div className="badge-grid">
+        {badges.map((b, i) => (
+          <div key={i} className={`verify-badge ${b.done ? 'done' : 'pending'}`}>
+            {b.done ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+            <span>{b.label}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="skynet-attribution">
+        <span>CERTIK SKYNET</span>
       </div>
     </aside>
   );

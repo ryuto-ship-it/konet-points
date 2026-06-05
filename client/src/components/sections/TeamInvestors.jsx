@@ -62,7 +62,7 @@ export default function TeamInvestors({ data }) {
 
       {/* Twitter card — always shown if handle is known */}
       {twitterHandle && (
-        <div className="glass-card" style={{ marginBottom: '16px' }}>
+        <div className="section-card" style={{ marginBottom: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <span style={{ fontSize: '14px', fontWeight: 600 }}>
               🐦 Twitter / X
@@ -130,7 +130,7 @@ export default function TeamInvestors({ data }) {
       )}
 
       {/* AI analysis text */}
-      <div className="glass-card">
+      <div className="section-card">
         <p className="body-lg">{text}</p>
       </div>
     </section>

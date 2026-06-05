@@ -21,7 +21,7 @@ export default function SocialDev({ data }) {
 
         {/* Twitter */}
         {sa && (
-          <div className="glass-card">
+          <div className="section-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <h4 className="heading-4">🐦 Twitter / X</h4>
               <span style={{
@@ -59,7 +59,7 @@ export default function SocialDev({ data }) {
 
         {/* GitHub */}
         {gh && (
-          <div className="glass-card">
+          <div className="section-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <h4 className="heading-4">🔧 GitHub</h4>
               <span style={{

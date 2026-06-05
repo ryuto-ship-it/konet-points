@@ -25,7 +25,7 @@ export default function OnchainMetrics({ data }) {
       <div className="section-header">
         <h2 className="heading-3">On-chain Metrics</h2>
       </div>
-      <div className="glass-card">
+      <div className="section-card">
         <MetricsGrid metrics={metrics} />
         <p className="body-lg">{text}</p>
       </div>

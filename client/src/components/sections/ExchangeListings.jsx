@@ -7,16 +7,16 @@ import {
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 
 const TIER_BADGE = {
-  TIER1: { icon: '🏆', label: 'T1', color: '#FFD700' },
-  TIER2: { icon: '⭐', label: 'T2', color: '#C0C0C0' },
-  TIER3: { icon: '🔵', label: 'T3', color: '#4A9EFF' },
-  TIER4: { icon: '⬜', label: 'T4', color: '#888' },
-  TIER5: { icon: '❓', label: 'T5', color: '#444' },
+  TIER1: { label: 'TIER 1', bg: '#FFD700', color: '#000' },
+  TIER2: { label: 'TIER 2', bg: '#C0C0C0', color: '#000' },
+  TIER3: { label: 'TIER 3', bg: '#4A90D9', color: '#fff' },
+  TIER4: { label: 'TIER 4', bg: '#374151', color: '#9CA3AF' },
+  TIER5: { label: 'TIER 5', bg: '#1F2937', color: '#6B7280' },
 };
 
 const TIER_COLORS = {
-  TIER1: '#FFD700', TIER2: '#C0C0C0', TIER3: '#4A9EFF',
-  TIER4: '#666', TIER5: '#333',
+  TIER1: '#FFD700', TIER2: '#C0C0C0', TIER3: '#4A90D9',
+  TIER4: '#374151', TIER5: '#1F2937',
 };
 
 function fmt(n) {
@@ -108,7 +108,7 @@ export default function ExchangeListings({ data }) {
 
       {/* Tier summary */}
       {ls?.tierCounts && (
-        <div className="glass-card" style={{ marginBottom: '16px', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="section-card" style={{ marginBottom: '16px', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
           <span style={{ fontSize: '13px', fontWeight: 600 }}>티어 분포</span>
           {Object.entries(ls.tierCounts).filter(([, n]) => n > 0).map(([tier, count]) => {
             const b = TIER_BADGE[tier] || TIER_BADGE.TIER5;
@@ -132,13 +132,13 @@ export default function ExchangeListings({ data }) {
       )}
 
       {interpretation && (
-        <div className="glass-card" style={{ marginBottom: '16px' }}>
+        <div className="section-card" style={{ marginBottom: '16px' }}>
           <p className="body-base">{interpretation}</p>
         </div>
       )}
 
       {!exchanges || exchanges.length === 0 ? (
-        <div className="glass-card">
+        <div className="section-card">
           <p className="body-base" style={{ color: 'var(--text-tertiary)' }}>
             중앙화 거래소 미상장 — DEX 전용 또는 데이터 없음
           </p>
@@ -147,7 +147,7 @@ export default function ExchangeListings({ data }) {
         <>
           {/* Volume bar chart */}
           {chartExchanges.length > 0 && (
-            <div className="glass-card" style={{ marginBottom: '16px' }}>
+            <div className="section-card" style={{ marginBottom: '16px' }}>
               <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '12px' }}>
                 24h 거래량 비교 (총 {fmt(totalVol)})
               </p>
@@ -158,17 +158,17 @@ export default function ExchangeListings({ data }) {
           )}
 
           {/* Table */}
-          <div className="glass-card" style={{ overflowX: 'auto' }}>
+          <div className="section-card" style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-              <thead style={{ background: 'var(--bg-tertiary)' }}>
-                <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
-                  <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 600 }}>#</th>
-                  <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 600 }}>티어</th>
-                  <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 600 }}>거래소</th>
-                  <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 600 }}>페어</th>
-                  <th style={{ textAlign: 'right', padding: '8px 12px', fontWeight: 600 }}>가격</th>
-                  <th style={{ textAlign: 'right', padding: '8px 12px', fontWeight: 600 }}>24h 거래량</th>
-                  <th style={{ textAlign: 'right', padding: '8px 12px', fontWeight: 600 }}>비중</th>
+              <thead style={{ background: 'var(--bg-surface)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)' }}>
+                <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
+                  <th style={{ textAlign: 'left', padding: '12px', fontWeight: 600 }}>#</th>
+                  <th style={{ textAlign: 'left', padding: '12px', fontWeight: 600 }}>티어</th>
+                  <th style={{ textAlign: 'left', padding: '12px', fontWeight: 600 }}>거래소</th>
+                  <th style={{ textAlign: 'left', padding: '12px', fontWeight: 600 }}>페어</th>
+                  <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600 }}>가격</th>
+                  <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600 }}>24h 거래량</th>
+                  <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600 }}>비중</th>
                 </tr>
               </thead>
               <tbody>
@@ -177,19 +177,24 @@ export default function ExchangeListings({ data }) {
                   const badge = TIER_BADGE[tier] || TIER_BADGE.TIER5;
                   const vol = ex.volume24hUsd || 0;
                   const pct = totalVol > 0 ? (vol / totalVol * 100).toFixed(1) : '—';
+                  
+                  let barColor = 'var(--text-muted)';
+                  if (tier === 'TIER1' || tier === 'TIER2') barColor = 'var(--success)';
+                  else if (tier === 'TIER3') barColor = 'var(--dolphin-blue)';
+
                   return (
-                    <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                      <td style={{ padding: '8px 12px', color: 'var(--text-tertiary)' }}>{i + 1}</td>
-                      <td style={{ padding: '8px 12px' }}>
+                    <tr key={i} style={{ borderBottom: '1px solid var(--border-subtle)', transition: 'var(--transition)' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-card-hover)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <td style={{ padding: '12px', color: 'var(--text-tertiary)' }}>{i + 1}</td>
+                      <td style={{ padding: '12px' }}>
                         <span style={{
-                          fontSize: '11px', fontWeight: 700, color: badge.color,
-                          background: `${badge.color}18`, padding: '2px 7px',
-                          borderRadius: '12px', border: `1px solid ${badge.color}44`, whiteSpace: 'nowrap',
+                          fontSize: '10px', fontWeight: 700, color: badge.color,
+                          background: badge.bg, padding: '2px 8px',
+                          borderRadius: '12px', whiteSpace: 'nowrap',
                         }}>
-                          {badge.icon} {badge.label}
+                          {badge.label}
                         </span>
                       </td>
-                      <td style={{ padding: '8px 12px', fontWeight: 500 }}>
+                      <td style={{ padding: '12px', fontWeight: 500 }}>
                         {ex.tradeUrl ? (
                           <a href={ex.tradeUrl} target="_blank" rel="noopener noreferrer"
                             style={{ color: 'var(--accent-cyan)', textDecoration: 'none' }}>
@@ -197,16 +202,16 @@ export default function ExchangeListings({ data }) {
                           </a>
                         ) : ex.exchangeName}
                       </td>
-                      <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontSize: '12px' }}>{ex.pair}</td>
-                      <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace' }}>{fmtPrice(ex.priceUsd)}</td>
-                      <td style={{ padding: '8px 12px', textAlign: 'right' }}>{fmt(vol)}</td>
-                      <td style={{ padding: '8px 12px' }}>
+                      <td style={{ padding: '12px', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>{ex.pair}</td>
+                      <td style={{ padding: '12px', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>{fmtPrice(ex.priceUsd)}</td>
+                      <td style={{ padding: '12px', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>{fmt(vol)}</td>
+                      <td style={{ padding: '12px' }}>
                         {pct !== '—' ? (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
-                            <div style={{ width: '60px', height: '4px', background: 'var(--bg-primary)', borderRadius: '2px', overflow: 'hidden' }}>
-                              <div style={{ width: `${pct}%`, height: '100%', background: badge.color, borderRadius: '2px' }} />
+                            <div style={{ width: '60px', height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
+                              <div style={{ width: `${pct}%`, height: '100%', background: barColor, borderRadius: '2px' }} />
                             </div>
-                            <span style={{ color: 'var(--text-secondary)', fontSize: '12px', width: '36px', textAlign: 'right' }}>{pct}%</span>
+                            <span style={{ color: 'var(--text-secondary)', fontSize: '12px', width: '36px', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>{pct}%</span>
                           </div>
                         ) : (
                           <span style={{ color: 'var(--text-secondary)' }}>—</span>

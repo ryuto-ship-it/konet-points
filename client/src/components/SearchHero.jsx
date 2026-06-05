@@ -3,14 +3,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { searchTokens } from '../api/client';
 import './SearchHero.css';
 
-const QUICK_TOKENS = [
-  { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png', chain: 'ethereum' },
-  { id: 'binancecoin', name: 'BNB', symbol: 'BNB', image: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png', chain: 'bsc' },
-  { id: 'chainlink', name: 'Chainlink', symbol: 'LINK', image: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png', chain: 'ethereum' },
-  { id: 'uniswap', name: 'Uniswap', symbol: 'UNI', image: 'https://assets.coingecko.com/coins/images/12504/small/uni.jpg', chain: 'ethereum' },
-  { id: 'aave', name: 'Aave', symbol: 'AAVE', image: 'https://assets.coingecko.com/coins/images/12645/small/aave-token.png', chain: 'ethereum' },
-];
-
 const SUPPORTED_CHAINS = [
   { id: 'ethereum', name: 'Ethereum' },
   { id: 'bsc', name: 'BSC' },
@@ -120,45 +112,39 @@ export default function SearchHero({ onTokenSelect, error }) {
 
   return (
     <div className="search-hero">
-      {/* Animated background grid */}
-      <div className="hero-grid-bg">
-        <div className="grid-lines" />
-        <div className="grid-glow grid-glow-1" />
-        <div className="grid-glow grid-glow-2" />
-        <div className="grid-dots" />
+      <div className="hero-background-dolphin">
+        <svg viewBox="0 0 1000 400" preserveAspectRatio="none">
+          <path
+            d="M 1200 200 C 1000 150 800 250 600 200 C 400 150 200 250 -100 200"
+            fill="none"
+            stroke="var(--dolphin-blue)"
+            strokeWidth="4"
+            opacity="0.1"
+          />
+          <path
+            d="M800,200 C750,150 650,100 450,100 C250,100 150,150 0,200 C-150,250 -250,200 -450,150"
+            fill="none"
+            stroke="var(--accent-cyan)"
+            strokeWidth="2"
+            opacity="0.05"
+          />
+        </svg>
       </div>
 
       <div className="hero-content">
-        {/* Logo */}
         <div className="hero-logo animate-fade-in-up">
-          <div className="logo-mark">
-            <svg width="48" height="48" viewBox="0 0 64 64" fill="none">
-              <rect width="64" height="64" rx="14" fill="var(--bg-secondary)" />
-              <rect x="2" y="2" width="60" height="60" rx="12" stroke="var(--accent-cyan)" strokeWidth="2" strokeOpacity="0.5" />
-              <path d="M22 18h12c8.8 0 16 7.2 16 16s-7.2 16-16 16H22V18zm5 5v22h7c6 0 11-5 11-11s-5-11-11-11h-7z" fill="var(--accent-cyan)" />
-              <circle cx="44" cy="20" r="4" fill="var(--accent-emerald)" opacity="0.8" />
-            </svg>
-          </div>
           <h1 className="logo-text">
-            Dorphin <span className="text-gradient">Research</span>
+            🐬 DORPHIN <span className="text-gradient">RESEARCH</span>
           </h1>
+          <p className="hero-tagline">Dive deeper. Surface smarter.</p>
         </div>
 
-        {/* Tagline */}
-        <p className="hero-tagline animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-          AI-Powered Token Intelligence Platform
-        </p>
-        <p className="hero-subtitle animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          Institutional-grade token analysis reports, powered by AI
-        </p>
-
-        {/* Search Bar */}
         <div
           className="search-container animate-fade-in-up"
-          style={{ animationDelay: '0.3s' }}
+          style={{ animationDelay: '0.2s' }}
           ref={dropdownRef}
         >
-          <div className={`search-bar ${query ? 'search-bar--active' : ''}`} style={{ display: 'flex', gap: '8px' }}>
+          <div className="search-bar">
             <select 
               className="chain-select"
               value={selectedChain}
@@ -168,56 +154,36 @@ export default function SearchHero({ onTokenSelect, error }) {
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
+            
             <input
               ref={inputRef}
               type="text"
               className="search-input"
-              placeholder="Search token name or contract address..."
+              placeholder="Enter contract address or token name..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               onFocus={() => results.length > 0 && setShowDropdown(true)}
               autoComplete="off"
               spellCheck="false"
-              style={{ flex: 1 }}
             />
+            
             {isSearching ? (
-              <div className="search-spinner" style={{ marginRight: '16px' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" strokeWidth="2">
+              <div className="search-spinner">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" strokeWidth="2">
                   <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                 </svg>
               </div>
             ) : (
-              <button 
-                onClick={executeSearch}
-                className="search-button"
-                style={{
-                  background: 'rgba(51,204,204,0.15)',
-                  color: 'var(--accent-cyan)',
-                  border: '1px solid rgba(51,204,204,0.3)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '8px 16px',
-                  margin: '8px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  fontSize: '14px',
-                  whiteSpace: 'nowrap'
-                }}
-                onMouseOver={(e) => {
-                  e.target.style.background = 'rgba(51,204,204,0.25)';
-                  e.target.style.borderColor = 'rgba(51,204,204,0.5)';
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.background = 'rgba(51,204,204,0.15)';
-                  e.target.style.borderColor = 'rgba(51,204,204,0.3)';
-                }}
-              >
-                검색하기
+              <button onClick={executeSearch} className="search-button">
+                <span>Analyze</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
               </button>
             )}
           </div>
-          <div className="search-glow" />
 
           {/* Autocomplete Dropdown */}
           {showDropdown && results.length > 0 && (
@@ -225,22 +191,15 @@ export default function SearchHero({ onTokenSelect, error }) {
               {results.map((token, i) => (
                 <button
                   key={token.id}
-                  className={`search-result ${i === activeIndex ? 'search-result--active' : ''}`}
+                  className={`search-result ${i === activeIndex ? 'active' : ''}`}
                   onClick={() => handleSelect(token)}
                   onMouseEnter={() => setActiveIndex(i)}
                 >
                   <div className="result-left">
                     {token.image ? (
-                      <img
-                        src={token.image}
-                        alt={token.name}
-                        className="result-image"
-                        onError={(e) => { e.target.style.display = 'none'; }}
-                      />
+                      <img src={token.image} alt={token.name} className="result-image" onError={(e) => { e.target.style.display = 'none'; }} />
                     ) : (
-                      <div className="result-image-fallback">
-                        {token.symbol?.charAt(0)}
-                      </div>
+                      <div className="result-image-fallback">{token.symbol?.charAt(0)}</div>
                     )}
                     <div className="result-info">
                       <span className="result-name">{token.name}</span>
@@ -256,29 +215,8 @@ export default function SearchHero({ onTokenSelect, error }) {
           )}
         </div>
 
-        {/* Quick Access Tokens */}
-        <div className="quick-tokens animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-          <span className="quick-label">Popular:</span>
-          {QUICK_TOKENS.map((token) => (
-            <button
-              key={token.id}
-              className="quick-chip"
-              onClick={() => handleSelect(token)}
-            >
-              <img
-                src={token.image}
-                alt={token.symbol}
-                className="chip-image"
-                onError={(e) => { e.target.style.display = 'none'; }}
-              />
-              <span>{token.symbol}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Error message */}
         {error && (
-          <div className="hero-error animate-fade-in-up">
+          <div className="hero-error animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" />
               <path d="M12 8v4M12 16h.01" />
@@ -287,10 +225,23 @@ export default function SearchHero({ onTokenSelect, error }) {
           </div>
         )}
 
-        {/* Footer */}
-        <div className="hero-footer animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
-          Powered by CoinGecko · DefiLlama · Etherscan · Claude AI
+        <div className="hero-stats-bar animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+          <div className="hero-stat-item">
+            <span className="stat-value">12,481+</span>
+            <span className="stat-label">Tokens Analyzed</span>
+          </div>
+          <div className="stat-divider" />
+          <div className="hero-stat-item">
+            <span className="stat-value">45,000+</span>
+            <span className="stat-label">Reports Generated</span>
+          </div>
+          <div className="stat-divider" />
+          <div className="hero-stat-item">
+            <span className="stat-value">6+</span>
+            <span className="stat-label">Supported Chains</span>
+          </div>
         </div>
+
       </div>
     </div>
   );

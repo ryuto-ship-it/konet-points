@@ -1,0 +1,157 @@
+.dolphin-loader-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, #020812 0%, #040e1f 50%, #020c18 100%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.loader-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+.dolphin-container {
+  position: relative;
+  width: 160px;
+  height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.dolphin-svg {
+  animation: dolphinSwim 3s ease-in-out infinite alternate;
+}
+
+@keyframes dolphinSwim {
+  0% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-15px) rotate(3deg); }
+  100% { transform: translateY(0) rotate(-3deg); }
+}
+
+/* Bubbles */
+.bubble {
+  position: absolute;
+  background: rgba(0, 229, 255, 0.4);
+  border-radius: 50%;
+  bottom: 30px;
+  right: 20px;
+  animation: floatUp linear infinite;
+  opacity: 0;
+}
+
+.b1 { width: 8px; height: 8px; animation-duration: 2s; animation-delay: 0s; right: 25px; }
+.b2 { width: 5px; height: 5px; animation-duration: 1.5s; animation-delay: 0.5s; right: 15px; }
+.b3 { width: 10px; height: 10px; animation-duration: 2.5s; animation-delay: 1s; right: 35px; }
+.b4 { width: 6px; height: 6px; animation-duration: 1.8s; animation-delay: 1.2s; right: 10px; }
+.b5 { width: 4px; height: 4px; animation-duration: 2.2s; animation-delay: 0.8s; right: 40px; }
+
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateY(-60px) scale(1.5); opacity: 0; }
+}
+
+/* Status Text */
+.loading-status {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 100%;
+  box-shadow: var(--shadow-card);
+}
+
+.loading-title {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  color: var(--accent-cyan);
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.loading-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text-muted);
+  transition: var(--transition);
+}
+
+.step-icon {
+  font-size: 16px;
+  width: 20px;
+  display: inline-block;
+  text-align: center;
+}
+
+.step-item.completed {
+  color: var(--success);
+}
+.step-item.completed .step-icon {
+  color: var(--success);
+  font-weight: bold;
+}
+
+.step-item.current {
+  color: var(--accent-cyan);
+}
+.step-item.current .step-icon {
+  color: var(--accent-cyan);
+  animation: pulse 1s infinite;
+}
+
+.loading-footer {
+  margin-top: 32px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Background Ocean Waves */
+.ocean-waves {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 30vh;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.wave {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  animation: wave 10s linear infinite;
+  transform-origin: bottom;
+}
+
+.w1 { animation-duration: 12s; z-index: 1; bottom: -20px; }
+.w2 { animation-duration: 8s; animation-direction: reverse; z-index: 2; bottom: -10px; }
+.w3 { animation-duration: 15s; z-index: 3; bottom: -30px; }
+
+@keyframes wave {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}

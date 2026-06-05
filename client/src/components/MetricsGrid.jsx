@@ -5,12 +5,12 @@ export default function MetricsGrid({ metrics }) {
   if (!metrics || metrics.length === 0) return null;
 
   return (
-    <div className="metrics-grid">
+    <div className="metric-grid">
       {metrics.map((m, i) => (
-        <div key={i} className="metric-card">
-          <span className="metric-card-label">{m.label}</span>
-          <span className="metric-card-value">{m.value}</span>
-          <span className="metric-card-source">{m.source}</span>
+        <div key={i} className="metric-item">
+          <div className="metric-label">{m.label}</div>
+          <div className="metric-value">{m.value}</div>
+          <div className="metric-source">{m.source}</div>
         </div>
       ))}
     </div>

@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import SearchHero from './components/SearchHero';
-import LoadingOverlay from './components/LoadingOverlay';
+import DolphinLoader from './components/DolphinLoader';
 import ReportView from './components/ReportView';
 import { getReport } from './api/client';
 import './App.css';
@@ -65,7 +65,7 @@ function App() {
       )}
 
       {currentView === 'loading' && (
-        <LoadingOverlay
+        <DolphinLoader
           tokenName={selectedToken?.name || 'Token'}
           onComplete={handleLoadingComplete}
         />
