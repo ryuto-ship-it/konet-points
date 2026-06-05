@@ -99,6 +99,7 @@ app.listen(PORT, () => {
     CoinGecko: process.env.COINGECKO_API_KEY && process.env.COINGECKO_API_KEY !== 'your_coingecko_demo_key',
     Etherscan: process.env.ETHERSCAN_API_KEY && process.env.ETHERSCAN_API_KEY !== 'your_etherscan_key',
     Anthropic: process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== 'your_anthropic_key',
+    Twitter: !!process.env.TWITTER_BEARER_TOKEN,
   };
 
   for (const [name, configured] of Object.entries(keys)) {

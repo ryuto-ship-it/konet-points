@@ -123,4 +123,26 @@ async function getMarketPairs(cmcId, limit = 40) {
   }
 }
 
-module.exports = { getDetailBySlug, getMarketPairs };
+// Aggregated holder count for a CMC coin ID
+async function getHolderCount(cmcId) {
+  if (!cmcId) return null;
+  const cacheKey = `cmci:holders:${cmcId}`;
+  const cached = cache.get(cacheKey);
+  if (cached !== undefined) return cached;
+
+  try {
+    const data = await fetchCmcInternal(
+      `/cryptocurrency/holders/aggregated?id=${cmcId}`
+    );
+    const count = data?.data?.holderCount ?? data?.data?.totalHolders ?? null;
+    cache.set(cacheKey, count, CACHE_TTL);
+    if (count !== null) console.log(`[CMC-Internal] holderCount for id=${cmcId}: ${count}`);
+    return count;
+  } catch (err) {
+    console.warn(`[CMC-Internal] getHolderCount(${cmcId}) failed: ${err.message}`);
+    cache.set(cacheKey, null, CACHE_TTL);
+    return null;
+  }
+}
+
+module.exports = { getDetailBySlug, getMarketPairs, getHolderCount };

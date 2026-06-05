@@ -124,12 +124,18 @@ export default function DashboardHeader({ data, onBack }) {
             <div style={{ fontSize: '13px', fontWeight: 600, color: '#c8d4e0', fontFamily: 'monospace' }}>{value}</div>
           </div>
         ))}
-        {data.tokenCreationDate && (
-          <div style={{ flexShrink: 0 }}>
-            <div style={{ fontSize: '10px', color: '#556677', marginBottom: '2px' }}>출시일</div>
-            <div style={{ fontSize: '13px', fontWeight: 600, color: '#c8d4e0' }}>{data.tokenCreationDate.slice(0, 10)}</div>
-          </div>
-        )}
+        {(data.pairCreatedAt || data.tokenCreationDate) && (() => {
+          const ts = data.pairCreatedAt
+            ? new Date(data.pairCreatedAt)
+            : new Date(data.tokenCreationDate);
+          const label = ts.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+          return (
+            <div style={{ flexShrink: 0 }}>
+              <div style={{ fontSize: '10px', color: '#556677', marginBottom: '2px' }}>토큰 출시일</div>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: '#c8d4e0' }}>{label}</div>
+            </div>
+          );
+        })()}
         {data.tokenAgeInDays != null && (
           <div style={{ flexShrink: 0 }}>
             <div style={{ fontSize: '10px', color: '#556677', marginBottom: '2px' }}>토큰 나이</div>

@@ -30,7 +30,7 @@ CRITICAL RULES:
 5. COMPETITOR RULE: Only reference tokens in the provided competitors array. Empty array → "유사 시총 프로젝트 데이터 없음".
 6. CERTIK: If computed_metrics.certik is present, include in risk_matrix.contractRisk: "CertiK 점수 {score}/100 (등급 {rating}/5.0) [CertiK]". rating < 3.0 → ⚠️ 낮은 보안 점수. rating >= 4.0 → ✅ 우수한 보안 점수.
 6b. GOPLUS: Use computed_metrics.goplus_flags exactly. ownership_renounced=true → "소유권 포기 완료 ✓". is_honeypot=true → CRITICAL. sell_tax>10 → HIGH risk. can_take_back_ownership=true → HIGH risk. is_mintable=true → MEDIUM risk.
-7. HOLDER RISK: If computed_metrics.holder_concentration is present, use top10_pct in risk_matrix.holderConcentrationRisk. top10_pct >= 47% → ⚠️ 집중도 위험. top10_pct > 50% → HIGH RISK. If holder_count_bscscan is present, mention actual holder count. Cite as [Etherscan/BscScan].
+7. HOLDER RISK: If computed_metrics.holder_concentration is present, use top10_pct in risk_matrix.holderConcentrationRisk. top10_pct >= 47% → ⚠️ 집중도 위험. top10_pct > 50% → HIGH RISK. If computed_metrics.holder_count is present, include "홀더 수: {holder_count}명" in onchain_metrics. Cite as [CoinMarketCap/BscScan].
 8. TWITTER: If twitterData present, include followers/activity in team_investors. followers < 1000 → LOW engagement flag.
 9. TOKEN AGE: If computed_metrics.token_age_days_dex < 30, do NOT calculate or show 30-day volatility or 30-day price range in price_pattern_interpretation. Instead output "데이터 부족 — 토큰 출시 N일 (30일 지표 산출 불가)" where N = token_age_days_dex value. Only apply this rule when token_age_days_dex is explicitly < 30.
 9b. WHITEPAPER TOKENOMICS: If computed_metrics.whitepaper_found=true, analyze whitepaper_content for the tokenomics section. Extract: 팀 물량 %, 생태계/마케팅 %, 커뮤니티/에어드랍 %, 투자자 %, 베스팅 스케줄. If content doesn't clearly state these, output "백서에서 명시적 수치 없음". If whitepaper_found=false, output "백서 데이터 없음 — 수동 확인 필요".
@@ -168,7 +168,16 @@ function generateMockAnalysis(aggregatedData) {
         .filter(Boolean).join('. ') || '공개 정보 없음';
     })(),
 
-    onchain_metrics: `${aggregatedData.onchainData?.transactionCount ? `총 트랜잭션 수치 ${aggregatedData.onchainData.transactionCount}건 [Etherscan]` : '데이터 없음 — 해당 API 미연동'}`,
+    onchain_metrics: (() => {
+      const parts = [];
+      if (aggregatedData.onchainData?.transactionCount) {
+        parts.push(`총 트랜잭션 수치 ${aggregatedData.onchainData.transactionCount}건 [Etherscan]`);
+      }
+      if (aggregatedData.onchainData?.holderCount) {
+        parts.push(`홀더 수: ${aggregatedData.onchainData.holderCount.toLocaleString()}명 [CoinMarketCap/BscScan]`);
+      }
+      return parts.length > 0 ? parts.join('. ') : '데이터 없음 — 해당 API 미연동';
+    })(),
 
     risk_matrix: {
       contractRisk: (() => {
@@ -219,7 +228,11 @@ function generateMockAnalysis(aggregatedData) {
 
     price_pattern_interpretation: (() => {
       const pp = aggregatedData.pricePattern;
+      const ageDays = aggregatedData.tokenAgeInDays;
       if (!pp) return "가격 패턴 데이터 없음";
+      if (ageDays !== null && ageDays !== undefined && ageDays < 30) {
+        return `데이터 부족 — 토큰 출시 ${ageDays}일 (30일 지표 산출 불가)`;
+      }
       const volMsg = pp.volumeSpikeRatio && pp.volumeSpikeRatio > 5
         ? `거래량 스파이크 비율 ${pp.volumeSpikeRatio}x로 비정상적 급등 이력이 감지됩니다 [CoinGecko].`
         : `거래량 패턴이 비교적 안정적입니다 [CoinGecko].`;
@@ -299,6 +312,7 @@ async function generateReport(aggregatedData) {
       atl: aggregatedData.marketData?.atl ?? null,
       atl_date: aggregatedData.marketData?.atl_date ?? null,
       ath_change_percent: aggregatedData.marketData?.ath_change_percent ?? null,
+      holder_count: aggregatedData.onchainData?.holderCount ?? null,
       holder_count_bscscan: aggregatedData.onchainData?.holderCount ?? null,
       volume_health: aggregatedData.volumeHealth ? {
         vol_mcap_ratio_pct: aggregatedData.volumeHealth.volMcapRatioPct,

@@ -146,6 +146,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     liquidityAnalysisResult,
     githubAnalysisResult,
     whitepaperResult,
+    cmcHolderCountResult,
     competitorsResult,
   ] = await Promise.allSettled([
     // CoinGecko
@@ -272,6 +273,11 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
       technicalDoc: cmciDetailFromSlug?.technicalDoc || null,
     }),
 
+    // CMC holder count (aggregated)
+    cmcId
+      ? cmcInternal.getHolderCount(cmcId)
+      : Promise.resolve(null),
+
     // Competitors logic
     (async () => {
       const categories = tokenDetails?.categories || [];
@@ -332,6 +338,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const liquidityAnalysisData = extract(liquidityAnalysisResult);
   const githubData = extract(githubAnalysisResult);
   const whitepaperData = extract(whitepaperResult);
+  const cmcHolderCount = extract(cmcHolderCountResult);
   const rawCompetitors = extract(competitorsResult, []);
 
   // CMC Twitter URL fallback: try if CoinGecko had no handle
@@ -376,8 +383,8 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
       ...(cmciBest?.twitter ? { twitter_screen_name: cmciBest.twitter.split('/').filter(Boolean).pop() } : {}),
       ...(cmciBest?.telegram ? { telegram_channel_identifier: cmciBest.telegram.split('/').filter(Boolean).pop() } : {}),
     },
-    // Price / market metrics: CMC → CoinGecko
-    current_price: cmcMarketData?.price || market.current_price || detailMarket.current_price?.usd || 0,
+    // Price / market metrics: CoinGecko primary → CMC fallback
+    current_price: market.current_price || detailMarket.current_price?.usd || cmcMarketData?.price || 0,
     market_cap: cmcMarketData?.marketCap || market.market_cap || detailMarket.market_cap?.usd || 0,
     market_cap_rank: cmcMarketData?.cmcRank || details.market_cap_rank || market.market_cap_rank || null,
     fully_diluted_valuation: cmcMarketData?.fdv || market.fully_diluted_valuation || detailMarket.fully_diluted_valuation?.usd || 0,
@@ -396,7 +403,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     atl_date: cmciDetail?.atlTimestamp || null,
     ath_change_percent: cmciDetail?.athChangePercent || null,
     // Data source tracking for citation
-    priceDataSource: hasCmcMarket ? 'CoinMarketCap' : 'CoinGecko',
+    priceDataSource: (market.current_price || detailMarket.current_price?.usd) ? 'CoinGecko' : (hasCmcMarket ? 'CoinMarketCap' : 'CoinGecko'),
   };
 
   // ── Normalize on-chain data ──────────────────────────────────────────────────
@@ -430,7 +437,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     tokenName: tokenInfoData.tokenName || null,
     tokenType: tokenInfoData.tokenType || null,
     tokenDecimals: tokenInfoData.divisor || null,
-    holderCount: bscHolderCountData || holderCountData || coinGeckoHolderCount,
+    holderCount: cmcHolderCount || bscHolderCountData || holderCountData || coinGeckoHolderCount,
     topHolders: topHoldersData,
     // BSC-specific pre-computed holder data
     bscTopHolders: bscHoldersData?.topHolders || null,
@@ -665,6 +672,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     contractAnalysis: contractAnalysis || null,
     certik: cmciDetail?.certik || null,
     tokenAgeInDays: tokenAgeInDays,
+    pairCreatedAt: pairCreatedAt || null,
     listingScore,
     volumeHealth: volumeHealth || null,
     walletAgeAnalysis: walletAgeAnalysis || null,
