@@ -62,3 +62,13 @@ export async function getReport(coinId, address, chain) {
     throw err;
   }
 }
+
+/**
+ * Get new listings feed.
+ * @param {string} [filter] - 'all' | 'safe' | 'caution' | 'danger'
+ */
+export async function getListings(filter = 'all') {
+  const res = await fetch(`${API_BASE}/listings?filter=${encodeURIComponent(filter)}`);
+  if (!res.ok) throw new Error(`Listings failed: ${res.status}`);
+  return res.json();
+}

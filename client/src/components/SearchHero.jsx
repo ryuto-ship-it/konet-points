@@ -13,7 +13,7 @@ const SUPPORTED_CHAINS = [
   { id: 'base', name: 'Base' }
 ];
 
-export default function SearchHero({ onTokenSelect, error }) {
+export default function SearchHero({ onTokenSelect, onGoToListings, error }) {
   const [query, setQuery] = useState('');
   const [selectedChain, setSelectedChain] = useState('ethereum');
   const [results, setResults] = useState([]);
@@ -224,6 +224,34 @@ export default function SearchHero({ onTokenSelect, error }) {
             {error}
           </div>
         )}
+
+        {/* New Listings shortcut */}
+        <div className="animate-fade-in-up" style={{ animationDelay: '0.35s', marginBottom: '20px' }}>
+          <button
+            onClick={onGoToListings}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '14px',
+              padding: '14px 20px', borderRadius: '12px',
+              background: 'rgba(239,68,68,0.08)',
+              border: '1px solid rgba(239,68,68,0.3)',
+              cursor: 'pointer', width: '100%', maxWidth: '480px', margin: '0 auto',
+              textAlign: 'left', transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.14)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(239,68,68,0.08)'}
+          >
+            <span style={{ fontSize: '28px' }}>🔴</span>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: '13px', fontWeight: 700, color: '#ef4444', margin: 0 }}>
+                실시간 신규 토큰 스크리닝
+              </p>
+              <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', margin: '2px 0 0' }}>
+                BSC 신규 상장 토큰을 AI가 자동 분석합니다
+              </p>
+            </div>
+            <span style={{ fontSize: '13px', color: '#ef4444', fontWeight: 600 }}>바로가기 →</span>
+          </button>
+        </div>
 
         <div className="hero-stats-bar animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
           <div className="hero-stat-item">

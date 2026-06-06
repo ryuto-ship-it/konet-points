@@ -63,6 +63,9 @@ app.use('/api/search', searchRoutes);
 /** Report generation */
 app.use('/api/report', reportRoutes);
 
+/** New listings feed */
+app.use('/api/listings', require('./routes/listings'));
+
 // ─── 404 Handler ───────────────────────────────────────────────────────────────
 
 app.use((req, res) => {
