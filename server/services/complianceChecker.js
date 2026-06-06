@@ -3,12 +3,20 @@ function calculateKoreanExchangeScore({
   liquidity      = 0,
   tokenAgeInDays = 0,
   hasAudit       = false,
+  certikScore    = 0,
   teamKYC        = false,
   hasWhitepaper  = false,
   contractVerified = false,
   holderCount    = 0,
   tier1or2Listed = false,
 }) {
+  // CertiK score >= 80 = full audit; 0 < score < 70 = Partial Rating (❌)
+  const isPartialRating = certikScore > 0 && certikScore < 70;
+  const effectiveAudit  = hasAudit && !isPartialRating && certikScore >= 80
+    ? true
+    : hasAudit && certikScore === 0
+      ? true  // non-certik audit source (Hacken etc.)
+      : false;
   let score = 0;
   const requirements = [];
 
@@ -49,9 +57,11 @@ function calculateKoreanExchangeScore({
   }
 
   // 4. 보안 감사 (15점)
-  if (hasAudit) {
+  if (effectiveAudit) {
     score += 15;
     requirements.push({ item: '보안 감사 완료 (CertiK/Hacken)', met: true });
+  } else if (isPartialRating) {
+    requirements.push({ item: `보안 감사 필요 (CertiK Partial Rating ${certikScore}점 — 완전 감사 아님)`, met: false });
   } else {
     requirements.push({ item: '보안 감사 완료 필요', met: false });
   }
@@ -94,6 +104,7 @@ function calculateKoreanExchangeScore({
 
 function checkCompliance({
   hasAudit          = false,
+  certikScore       = 0,
   teamKYC           = false,
   hasWhitepaper     = false,
   contractVerified  = false,
@@ -108,8 +119,16 @@ function checkCompliance({
   holderCount       = 0,
   tier1or2Listed    = false,
 }) {
+  // CertiK score >= 80 = full audit; 0 < score < 70 = Partial Rating (❌)
+  const isPartialRating = certikScore > 0 && certikScore < 70;
+  const hasFullAudit    = (hasAudit && certikScore === 0) ||  // non-certik source
+                          (hasAudit && certikScore >= 80);    // certik full audit
+
   const daxaRequirements = [
-    { item: '스마트 컨트랙트 감사', met: !!hasAudit,          required: true,  note: 'CertiK / Hacken 등 공인 감사 기관' },
+    { item: isPartialRating
+        ? `스마트 컨트랙트 감사 (CertiK Partial ${certikScore}점 — 완전 감사 아님)`
+        : '스마트 컨트랙트 감사',
+      met: hasFullAudit, required: true,  note: 'CertiK / Hacken 등 공인 감사 기관 (CertiK ≥80점)' },
     { item: '팀 KYC/KYB',         met: !!teamKYC,           required: true,  note: '창립진 신원 공개 필수' },
     { item: '백서 공개',           met: !!hasWhitepaper,     required: true,  note: '토크노믹스 · 로드맵 포함' },
     { item: '컨트랙트 검증',       met: !!contractVerified,  required: true,  note: '소스코드 공개 검증 (Etherscan)' },
@@ -121,7 +140,7 @@ function checkCompliance({
   const allMet        = daxaRequirements.filter(r => r.met).length;
 
   const upbitRequirements = [
-    { item: '스마트 컨트랙트 감사', met: !!hasAudit },
+    { item: '스마트 컨트랙트 감사', met: hasFullAudit },
     { item: '팀 신원 공개 (KYC)',  met: !!teamKYC },
     { item: 'DAXA 컴플라이언스',   met: requiredMet === requiredItems.length },
     { item: 'Travel Rule 준수 가능', met: !!contractVerified },
@@ -137,7 +156,8 @@ function checkCompliance({
 
   const exchangeScore = calculateKoreanExchangeScore({
     volume24h, liquidity, tokenAgeInDays,
-    hasAudit, teamKYC, hasWhitepaper, contractVerified,
+    hasAudit: hasFullAudit, certikScore,
+    teamKYC, hasWhitepaper, contractVerified,
     holderCount, tier1or2Listed,
   });
 

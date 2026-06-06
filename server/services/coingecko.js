@@ -304,13 +304,29 @@ async function getPriceHistory(coinId, days = 30) {
   }
 }
 
-/**
- * Get token data by contract address on a specific platform.
- *
- * @param {string} platform - Platform ID (e.g. "ethereum")
- * @param {string} address - Contract address
- * @returns {Promise<Object>} Token data
- */
+async function getPriceHistory7d(coinId) {
+  const cacheKey = `cg:history7d:${coinId}`;
+  const cached = cache.get(cacheKey);
+  if (cached) return cached;
+
+  try {
+    const data = await fetchCoinGecko(
+      `/coins/${encodeURIComponent(coinId)}/market_chart?vs_currency=usd&days=7&interval=hourly`
+    );
+    const result = (data.prices || [])
+      .map(([ts, price]) => ({
+        time: new Date(ts).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric', hour: 'numeric' }),
+        price: parseFloat(price.toFixed(8)),
+      }))
+      .filter((_, i) => i % 4 === 0); // 4시간 간격
+    cache.set(cacheKey, result, CACHE_TTL);
+    return result;
+  } catch (err) {
+    console.error(`[CoinGecko] getPriceHistory7d failed: ${err.message}`);
+    return [];
+  }
+}
+
 async function getTokenByContract(platform, address) {
   const cacheKey = `cg:contract:${platform}:${address}`;
   const cached = cache.get(cacheKey);
@@ -426,6 +442,7 @@ module.exports = {
   getTokenMarketData,
   getTokenDetails,
   getPriceHistory,
+  getPriceHistory7d,
   getTokenByContract,
   getCategoriesList,
   getCoinsByCategory,

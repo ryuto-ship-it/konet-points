@@ -221,7 +221,7 @@ export default function NewListings() {
         background: 'rgba(10,12,16,0.95)',
       }}>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/app')}
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '20px', padding: '4px 8px' }}
         >←</button>
 

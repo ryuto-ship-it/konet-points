@@ -42,7 +42,8 @@ function calculateDorphinScore({
     );
   }
 
-  if (athDropPercent > 90 && tokenAgeInDays < 30) {
+  // Only fire if Block 1 (launch+dump+exchange) didn't already fire
+  if (athDropPercent > 90 && tokenAgeInDays < 30 && pumpDumpSignals.length === 0) {
     score -= 30;
     pumpDumpSignals.push({
       signal:   '런치 앤 덤프 패턴',

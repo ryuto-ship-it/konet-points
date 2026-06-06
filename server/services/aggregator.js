@@ -155,6 +155,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     competitorsResult,
     pulseFeedResult,
     webSecurityResult,
+    priceHistory7dResult,
   ] = await Promise.allSettled([
     // CoinGecko
     coingecko.getTokenMarketData(coinId),
@@ -685,7 +686,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const compositeScore = Math.round(
     exchangeScoreResult.score * 0.4 + onchainScore * 0.3 + priceScore * 0.3
   );
-  const compositeGrade = compositeScore >= 80 ? 'A' : compositeScore >= 60 ? 'B' : compositeScore >= 40 ? 'C' : compositeScore >= 20 ? 'D' : 'F';
+  const compositeGrade = compositeScore >= 90 ? 'A+' : compositeScore >= 80 ? 'A' : compositeScore >= 70 ? 'B+' : compositeScore >= 60 ? 'B' : compositeScore >= 50 ? 'C+' : compositeScore >= 40 ? 'C' : compositeScore >= 30 ? 'D' : 'F';
 
   const listingScore = {
     composite: compositeScore,
@@ -714,14 +715,15 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     ? rawHolderCount
     : (typeof rawHolderCount === 'string' ? parseInt(rawHolderCount, 10) || 0 : 0);
 
-  // CertiK Partial Rating is NOT a full audit — require rating >= 3.0 and score > 0
-  const hasFullAudit = !!(
-    cmciDetail?.certik?.rating >= 3.0 &&
-    (cmciDetail?.certik?.score || 0) > 0
-  );
+  const certikScore = typeof cmciDetail?.certik?.score === 'number'
+    ? cmciDetail.certik.score
+    : 0;
+  // hasAudit = certik data exists (complianceChecker decides full vs partial via certikScore)
+  const hasAudit = certikScore > 0;
 
   const complianceData = checkCompliance({
-    hasAudit: hasFullAudit,
+    hasAudit,
+    certikScore,
     teamKYC: false,
     hasWhitepaper: !!(whitepaperData?.found),
     contractVerified: !!(onchainData.contractVerified),
@@ -755,7 +757,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     telegramCount:   communityData.telegramUserCount || 0,
     twitterFollowers: communityData.twitterFollowers || 0,
     holderCount:     holderCountNum,
-    hasAudit:        hasFullAudit,
+    hasAudit:        hasAudit,
     teamKYC:         false,
     lpLockDays:      liquidityAnalysisData?.lpLockDays || 0,
     pairCreatedAt:   pairCreatedAt || null,
