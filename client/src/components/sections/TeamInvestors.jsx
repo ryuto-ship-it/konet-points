@@ -123,7 +123,7 @@ export default function TeamInvestors({ data }) {
             </div>
           ) : (
             <p style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
-              Twitter API 미연동 — 팔로워 수 등 상세 지표를 보려면 TWITTER_BEARER_TOKEN을 Vercel 환경변수에 추가해주세요.
+              소셜 데이터 없음
             </p>
           )}
         </div>

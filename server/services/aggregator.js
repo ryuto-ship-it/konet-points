@@ -460,7 +460,11 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     tokenName: tokenInfoData.tokenName || null,
     tokenType: tokenInfoData.tokenType || null,
     tokenDecimals: tokenInfoData.divisor || null,
-    holderCount: cmcHolderCount || bscHolderCountData || holderCountData || coinGeckoHolderCount,
+    holderCount: (() => {
+      const isErr = v => typeof v === 'string' && (v.toLowerCase().includes('free api') || v.toLowerCase().includes('upgrade') || v.toLowerCase().includes('not supported'));
+      const clean = v => (isErr(v) ? null : v);
+      return clean(cmcHolderCount) || clean(bscHolderCountData) || clean(holderCountData) || clean(coinGeckoHolderCount);
+    })(),
     topHolders: topHoldersData,
     // BSC-specific pre-computed holder data
     bscTopHolders: bscHoldersData?.topHolders || null,

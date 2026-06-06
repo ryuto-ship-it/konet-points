@@ -2,8 +2,11 @@
 import './DashboardHeader.css';
 
 export default function DashboardHeader({ data, onBack }) {
-  const tokenName = data?.token?.name || 'Unknown';
+  const rawName = data?.token?.name;
   const tokenSymbol = data?.token?.symbol?.toUpperCase() || '';
+  const tokenName = (!rawName || rawName === 'Unknown')
+    ? (tokenSymbol || data?.token?.contractAddress?.slice(0, 6) || 'Unknown')
+    : rawName;
   const md = data?.marketData || {};
 
   const currentPrice = md.currentPrice ?? 0;

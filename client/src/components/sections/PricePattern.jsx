@@ -27,9 +27,8 @@ export default function PricePattern({ data }) {
   const atlDate = md.atl_date ? md.atl_date.slice(0, 10) : null;
   const athChangePct = md.ath_change_percent ?? null;
 
-  const tokenAgeDays = creationDate
-    ? Math.floor((Date.now() - new Date(creationDate).getTime()) / 86400000)
-    : null;
+  const tokenAgeDays = data.tokenAgeInDays ??
+    (creationDate ? Math.floor((Date.now() - new Date(creationDate).getTime()) / 86400000) : null);
 
   // Position of current price between ATL and ATH (0–100%)
   let pricePosition = null;
@@ -120,38 +119,46 @@ export default function PricePattern({ data }) {
         </div>
       )}
 
-      {/* Stat cards */}
+      {/* Stat cards — hidden if token is under 30 days old */}
       <div className="section-card">
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-          <StatCard
-            label="토큰 생성일"
-            value={creationDate ? creationDate.slice(0, 10) : '—'}
-            sub={tokenAgeDays !== null ? `${tokenAgeDays}일 전 [Etherscan]` : null}
-          />
-          <StatCard
-            label="30일 변동성"
-            value={pp ? `${pp.volatility30d}%` : '—'}
-            sub="일일 수익률 표준편차 [CoinGecko]"
-            warn={pp && pp.volatility30d > 15}
-          />
-          <StatCard
-            label="거래량 스파이크"
-            value={pp?.volumeSpikeRatio != null ? `${pp.volumeSpikeRatio}x` : '—'}
-            sub="최대/평균 거래량 비율 [CoinGecko]"
-            warn={pp && pp.volumeSpikeRatio > 5}
-          />
-          <StatCard
-            label="30일 가격 범위"
-            value={pp?.rangePercent30d != null ? `${pp.rangePercent30d}%` : '—'}
-            sub="(최고-최저)/최저 [CoinGecko]"
-            warn={pp && pp.rangePercent30d > 100}
-          />
-        </div>
-
-        {pp && pp.volumeSpikeRatio > 5 && (
-          <p style={{ marginTop: '16px', fontSize: '13px', color: 'var(--accent-amber)' }}>
-            ⚠️ 거래량 스파이크 비율 {pp.volumeSpikeRatio}x — 단기 급등 이후 지속적 유동성 확인 필요
+        {tokenAgeDays !== null && tokenAgeDays < 30 ? (
+          <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', textAlign: 'center', padding: '16px 0' }}>
+            데이터 부족 — 토큰 출시 {tokenAgeDays}일 (30일 지표 산출 불가)
           </p>
+        ) : (
+          <>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+              <StatCard
+                label="토큰 생성일"
+                value={creationDate ? creationDate.slice(0, 10) : '—'}
+                sub={tokenAgeDays !== null ? `${tokenAgeDays}일 전 [Etherscan]` : null}
+              />
+              <StatCard
+                label="30일 변동성"
+                value={pp ? `${pp.volatility30d}%` : '—'}
+                sub="일일 수익률 표준편차 [CoinGecko]"
+                warn={pp && pp.volatility30d > 15}
+              />
+              <StatCard
+                label="거래량 스파이크"
+                value={pp?.volumeSpikeRatio != null ? `${pp.volumeSpikeRatio}x` : '—'}
+                sub="최대/평균 거래량 비율 [CoinGecko]"
+                warn={pp && pp.volumeSpikeRatio > 5}
+              />
+              <StatCard
+                label="30일 가격 범위"
+                value={pp?.rangePercent30d != null ? `${pp.rangePercent30d}%` : '—'}
+                sub="(최고-최저)/최저 [CoinGecko]"
+                warn={pp && pp.rangePercent30d > 100}
+              />
+            </div>
+
+            {pp && pp.volumeSpikeRatio > 5 && (
+              <p style={{ marginTop: '16px', fontSize: '13px', color: 'var(--accent-amber)' }}>
+                ⚠️ 거래량 스파이크 비율 {pp.volumeSpikeRatio}x — 단기 급등 이후 지속적 유동성 확인 필요
+              </p>
+            )}
+          </>
         )}
       </div>
     </section>

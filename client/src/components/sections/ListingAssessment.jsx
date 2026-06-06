@@ -45,7 +45,7 @@ export default function ListingAssessment({ data }) {
   const certik = data.certik;
   const sa = data.socialAnalysis;
 
-  const grade = assessment.grade || ls?.compositeGrade || '?';
+  const grade = ls?.compositeGrade || assessment.grade || '?';
   const gradeColor = GRADE_COLOR[grade] || 'var(--text-tertiary)';
 
   // 6-axis radar: 거래소 / 온체인 / 가격안정성 / 보안(CertiK) / 커뮤니티 / 유동성

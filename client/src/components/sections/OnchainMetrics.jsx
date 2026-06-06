@@ -6,7 +6,11 @@ export default function OnchainMetrics({ data }) {
   const onchain = data.onchainData || {};
   const defi = data.defiData || {};
 
+  const isApiErrorStr = v => typeof v === 'string' &&
+    (v.toLowerCase().includes('free api') || v.toLowerCase().includes('upgrade') || v.toLowerCase().includes('not supported'));
+
   const formatNumber = (num, isCurrency = false) => {
+    if (isApiErrorStr(num)) return '데이터 없음 — API 제한';
     if (!num) return '-';
     if (num >= 1e9) return `${isCurrency ? '$' : ''}${(num / 1e9).toFixed(2)}B`;
     if (num >= 1e6) return `${isCurrency ? '$' : ''}${(num / 1e6).toFixed(2)}M`;
