@@ -24,6 +24,8 @@ const githubAnalyzer = require('./githubAnalyzer');
 const pulseFeed = require('./pulseFeed');
 const webSecurity = require('./webSecurity');
 const { checkCompliance } = require('./complianceChecker');
+const { calculateDorphinScore } = require('./dorphinScore');
+const { analyzeTwitterActivity } = require('./twitter');
 
 /**
  * Aggregate token data from all API sources.
@@ -729,6 +731,34 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     tier1or2Listed,
   });
 
+  // ── Dorphin proprietary score ────────────────────────────────────────────────
+  const dorphinAnalysis = calculateDorphinScore({
+    volume24h:       dexData?.volume24h || marketData.total_volume || 0,
+    liquidity:       dexLiquidity,
+    marketCap:       marketData.market_cap || 0,
+    tokenAgeInDays:  tokenAgeInDays || 0,
+    exchangeCount:   exchangeListings.length,
+    tier1Count:      exchangeListings.filter(e => e.tierInfo?.tier === 'TIER1').length,
+    tier2Count:      exchangeListings.filter(e => e.tierInfo?.tier === 'TIER2').length,
+    tier3Count:      exchangeListings.filter(e => e.tierInfo?.tier === 'TIER3').length,
+    priceChange24h:  marketData.price_change_percentage_24h || 0,
+    priceChange7d:   marketData.price_change_percentage_7d || 0,
+    buys:            dexData?.buys24h || 0,
+    sells:           dexData?.sells24h || 0,
+    washTradingRisk: onchainVerifyData?.washTradingRisk || 'LOW',
+    telegramCount:   communityData.telegramUserCount || 0,
+    twitterFollowers: communityData.twitterFollowers || 0,
+    holderCount:     holderCountNum,
+    hasAudit:        !!(cmciDetail?.certik || goplusData?.is_open_source),
+    teamKYC:         false,
+    lpLockDays:      liquidityAnalysisData?.lpLockDays || 0,
+    pairCreatedAt:   pairCreatedAt || null,
+    athDropPercent:  marketData.ath_change_percent
+      ? Math.abs(marketData.ath_change_percent) : 0,
+  });
+
+  const twitterActivity = await analyzeTwitterActivity(communityData.twitterHandle);
+
   return {
     actualChain,
     marketData,
@@ -760,6 +790,8 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     pulseFeed: pulseFeedData.length > 0 ? pulseFeedData : null,
     webSecurity: webSecurityData || null,
     compliance: complianceData,
+    dorphinAnalysis,
+    twitterActivity: twitterActivity || null,
   };
 }
 
