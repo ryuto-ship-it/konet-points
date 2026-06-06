@@ -2,7 +2,8 @@ const cache = require('../utils/cache');
 
 const BASE_URL = 'https://api.twitter.com/2';
 const CACHE_TTL_24H = 24 * 60 * 60 * 1000;
-const CACHE_TTL_RATE_LIMIT = 15 * 60 * 1000; // 15 min back-off for 429
+const CACHE_TTL_RATE_LIMIT = 15 * 60 * 1000;   // 15 min back-off for 429
+const CACHE_TTL_CREDITS = 60 * 60 * 1000;       // 1 hr back-off for 402 credits depleted
 
 async function fetchTwitter(path) {
   const BEARER_TOKEN = process.env.TWITTER_BEARER_TOKEN;
@@ -74,9 +75,12 @@ async function getTwitterData(username) {
     return result;
   } catch (err) {
     console.error(`[Twitter] getTwitterData failed for @${handle}: HTTP ${err.statusCode ?? 'N/A'} — ${err.message}`);
-    // 429: rate-limited — back off 15 min only (not 24h, so it retries sooner)
-    // 401: token invalid / not set — no point retrying for 24h
-    const ttl = err.statusCode === 429 ? CACHE_TTL_RATE_LIMIT : CACHE_TTL_24H;
+    // 402: credits depleted — retry in 1 hr
+    // 429: rate-limited — retry in 15 min
+    // 401: invalid token — cache 24h (no point retrying until token is fixed)
+    const ttl = err.statusCode === 402 ? CACHE_TTL_CREDITS
+              : err.statusCode === 429 ? CACHE_TTL_RATE_LIMIT
+              : CACHE_TTL_24H;
     cache.set(cacheKey, null, ttl);
     return null;
   }
