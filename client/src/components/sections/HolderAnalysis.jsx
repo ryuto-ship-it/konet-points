@@ -138,7 +138,7 @@ export default function HolderAnalysis({ data }) {
 
       {!ha ? (
         <div className="section-card">
-          <p className="body-base" style={{ color: 'var(--text-tertiary)' }}>홀더 데이터 없음 — 컨트랙트 주소 필요</p>
+          <p className="body-base" style={{ color: 'var(--text-tertiary)' }}>홀더 데이터 없음 — Etherscan Pro 플랜 필요 (BSC 홀더 조회 제한)</p>
         </div>
       ) : (
         <>

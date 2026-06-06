@@ -714,8 +714,14 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     ? rawHolderCount
     : (typeof rawHolderCount === 'string' ? parseInt(rawHolderCount, 10) || 0 : 0);
 
+  // CertiK Partial Rating is NOT a full audit — require rating >= 3.0 and score > 0
+  const hasFullAudit = !!(
+    cmciDetail?.certik?.rating >= 3.0 &&
+    (cmciDetail?.certik?.score || 0) > 0
+  );
+
   const complianceData = checkCompliance({
-    hasAudit: !!(cmciDetail?.certik || goplusData?.is_open_source),
+    hasAudit: hasFullAudit,
     teamKYC: false,
     hasWhitepaper: !!(whitepaperData?.found),
     contractVerified: !!(onchainData.contractVerified),
@@ -749,7 +755,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     telegramCount:   communityData.telegramUserCount || 0,
     twitterFollowers: communityData.twitterFollowers || 0,
     holderCount:     holderCountNum,
-    hasAudit:        !!(cmciDetail?.certik || goplusData?.is_open_source),
+    hasAudit:        hasFullAudit,
     teamKYC:         false,
     lpLockDays:      liquidityAnalysisData?.lpLockDays || 0,
     pairCreatedAt:   pairCreatedAt || null,

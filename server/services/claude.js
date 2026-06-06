@@ -26,6 +26,10 @@ CRITICAL RULES:
 1. NO HALLUCINATION: Base analysis STRICTLY on provided JSON data and computed_metrics. NEVER invent team members, investors, or features. Missing data → "공개 정보 없음" or "데이터 없음".
 2. DATA-FIRST: computed_metrics contains pre-calculated numbers. Use EXACTLY these numbers — do NOT recalculate. Cite each figure with its source in brackets (e.g. "$1.1M [CoinGecko]").
 3. INTERPRETATION ONLY: For each section, your role is to interpret the pre-computed numbers in 2-3 concise sentences. Do NOT pad with generic text.
+3a. BOILERPLATE BAN: NEVER output these phrases or anything like them — "전반적인 온체인 데이터는 건전하나", "스마트 컨트랙트 기능을 지원하는 탈중앙화 오픈소스 블록체인", "가격 변동성에 유의해야 합니다", "건전한 시장 구조". Every sentence must cite a specific number or fact from the provided data.
+3b. EXECUTIVE SUMMARY: Must cite at minimum: current price, market cap, ATH drop %, 24h volume. If ATH drop ≥90%, start with "⚠️". Do NOT use generic filler endings.
+3c. PROJECT OVERVIEW: Use marketData.description. If description is empty or null, output EXACTLY "프로젝트 설명 데이터 없음 — 공식 웹사이트 또는 백서 확인 필요". Do NOT generate a description from the token name.
+3d. TRANSACTION COUNT: When citing transaction count in onchain_metrics, always specify what it counts. Format: "[토큰명] 토큰 전송 트랜잭션 X건 [BscScan]" or "컨트랙트 상호작용 X건 [BscScan]". Never cite a raw number without explaining what it represents.
 4. SEVERE RISK FLAGS: ATH drop ≥90% → prepend "⚠️". Honeypot detected → prepend "🚨 CRITICAL".
 5. COMPETITOR RULE: Only reference tokens in the provided competitors array. Empty array → "유사 시총 프로젝트 데이터 없음".
 6. CERTIK: If computed_metrics.certik is present, include in risk_matrix.contractRisk: "CertiK 점수 {score}/100 (등급 {rating}/5.0) [CertiK]". rating < 3.0 → ⚠️ 낮은 보안 점수. rating >= 4.0 → ✅ 우수한 보안 점수.
@@ -153,12 +157,42 @@ function generateMockAnalysis(aggregatedData) {
     liquidityMarketRisk += `. 24h 거래량 ${volFormatted} [DexScreener]`;
   }
 
+  // Build project overview from actual description
+  const desc = aggregatedData.marketData?.description || '';
+  const descriptionText = desc.trim().length > 0
+    ? `${desc.trim().slice(0, 300)}${desc.length > 300 ? '...' : ''} [CoinGecko]`
+    : '프로젝트 설명 데이터 없음 — 공식 웹사이트 또는 백서 확인 필요';
+
+  const chain = aggregatedData.actualChain || '알 수 없음';
+  const exchangeCount = aggregatedData.exchangeListings?.length || 0;
+  const vol24h = aggregatedData.marketData?.total_volume || 0;
+  const volStr = vol24h >= 1e6 ? `$${(vol24h / 1e6).toFixed(1)}M` : `$${(vol24h / 1e3).toFixed(0)}K`;
+
   return {
-    executive_summary: `${athWarning}${name} (${symbol})은 현재 $${price} [CoinGecko]에 거래 중이며, 시가총액 ${mcapFormatted} [CoinGecko]을 기록하고 있습니다. 전반적인 온체인 데이터는 건전하나 가격 변동성에 유의해야 합니다.`,
+    executive_summary: (() => {
+      const parts = [`${name} (${symbol})은 현재 $${price} [CoinGecko]에 거래 중이며, 시가총액 ${mcapFormatted} [CoinGecko]을 기록하고 있습니다.`];
+      if (athDrop > 0) parts.push(`ATH 대비 ${athDrop.toFixed(1)}% 하락 상태 [CoinGecko].`);
+      if (vol24h > 0) parts.push(`24시간 거래량 ${volStr} [CoinGecko].`);
+      if (exchangeCount > 0) parts.push(`${exchangeCount}개 거래소 상장 중 [CoinGecko].`);
+      return `${athWarning}${parts.join(' ')}`;
+    })(),
 
-    project_overview: `${name}은 스마트 컨트랙트 기능을 지원하는 탈중앙화 오픈소스 블록체인입니다. [CoinGecko]`,
+    project_overview: (() => {
+      const chainNote = chain !== '알 수 없음' ? ` 체인: ${chain.toUpperCase()}.` : '';
+      return `${descriptionText}${chainNote}`;
+    })(),
 
-    tokenomics: `유통량 비율은 전체 공급량 대비 99.8% [CoinGecko]로 매우 건전하며, 시가총액 대비 거래량은 약 ${volPercent}% [CoinGecko] 수준을 기록하고 있습니다.`,
+    tokenomics: (() => {
+      const circ = aggregatedData.marketData?.circulating_supply || 0;
+      const total = aggregatedData.marketData?.total_supply || 0;
+      const max = aggregatedData.marketData?.max_supply;
+      const circRatio = total > 0 ? (circ / total * 100).toFixed(1) : null;
+      const parts = [];
+      if (circRatio) parts.push(`유통 공급량 ${Number(circ).toLocaleString()} / 총 공급량 ${Number(total).toLocaleString()} (${circRatio}% 유통 중) [CoinGecko]`);
+      if (max) parts.push(`최대 공급량 ${Number(max).toLocaleString()} [CoinGecko]`);
+      if (vol24h > 0 && marketCap > 0) parts.push(`시가총액 대비 거래량 ${volPercent}% [CoinGecko]`);
+      return parts.length > 0 ? parts.join('. ') + '.' : '토크노믹스 데이터 없음';
+    })(),
 
     team_investors: (() => {
       const tw = aggregatedData.twitterData;
@@ -199,11 +233,20 @@ function generateMockAnalysis(aggregatedData) {
 
     onchain_metrics: (() => {
       const parts = [];
-      if (aggregatedData.onchainData?.transactionCount) {
-        parts.push(`총 트랜잭션 수치 ${aggregatedData.onchainData.transactionCount}건 [Etherscan]`);
+      const txCount = aggregatedData.onchainData?.transactionCount;
+      if (txCount) {
+        parts.push(`${symbol} 컨트랙트 트랜잭션 ${Number(txCount).toLocaleString()}건 [BscScan/Etherscan]`);
       }
-      if (aggregatedData.onchainData?.holderCount) {
-        parts.push(`홀더 수: ${aggregatedData.onchainData.holderCount.toLocaleString()}명 [CoinMarketCap/BscScan]`);
+      const holders = aggregatedData.onchainData?.holderCount;
+      if (holders) {
+        parts.push(`홀더 수: ${Number(holders).toLocaleString()}명 [BscScan]`);
+      }
+      const vh = aggregatedData.volumeHealth;
+      if (vh?.volMcapRatioPct != null) {
+        parts.push(`거래량/시총 비율 ${vh.volMcapRatioPct}% (${vh.volHealthLabel || '—'}) [DexScreener]`);
+      }
+      if (vh?.isDumpingSignal) {
+        parts.push(`⚠️ 매도 압력 집중 — 매도 비율 ${vh.sellRatioPct}% [DexScreener]`);
       }
       return parts.length > 0 ? parts.join('. ') : '데이터 없음 — 해당 API 미연동';
     })(),

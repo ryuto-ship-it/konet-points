@@ -19,7 +19,7 @@ export default function OnchainMetrics({ data }) {
   };
 
   const metrics = [
-    { label: 'Total Holders', value: formatNumber(onchain.holderCount), source: 'Etherscan / BscScan' },
+    { label: 'Total Holders', value: onchain.holderCount ? formatNumber(onchain.holderCount) : '—', source: onchain.holderCount ? 'Etherscan / BscScan' : 'BSC 홀더 조회는 Etherscan Pro 플랜 필요' },
     { label: 'Total Value Locked', value: defi.tvl != null ? formatNumber(defi.tvl, true) : '해당 없음', source: 'DefiLlama' },
     { label: 'FDMC / TVL Ratio', value: defi.mcapTvlRatio ? defi.mcapTvlRatio.toFixed(2) : '해당 없음', source: 'DefiLlama' }
   ];

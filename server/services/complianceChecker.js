@@ -118,6 +118,7 @@ function checkCompliance({
 
   const requiredItems = daxaRequirements.filter(r => r.required);
   const requiredMet   = requiredItems.filter(r => r.met).length;
+  const allMet        = daxaRequirements.filter(r => r.met).length;
 
   const upbitRequirements = [
     { item: '스마트 컨트랙트 감사', met: !!hasAudit },
@@ -148,7 +149,7 @@ function checkCompliance({
 
   return {
     daxaRequirements,
-    daxaComplianceRate: Math.round(requiredMet / requiredItems.length * 100),
+    daxaComplianceRate: Math.round(allMet / daxaRequirements.length * 100),
     daxaReady: requiredMet === requiredItems.length,
     upbitRequirements,
     upbitScore:   exchangeScore.upbitScore,

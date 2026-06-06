@@ -28,13 +28,18 @@ function calculateDorphinScore({
   const positiveSignals = [];
 
   // ── 펌프덤프 패턴 감지 ──────────────────────────────────────────────────────
-  if (tokenAgeInDays < 30 && exchangeCount >= 5) {
-    score -= 25;
+  // 빠른 다중 상장 + 동시 급락 조합만 의심 — 상장 자체는 긍정
+  if (tokenAgeInDays < 14 && exchangeCount >= 5 && athDropPercent > 90) {
+    score -= 20;
     pumpDumpSignals.push({
-      signal:   '조율된 런치 의심',
-      detail:   `출시 ${tokenAgeInDays}일 만에 ${exchangeCount}개 거래소 동시 상장`,
+      signal:   '런치앤덤프 패턴',
+      detail:   `출시 ${tokenAgeInDays}일 만에 ${exchangeCount}개 거래소 상장 후 ATH 대비 ${athDropPercent.toFixed(0)}% 급락 — 조율된 매도 의심`,
       severity: 'HIGH',
     });
+  } else if (exchangeCount >= 5 && tokenAgeInDays < 14) {
+    positiveSignals.push(
+      `빠른 거래소 확장 — 출시 ${tokenAgeInDays}일 만에 ${exchangeCount}개 거래소 상장`
+    );
   }
 
   if (athDropPercent > 90 && tokenAgeInDays < 30) {
@@ -94,24 +99,17 @@ function calculateDorphinScore({
   }
 
   // ── 소셜 vs 온체인 불일치 ───────────────────────────────────────────────────
-  if (telegramCount > 50000 && volume24h < 100000) {
+  if (telegramCount > 50000 && volume24h < 50000) {
+    const perMemberVolume = telegramCount > 0 ? (volume24h / telegramCount).toFixed(2) : '0.00';
     score -= 15;
     socialSignals.push({
-      signal:   '소셜-온체인 불일치',
-      detail:   `텔레그램 ${telegramCount.toLocaleString()}명인데 일거래량 $${Math.round(volume24h / 1000)}K — 봇/비활성 커뮤니티 의심`,
+      signal:   '커뮤니티-거래 활동 불일치',
+      detail:   `멤버 ${telegramCount.toLocaleString()}명 대비 1인당 일거래량 $${perMemberVolume} — 실제 활성 유저 비율이 매우 낮거나 멤버 수가 인위적으로 부풀려진 가능성. 텔레그램 멤버 구매 또는 봇 의심.`,
       severity: 'MEDIUM',
     });
   }
 
   const mcapMillions = (marketCap || 0) / 1_000_000;
-  if (mcapMillions < 5 && exchangeCount > 5) {
-    score -= 10;
-    socialSignals.push({
-      signal:   '시총 대비 과도한 거래소 상장',
-      detail:   `시총 $${mcapMillions.toFixed(1)}M에 ${exchangeCount}개 거래소 — 조율된 상장 의심`,
-      severity: 'MEDIUM',
-    });
-  }
 
   // 트위터 팔로워 vs 시총 불일치 (큰 시총 + 소규모 커뮤니티)
   if (mcapMillions > 10 && twitterFollowers < 1000 && twitterFollowers > 0) {

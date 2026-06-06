@@ -1,4 +1,5 @@
-/* eslint-disable react-hooks/purity */
+import { LineChart, Line, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
+
 const StatCard = ({ label, value, sub, warn }) => (
   <div style={{
     flex: '1 1 140px',
@@ -29,6 +30,15 @@ export default function PricePattern({ data }) {
 
   const tokenAgeDays = data.tokenAgeInDays ??
     (creationDate ? Math.floor((Date.now() - new Date(creationDate).getTime()) / 86400000) : null);
+
+  // Build 7-day chart from existing 30-day price history (last 7 daily data points)
+  const rawPrices = data.priceHistory?.prices || [];
+  const chartData = rawPrices.length > 0
+    ? rawPrices.slice(-7).map(([ts, price]) => ({
+        time: new Date(ts).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' }),
+        price,
+      }))
+    : [];
 
   // Position of current price between ATL and ATH (0–100%)
   let pricePosition = null;
@@ -116,6 +126,50 @@ export default function PricePattern({ data }) {
               </span>
             </p>
           )}
+        </div>
+      )}
+
+      {/* 7-day price chart */}
+      {chartData.length >= 2 && (
+        <div className="section-card" style={{ marginBottom: '16px' }}>
+          <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '12px' }}>
+            최근 {chartData.length}일 가격 추이
+          </p>
+          <ResponsiveContainer width="100%" height={120}>
+            <LineChart data={chartData} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
+              <XAxis
+                dataKey="time"
+                tick={{ fontSize: 10, fill: 'var(--text-muted, #3d4451)' }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: 'var(--bg-card, #141920)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  color: 'var(--text-primary)',
+                }}
+                formatter={(v) => [
+                  v < 0.000001 ? `$${v.toExponential(2)}` :
+                  v < 0.01 ? `$${v.toFixed(8)}` :
+                  v < 1 ? `$${v.toFixed(6)}` :
+                  `$${v.toLocaleString(undefined, { maximumFractionDigits: 4 })}`,
+                  '가격'
+                ]}
+                labelStyle={{ color: 'var(--text-secondary)' }}
+              />
+              <Line
+                type="monotone"
+                dataKey="price"
+                stroke="#00d4ff"
+                strokeWidth={1.5}
+                dot={false}
+                activeDot={{ r: 3, fill: '#00d4ff' }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       )}
 
