@@ -1,9 +1,8 @@
 import { useEffect } from 'react';
 import HeroSection from '../components/Landing/HeroSection';
-import HowItWorks from '../components/Landing/HowItWorks';
-import Features from '../components/Landing/Features';
-import ReportPreview from '../components/Landing/ReportPreview';
-import NewListingsPreview from '../components/Landing/NewListingsPreview';
+import TerminalShowcase from '../components/Landing/TerminalShowcase';
+import SonarFeed from '../components/Landing/SonarFeed';
+import ProcessSection from '../components/Landing/ProcessSection';
 import CTASection from '../components/Landing/CTASection';
 import Footer from '../components/Landing/Footer';
 
@@ -29,12 +28,11 @@ export default function Home() {
   }, []);
 
   return (
-    <div style={{ background: '#0a0b0f', minHeight: '100vh', color: '#fff' }}>
+    <div style={{ background: 'var(--ocean-bg)', minHeight: '100vh', color: '#fff', fontFamily: "'Inter', sans-serif" }}>
       <HeroSection />
-      <HowItWorks />
-      <Features />
-      <ReportPreview />
-      <NewListingsPreview />
+      <TerminalShowcase />
+      <ProcessSection />
+      <SonarFeed />
       <CTASection />
       <Footer />
     </div>

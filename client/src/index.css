@@ -320,3 +320,58 @@ body {
   opacity: 1;
   transform: translateY(0);
 }
+
+/* Oceanic Cyberpunk Landing Page Styles */
+:root {
+  --ocean-bg: #040914;
+  --ocean-bg-secondary: #0A1128;
+  --sonar-cyan: #00F0FF;
+  --sonar-cyan-glow: rgba(0, 240, 255, 0.2);
+  --deep-blue: #1D4ED8;
+  --terminal-card: rgba(10, 17, 40, 0.7);
+}
+
+.heading-outfit {
+  font-family: 'Outfit', sans-serif;
+}
+
+@keyframes sonar-pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 30px rgba(0, 240, 255, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 240, 255, 0); }
+}
+
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes grid-move {
+  0% { background-position: 0 0; }
+  100% { background-position: 40px 40px; }
+}
+
+@keyframes sonar-wave {
+  0% { opacity: 0.8; transform: scale(0); }
+  100% { opacity: 0; transform: scale(3); }
+}
+
+.sonar-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px solid var(--sonar-cyan);
+  animation: sonar-wave 4s infinite cubic-bezier(0.1, 0.5, 0.3, 1);
+}
+
+.sonar-ring:nth-child(2) { animation-delay: 1.3s; }
+.sonar-ring:nth-child(3) { animation-delay: 2.6s; }
+
+.glass-panel {
+  background: rgba(10, 17, 40, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
