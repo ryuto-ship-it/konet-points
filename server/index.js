@@ -52,6 +52,7 @@ app.get('/api/health', (req, res) => {
       etherscan: !!process.env.ETHERSCAN_API_KEY && process.env.ETHERSCAN_API_KEY !== 'your_etherscan_key',
       anthropic: !!process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== 'your_anthropic_key',
       goplus: !!process.env.GOPLUS_API_KEY,
+      twitter: !!process.env.TWITTER_BEARER_TOKEN,
     },
   });
 });
@@ -93,6 +94,9 @@ app.listen(PORT, () => {
   console.log(`   Health check: http://localhost:${PORT}/api/health`);
   console.log(`   Search:       http://localhost:${PORT}/api/search?q=ethereum`);
   console.log(`   Report:       http://localhost:${PORT}/api/report/ethereum\n`);
+
+  // Explicit Twitter key debug log
+  console.log('[Twitter] Key:', !!process.env.TWITTER_BEARER_TOKEN);
 
   // Log API key status
   const keys = {

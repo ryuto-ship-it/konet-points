@@ -2,16 +2,23 @@ const cache = require('../utils/cache');
 
 const BASE_URL = 'https://api.twitter.com/2';
 const CACHE_TTL_24H = 24 * 60 * 60 * 1000;
+const CACHE_TTL_RATE_LIMIT = 15 * 60 * 1000; // 15 min back-off for 429
 
 async function fetchTwitter(path) {
   const BEARER_TOKEN = process.env.TWITTER_BEARER_TOKEN;
-  if (!BEARER_TOKEN) throw new Error('TWITTER_BEARER_TOKEN not configured');
+  if (!BEARER_TOKEN) {
+    console.warn('[Twitter] TWITTER_BEARER_TOKEN is not set — skipping');
+    throw new Error('TWITTER_BEARER_TOKEN not configured');
+  }
   const res = await fetch(`${BASE_URL}${path}`, {
     headers: { Authorization: `Bearer ${BEARER_TOKEN}` },
   });
   if (!res.ok) {
     const body = await res.text().catch(() => '');
-    throw new Error(`Twitter API ${res.status}: ${body}`);
+    const err = new Error(`Twitter API ${res.status}: ${body}`);
+    err.statusCode = res.status;
+    console.error(`[Twitter] HTTP ${res.status} for ${path}: ${body}`);
+    throw err;
   }
   return res.json();
 }
@@ -40,16 +47,17 @@ async function getTwitterData(username) {
     const user = userData.data;
     const metrics = user.public_metrics || {};
 
-    // Try to get recent 7-day tweet count (best-effort, uses a second request)
+    // Try to get recent 7-day tweet count (requires Basic tier; best-effort)
     let recentTweetCount7d = null;
     try {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const tweetsData = await fetchTwitter(
-        `/users/${user.id}/tweets?max_results=100&tweet.fields=created_at&start_time=${sevenDaysAgo}`
+        `/users/${user.id}/tweets?max_results=10&tweet.fields=created_at&start_time=${sevenDaysAgo}`
       );
       recentTweetCount7d = tweetsData.meta?.result_count ?? tweetsData.data?.length ?? 0;
     } catch (e) {
-      console.warn(`[Twitter] Could not fetch recent tweets for @${handle}: ${e.message}`);
+      // 403 = Free tier doesn't allow timeline endpoint; silently skip
+      console.warn(`[Twitter] Could not fetch recent tweets for @${handle} (${e.statusCode ?? 'err'}): ${e.message}`);
     }
 
     const result = {
@@ -65,9 +73,11 @@ async function getTwitterData(username) {
     console.log(`[Twitter] Fetched data for @${handle} — ${result.followersCount} followers`);
     return result;
   } catch (err) {
-    console.error(`[Twitter] getTwitterData failed for @${handle}: ${err.message}`);
-    // Cache null so we don't hammer the rate limit on repeated failures
-    cache.set(cacheKey, null, CACHE_TTL_24H);
+    console.error(`[Twitter] getTwitterData failed for @${handle}: HTTP ${err.statusCode ?? 'N/A'} — ${err.message}`);
+    // 429: rate-limited — back off 15 min only (not 24h, so it retries sooner)
+    // 401: token invalid / not set — no point retrying for 24h
+    const ttl = err.statusCode === 429 ? CACHE_TTL_RATE_LIMIT : CACHE_TTL_24H;
+    cache.set(cacheKey, null, ttl);
     return null;
   }
 }
