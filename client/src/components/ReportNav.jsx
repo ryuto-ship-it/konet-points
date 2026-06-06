@@ -1,14 +1,15 @@
-import { LayoutDashboard, Shield, TrendingUp, Users, Link as LinkIcon, Building2, AlertTriangle } from 'lucide-react';
+import { LayoutDashboard, Shield, TrendingUp, Users, Link as LinkIcon, Building2, AlertTriangle, Radio, Scale } from 'lucide-react';
 import './ReportNav.css';
 
 const SECTIONS = [
-  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { id: 'security', label: 'Security', icon: Shield },
-  { id: 'market', label: 'Market', icon: TrendingUp },
-  { id: 'community', label: 'Community', icon: Users },
-  { id: 'onchain', label: 'On-chain', icon: LinkIcon },
-  { id: 'listing', label: 'Listing', icon: Building2 },
-  { id: 'risk', label: 'Risk', icon: AlertTriangle },
+  { id: 'overview',  label: 'Overview',    icon: LayoutDashboard },
+  { id: 'security',  label: 'Security',    icon: Shield },
+  { id: 'market',    label: 'Market',      icon: TrendingUp },
+  { id: 'community', label: 'Community',   icon: Users },
+  { id: 'onchain',   label: 'On-chain',    icon: LinkIcon },
+  { id: 'listing',   label: 'Listing',     icon: Building2 },
+  { id: 'risk',      label: 'Risk',        icon: AlertTriangle },
+  { id: 'pulse',     label: 'Pulse Feed',  icon: Radio },
 ];
 
 export default function ReportNav({ activeSection, onNavigate }) {

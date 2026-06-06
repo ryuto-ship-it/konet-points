@@ -14,8 +14,9 @@ export default function DashboardHeader({ data, onBack }) {
   const isPositive = priceChange24h >= 0;
   
   // Try to get token logo from various sources
-  const tokenLogo = data?.marketData?.image || 
-                    data?.twitterData?.profileImageUrl || 
+  const tokenLogo = data?.token?.image ||
+                    data?.marketData?.image ||
+                    data?.twitterData?.profileImageUrl ||
                     null;
 
   // Actual chain badge

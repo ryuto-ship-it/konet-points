@@ -21,6 +21,9 @@ const docsParser = require('./docsParser');
 const socialAnalyzer = require('./socialAnalyzer');
 const liquidityAnalyzer = require('./liquidityAnalyzer');
 const githubAnalyzer = require('./githubAnalyzer');
+const pulseFeed = require('./pulseFeed');
+const webSecurity = require('./webSecurity');
+const { checkCompliance } = require('./complianceChecker');
 
 /**
  * Aggregate token data from all API sources.
@@ -148,6 +151,8 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     whitepaperResult,
     cmcHolderCountResult,
     competitorsResult,
+    pulseFeedResult,
+    webSecurityResult,
   ] = await Promise.allSettled([
     // CoinGecko
     coingecko.getTokenMarketData(coinId),
@@ -299,7 +304,16 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
       if (!coins || coins.length === 0) return [];
       
       return coins;
-    })()
+    })(),
+
+    // Pulse Feed (CoinGecko status updates + CMC news)
+    pulseFeed.getPulseFeed(coinId, cmcId),
+
+    // Website security analysis
+    (() => {
+      const websiteUrl = tokenDetails?.links?.homepage?.[0] || cmciDetailFromSlug?.website || null;
+      return websiteUrl ? webSecurity.analyzeWebsite(websiteUrl) : Promise.resolve(null);
+    })(),
   ]);
 
   // ── Extract results (handle failures) ────────────────────────────────────────
@@ -356,6 +370,8 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     }
   }
   const goplusData = extract(goplusSecurityResult);
+  const pulseFeedData = extract(pulseFeedResult, []);
+  const webSecurityData = extract(webSecurityResult);
 
   // ── Community / social data (CoinGecko community_data + twitterData merge) ───
   const cgCommunity = tokenDetails?.community_data || {};
@@ -682,6 +698,18 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     priceStability: { score: priceScore, level: priceLevel, athDropPct: parseFloat(athDrop.toFixed(1)) },
   };
 
+  // ── Compliance check (synchronous) ──────────────────────────────────────────
+  const complianceData = checkCompliance({
+    hasAudit: !!(cmciDetail?.certik || goplusData?.is_open_source),
+    teamKYC: false,
+    hasWhitepaper: !!(whitepaperData?.found),
+    contractVerified: !!(onchainData.contractVerified),
+    hasVestingSchedule: false,
+    marketCap: marketData.market_cap || 0,
+    description: marketData.description || '',
+    tags: marketData.categories || [],
+  });
+
   return {
     actualChain,
     marketData,
@@ -710,6 +738,9 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     liquidityAnalysis: liquidityAnalysisData || null,
     githubActivity: githubData || null,
     whitepaperContent: (whitepaperData?.found && whitepaperData?.content) ? whitepaperData : null,
+    pulseFeed: pulseFeedData.length > 0 ? pulseFeedData : null,
+    webSecurity: webSecurityData || null,
+    compliance: complianceData,
   };
 }
 

@@ -227,6 +227,33 @@ export default function ListingAssessment({ data }) {
             </div>
           </div>
 
+          {/* Korean exchange readiness */}
+          {data.compliance && (
+            <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '10px' }}>한국 거래소 상장 가능성</p>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                {[
+                  { label: '업비트', score: data.compliance.upbitScore },
+                  { label: '빗썸',   score: data.compliance.bithumbScore },
+                ].map(({ label, score }) => {
+                  const c = score >= 80 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444';
+                  return (
+                    <div key={label} style={{ flex: '1 1 120px', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: 'var(--border-glass) 1px solid' }}>
+                      <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '4px' }}>{label} 준비도</p>
+                      <p style={{ fontSize: '18px', fontWeight: 700, color: c }}>{score}%</p>
+                    </div>
+                  );
+                })}
+              </div>
+              {data.compliance.upbitRequirements?.slice(0, 3).map((r, i) => (
+                <div key={i} style={{ display: 'flex', gap: '8px', marginBottom: '4px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px' }}>{r.met ? '✅' : '❌'}</span>
+                  <span style={{ fontSize: '12px', color: r.met ? 'var(--text-primary)' : 'var(--text-tertiary)' }}>{r.item}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Tier counts */}
           {ls.exchange.tierCounts && (
             <div style={{ marginTop: '16px', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
