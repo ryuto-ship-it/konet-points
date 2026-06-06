@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Home from './pages/Home';
 import SearchHero from './components/SearchHero'; // We'll keep this if needed or redirect
@@ -17,20 +17,26 @@ function TopNav() {
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
       display: 'flex', alignItems: 'center', gap: '4px',
-      padding: '10px 20px',
-      background: 'rgba(10,11,15,0.92)',
+      padding: '0 20px', height: '48px',
+      background: 'rgba(10,12,16,0.95)',
       backdropFilter: 'blur(12px)',
-      borderBottom: '1px solid rgba(255,255,255,0.06)',
+      borderBottom: '1px solid var(--border)',
     }}>
-      <span 
-        style={{ fontSize: '15px', fontWeight: 700, marginRight: '16px', color: 'var(--accent-cyan, #00e5ff)', cursor: 'pointer' }}
+      <span
+        style={{
+          fontFamily: 'var(--font-sans)',
+          fontSize: '13px', fontWeight: 600,
+          letterSpacing: '0.12em', color: 'var(--text-primary)',
+          cursor: 'pointer', marginRight: '16px',
+          textTransform: 'uppercase',
+        }}
         onClick={() => navigate('/')}
       >
         🐬 DORPHIN
       </span>
       {[
-        { id: '/',   label: '🔍 Token Analysis' },
-        { id: '/listings', label: '🔴 New Listings' },
+        { id: '/',         label: 'Token Analysis' },
+        { id: '/listings', label: 'New Listings' },
       ].map(tab => {
         const isActive = location.pathname === tab.id || (tab.id === '/' && location.pathname.startsWith('/report'));
         return (
@@ -38,19 +44,20 @@ function TopNav() {
             key={tab.id}
             onClick={() => navigate(tab.id)}
             style={{
-              padding: '6px 14px', borderRadius: '8px', cursor: 'pointer',
-              background: isActive ? 'rgba(0,229,255,0.12)' : 'transparent',
-              border: isActive ? '1px solid rgba(0,229,255,0.35)' : '1px solid transparent',
-              color: isActive ? 'var(--accent-cyan, #00e5ff)' : 'var(--text-secondary, #8899aa)',
-              fontSize: '13px', fontWeight: isActive ? 600 : 400,
+              padding: '5px 12px', borderRadius: '6px', cursor: 'pointer',
+              background: isActive ? 'rgba(0,212,255,0.08)' : 'transparent',
+              border: isActive ? '1px solid rgba(0,212,255,0.2)' : '1px solid transparent',
+              color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
+              fontSize: '13px', fontWeight: isActive ? 500 : 400,
               transition: 'all 0.15s',
+              fontFamily: 'var(--font-sans)',
             }}
-            onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-            onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+            onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = 'var(--text-secondary)'; }}
           >
             {tab.label}
           </button>
-        )
+        );
       })}
     </div>
   );

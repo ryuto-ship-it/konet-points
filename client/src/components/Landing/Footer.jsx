@@ -1,52 +1,49 @@
 export default function Footer() {
   return (
     <footer style={{
-      background: '#010308',
-      borderTop: '1px solid rgba(0,240,255,0.06)',
-      padding: '60px 20px 40px',
-      color: 'rgba(255,255,255,0.6)'
+      background: 'var(--bg-base)',
+      borderTop: '1px solid var(--border)',
+      padding: '32px 24px',
     }}>
       <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        gap: '40px',
-        maxWidth: '1200px',
-        margin: '0 auto',
+        maxWidth: '960px', margin: '0 auto',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        flexWrap: 'wrap', gap: '16px',
       }}>
-        {/* Left Col */}
-        <div style={{ flex: '1 1 300px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-            <span style={{ fontSize: '18px' }}>🐬</span>
-            <span className="heading-outfit" style={{ fontSize: '18px', fontWeight: 600, letterSpacing: '0.1em', color: '#fff' }}>DORPHIN RESEARCH</span>
-          </div>
-          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)', marginBottom: '24px' }}>
-            Dive deeper. Surface smarter.
-          </p>
-          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>
-            © 2026 Dorphin Research. Not financial advice.
-          </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '16px' }}>🐬</span>
+          <span style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: '13px', fontWeight: 600,
+            letterSpacing: '0.12em',
+            color: 'var(--text-primary)',
+          }}>DORPHIN RESEARCH</span>
         </div>
 
-        {/* Center Col */}
-        <div style={{ flex: '1 1 200px' }}>
-          <h4 className="heading-outfit" style={{ color: '#fff', fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>Product</h4>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <li><a href="/" style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--sonar-cyan)'} onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}>Token Analysis</a></li>
-            <li><a href="/listings" style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--sonar-cyan)'} onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}>New Listings</a></li>
-            <li><span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '14px' }}>API (Coming Soon)</span></li>
-          </ul>
+        <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+          {[
+            { label: 'Token Analysis', href: '/' },
+            { label: 'New Listings',   href: '/listings' },
+            { label: '@jungdorphin',   href: 'https://twitter.com/jungdorphin', external: true },
+            { label: 'GitHub',         href: 'https://github.com/ryuto-ship-it/konet-points', external: true },
+          ].map(l => (
+            <a
+              key={l.label}
+              href={l.href}
+              target={l.external ? '_blank' : undefined}
+              rel={l.external ? 'noreferrer' : undefined}
+              style={{ fontSize: '13px', color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+            >
+              {l.label}
+            </a>
+          ))}
         </div>
 
-        {/* Right Col */}
-        <div style={{ flex: '1 1 200px' }}>
-          <h4 className="heading-outfit" style={{ color: '#fff', fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>Community</h4>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <li><a href="https://twitter.com/jungdorphin" target="_blank" rel="noreferrer" style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--sonar-cyan)'} onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}>Twitter @jungdorphin</a></li>
-            <li><span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '14px' }}>Telegram (Coming Soon)</span></li>
-            <li><a href="https://github.com/ryuto-ship-it/konet-points" target="_blank" rel="noreferrer" style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--sonar-cyan)'} onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}>GitHub</a></li>
-          </ul>
-        </div>
+        <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+          © 2026 Dorphin Research · Not financial advice.
+        </p>
       </div>
     </footer>
   );

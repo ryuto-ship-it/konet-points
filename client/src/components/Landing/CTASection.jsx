@@ -4,87 +4,56 @@ export default function CTASection() {
   const navigate = useNavigate();
 
   return (
-    <section className="landing-section" style={{
-      position: 'relative',
-      padding: '160px 20px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(to bottom, var(--ocean-bg-secondary), #010308)',
-      overflow: 'hidden'
+    <section style={{
+      background: 'var(--bg-surface)',
+      padding: '96px 24px',
+      borderBottom: '1px solid var(--border)',
+      textAlign: 'center',
     }}>
-      <div style={{
-        position: 'absolute',
-        top: '50%', left: '50%', width: '100%', height: '100%', transform: 'translate(-50%, -50%)',
-        background: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(0,240,255,0.08) 0%, transparent 70%)',
-        pointerEvents: 'none'
-      }} />
-
-      <h2 className="heading-outfit" style={{ 
-        fontSize: 'clamp(40px, 6vw, 64px)', 
-        fontWeight: 700, 
-        color: '#fff', 
-        marginBottom: '24px', 
-        textAlign: 'center',
-        zIndex: 10
-      }}>
-        Ready to dive deep?
-      </h2>
-      <p style={{ 
-        fontSize: '20px', 
-        color: 'rgba(255,255,255,0.5)', 
-        marginBottom: '48px', 
-        textAlign: 'center',
-        zIndex: 10,
-        maxWidth: '600px'
-      }}>
-        Access institutional-grade token intelligence. No signup required.
-      </p>
-
-      <div style={{ display: 'flex', gap: '24px', zIndex: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
-        <button 
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          style={{
-            background: 'var(--sonar-cyan)',
-            color: '#000',
-            border: 'none',
-            borderRadius: '32px',
-            padding: '18px 40px',
-            fontSize: '16px',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            boxShadow: '0 0 20px rgba(0, 240, 255, 0.4)'
-          }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 0 30px rgba(0, 240, 255, 0.6)'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(0, 240, 255, 0.4)'; }}
-        >
-          Launch Terminal
-        </button>
-
-        <button 
-          onClick={() => navigate('/listings')}
-          style={{
-            background: 'transparent',
-            border: '1px solid rgba(255,255,255,0.3)',
-            color: '#fff',
-            borderRadius: '32px',
-            padding: '18px 40px',
-            fontSize: '16px',
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            cursor: 'pointer',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.8)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; }}
-        >
-          View Live Feed
-        </button>
+      <div style={{ maxWidth: '480px', margin: '0 auto' }}>
+        <h2 style={{
+          fontFamily: 'var(--font-sans)',
+          fontSize: '28px', fontWeight: 500,
+          color: 'var(--text-primary)',
+          marginBottom: '12px',
+        }}>Start Analyzing</h2>
+        <p style={{
+          fontSize: '15px', color: 'var(--text-secondary)',
+          marginBottom: '32px', lineHeight: 1.6,
+        }}>
+          Access institutional-grade token intelligence.<br />No signup required.
+        </p>
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            style={{
+              padding: '10px 28px', borderRadius: '8px',
+              background: 'var(--accent)', border: 'none',
+              fontFamily: 'var(--font-sans)', fontSize: '14px', fontWeight: 500,
+              color: '#000', cursor: 'pointer',
+              transition: 'opacity 0.15s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+          >
+            Analyze a Token
+          </button>
+          <button
+            onClick={() => navigate('/listings')}
+            style={{
+              padding: '10px 28px', borderRadius: '8px',
+              background: 'transparent',
+              border: '1px solid var(--border-strong)',
+              fontFamily: 'var(--font-sans)', fontSize: '14px', fontWeight: 400,
+              color: 'var(--text-secondary)', cursor: 'pointer',
+              transition: 'border-color 0.15s, color 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-strong)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-strong)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+          >
+            Live Listings Feed
+          </button>
+        </div>
       </div>
     </section>
   );

@@ -30,10 +30,9 @@
 
 .score-value {
   font-family: var(--font-mono);
-  font-size: 56px;
-  font-weight: 700;
+  font-size: 52px;
+  font-weight: 500;
   color: var(--score-color);
-  text-shadow: 0 0 30px var(--score-color);
   line-height: 1.1;
   display: block;
   margin-bottom: 12px;
@@ -41,18 +40,21 @@
 
 .score-badge {
   display: inline-block;
-  font-size: 18px;
-  font-weight: 700;
-  padding: 4px 16px;
-  border-radius: 20px;
-  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 3px 12px;
+  border-radius: 4px;
 }
 
-.grade-a { background: var(--success); }
-.grade-b { background: var(--dolphin-blue); }
-.grade-c { background: var(--warning); color: #000; }
-.grade-d { background: var(--danger); }
-.grade-f { background: var(--critical); }
+.grade-a      { background: rgba(16,185,129,0.1);  color: var(--success); border: 1px solid rgba(16,185,129,0.25); }
+.grade-aplus  { background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
+.grade-b      { background: rgba(0,212,255,0.08);  color: var(--accent);  border: 1px solid rgba(0,212,255,0.2); }
+.grade-bplus  { background: rgba(0,212,255,0.1);   color: var(--accent);  border: 1px solid rgba(0,212,255,0.25); }
+.grade-c      { background: rgba(245,158,11,0.1);  color: var(--warning); border: 1px solid rgba(245,158,11,0.25); }
+.grade-cplus  { background: rgba(245,158,11,0.12); color: var(--warning); border: 1px solid rgba(245,158,11,0.3); }
+.grade-d      { background: rgba(239,68,68,0.08);  color: var(--danger);  border: 1px solid rgba(239,68,68,0.2); }
+.grade-f      { background: rgba(220,38,38,0.1);   color: var(--critical);border: 1px solid rgba(220,38,38,0.2); }
 
 .radar-card {
   background: var(--bg-card);

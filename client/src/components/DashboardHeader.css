@@ -2,14 +2,14 @@
   position: sticky;
   top: 0;
   height: var(--header-height);
-  background: rgba(8, 11, 18, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(10,12,16,0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 32px;
+  padding: 0 28px;
   z-index: 100;
 }
 
@@ -51,13 +51,14 @@
 }
 
 .token-logo-fallback {
-  background: linear-gradient(135deg, var(--dolphin-blue), var(--dolphin-teal));
+  background: var(--bg-hover);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 18px;
-  color: #fff;
+  font-weight: 500;
+  font-size: 16px;
+  color: var(--text-secondary);
+  border-radius: 6px;
 }
 
 .token-names {
@@ -67,8 +68,8 @@
 }
 
 .token-title {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 17px;
+  font-weight: 600;
   color: var(--text-primary);
 }
 
@@ -78,20 +79,19 @@
 }
 
 .chain-badge {
-  font-size: 11px;
-  font-weight: 700;
-  color: #000;
-  padding: 3px 8px;
-  border-radius: 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
   text-transform: uppercase;
+  background: var(--bg-hover);
+  letter-spacing: 0.05em;
 }
 
-.chain-bsc { background: #F0B90B; }
-.chain-eth, .chain-ethereum { background: #627EEA; color: #fff; }
-.chain-polygon-pos { background: #8247E5; color: #fff; }
-.chain-arbitrum-one { background: #2D374B; color: #fff; border: 1px solid #28A0F0; }
-.chain-base { background: #0052FF; color: #fff; }
-.chain-unknown { background: var(--text-muted); color: #fff; }
+/* chain-badge is now a uniform minimal badge — color inherited from base */
 
 .header-divider {
   width: 1px;
@@ -107,8 +107,8 @@
 
 .price-val {
   font-family: var(--font-mono);
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 500;
   color: var(--text-primary);
 }
 

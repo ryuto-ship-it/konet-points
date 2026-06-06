@@ -56,91 +56,94 @@ table {
 /* ── CSS Custom Properties ─────────────────────────────────── */
 :root {
   /* Core Backgrounds */
-  --bg-base: #080b12;
-  --bg-surface: #0e1420;
-  --bg-card: #131a26;
-  --bg-card-hover: #1a2336;
-  --bg-overlay: rgba(8, 11, 18, 0.95);
+  --bg-base:    #0a0c10;
+  --bg-surface: #0f1218;
+  --bg-card:    #141920;
+  --bg-hover:   #1a2030;
+  --bg-overlay: rgba(10,12,16,0.96);
+
+  /* Aliases for legacy components */
+  --bg-primary:    var(--bg-base);
+  --bg-secondary:  var(--bg-surface);
+  --bg-tertiary:   var(--bg-card);
+  --bg-card-hover: var(--bg-hover);
+  --ocean-bg:            var(--bg-base);
+  --ocean-bg-secondary:  var(--bg-surface);
 
   /* Borders */
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-default: rgba(255, 255, 255, 0.1);
-  --border-strong: rgba(255, 255, 255, 0.2);
-  --border-glass: var(--border-subtle);
-  --border: var(--border-default);
-  --border-hover: var(--border-strong);
-  
-  --bg-primary: var(--bg-base);
-  --bg-secondary: var(--bg-surface);
-  --bg-tertiary: var(--bg-card);
+  --border:        rgba(255,255,255,0.07);
+  --border-subtle: rgba(255,255,255,0.05);
+  --border-strong: rgba(255,255,255,0.12);
+  --border-default: var(--border);
+  --border-hover:   var(--border-strong);
+  --border-glass:   var(--border-subtle);
 
-  /* Text Colors */
-  --text-primary: #f0f4ff;
-  --text-secondary: #8899bb;
-  --text-muted: #445577;
-  --text-inverse: #080b12;
-  --text-tertiary: var(--text-muted);
+  /* Text */
+  --text-primary:   #e8eaf0;
+  --text-secondary: #6b7280;
+  --text-muted:     #3d4451;
+  --text-tertiary:  var(--text-muted);
+  --text-inverse:   #0a0c10;
 
-  /* Brand Accents */
-  --accent-cyan: #00e5ff;
-  --accent-cyan-dim: rgba(0, 229, 255, 0.08);
-  --accent-cyan-glow: rgba(0, 229, 255, 0.3);
+  /* Accent */
+  --accent:          #00d4ff;
+  --accent-dim:      rgba(0,212,255,0.08);
+  --accent-cyan:     #00d4ff;
+  --accent-cyan-dim: rgba(0,212,255,0.08);
+  --sonar-cyan:      #00d4ff;
 
-  --dolphin-blue: #0066ff;
-  --dolphin-teal: #00ccbb;
-  --accent: var(--accent-cyan);
-  --accent-dim: var(--accent-cyan-dim);
+  /* Status */
+  --success:      #10b981;
+  --success-dim:  rgba(16,185,129,0.1);
+  --warning:      #f59e0b;
+  --warning-dim:  rgba(245,158,11,0.1);
+  --danger:       #ef4444;
+  --danger-dim:   rgba(239,68,68,0.1);
+  --critical:     #dc2626;
+  --critical-dim: rgba(220,38,38,0.08);
+  --accent-amber:  #f59e0b;
+  --accent-crimson: #ef4444;
 
-  /* Status Colors */
-  --success: #00e87a;
-  --success-dim: rgba(0, 232, 122, 0.1);
-  
-  --warning: #ffb800;
-  --warning-dim: rgba(255, 184, 0, 0.1);
-  --accent-amber: #ffb800;
-  
-  --danger: #ff3d5a;
-  --danger-dim: rgba(255, 61, 90, 0.1);
-  --accent-crimson: #ff3d5a;
-  
-  --critical: #ff0033;
-  --critical-dim: rgba(255, 0, 51, 0.08);
-
-  /* Radii */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  /* Radii — restrained */
+  --radius-sm:   4px;
+  --radius-md:   6px;
+  --radius-lg:   8px;
+  --radius-xl:   12px;
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 30px rgba(0, 229, 255, 0.15);
-  --shadow-danger: 0 0 30px rgba(255, 61, 90, 0.15);
+  --shadow-card:   0 1px 12px rgba(0,0,0,0.4);
+  --shadow-glow:   0 0 20px rgba(0,212,255,0.08);
+  --shadow-danger: 0 0 20px rgba(239,68,68,0.1);
 
   /* Transitions */
-  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  
+  --transition: all 0.15s ease;
+
   /* Fonts */
-  --font-sans: 'Space Grotesk', sans-serif;
+  --font-sans: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
   /* Layout */
-  --sidebar-width: 200px;
+  --sidebar-width:     200px;
   --score-panel-width: 280px;
-  --header-height: 70px;
+  --header-height:     60px;
 }
 
 /* ── Body Styling ──────────────────────────────────────────── */
 body {
   background: var(--bg-base);
-  background-image: 
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 102, 255, 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 30% at 80% 80%, rgba(0, 229, 255, 0.05) 0%, transparent 50%);
+  background-image: radial-gradient(
+    ellipse 50% 35% at 50% 0%,
+    rgba(0,212,255,0.05) 0%,
+    transparent 70%
+  );
   font-family: var(--font-sans);
   color: var(--text-primary);
   overflow-x: hidden;
 }
+
+/* Numbers, addresses, code */
+.mono { font-family: var(--font-mono); }
 
 #root {
   min-height: 100vh;
