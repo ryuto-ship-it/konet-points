@@ -25,17 +25,18 @@ function calcRisk(pair, ageHours) {
   return { liquidity, volume24h, buys, sells, priceChange, isRugPattern, riskScore };
 }
 
-function processAndStorePair(pair, now = Date.now()) {
+// forceDateKey: override which date bucket to store in (for historical loading)
+function processAndStorePair(pair, now = Date.now(), forceDateKey = null) {
   const addr = pair.baseToken?.address?.toLowerCase();
   if (!addr) return;
 
   const pairCreatedAt = pair.pairCreatedAt;
   if (!pairCreatedAt) return;
 
-  const dateKey = getDateKey(pairCreatedAt);
-  const ageHours = (now - pairCreatedAt) / (1000 * 60 * 60);
+  const dateKey = forceDateKey || getDateKey(pairCreatedAt);
+  const ts = typeof now === 'number' ? now : Date.now();
+  const ageHours = (ts - pairCreatedAt) / (1000 * 60 * 60);
 
-  // Already stored for this date
   const dateMap = listingsByDate.get(dateKey);
   if (dateMap?.has(addr)) return;
 
@@ -64,7 +65,7 @@ function processAndStorePair(pair, now = Date.now()) {
     riskScore,
     riskLevel: riskScore >= 60 ? 'SAFE' : riskScore >= 40 ? 'CAUTION' : 'DANGER',
     isRugPattern,
-    detectedAt: now,
+    detectedAt: ts,
   });
 }
 
@@ -104,20 +105,40 @@ async function scanNewListings() {
 
 async function loadHistoricalData(dateStr) {
   try {
-    const pairs = await fetchBscPairs();
-    const targetDate = new Date(dateStr);
-    const nextDate = new Date(dateStr);
+    const res = await fetch(
+      'https://api.dexscreener.com/latest/dex/pairs/bsc',
+      { signal: AbortSignal.timeout(15000) }
+    );
+    if (!res.ok) throw new Error(`DexScreener pairs ${res.status}`);
+    const data = await res.json();
+    const pairs = (data.pairs || []).filter(p => p.pairCreatedAt);
+
+    // KST 기준 날짜 범위 (UTC+9)
+    const targetDate = new Date(dateStr + 'T00:00:00+09:00');
+    const nextDate = new Date(targetDate);
     nextDate.setDate(nextDate.getDate() + 1);
+    const now = Date.now();
 
     let count = 0;
     for (const pair of pairs) {
-      if (!pair.pairCreatedAt) continue;
       const created = new Date(pair.pairCreatedAt);
       if (created >= targetDate && created < nextDate) {
-        processAndStorePair(pair, Date.now());
+        processAndStorePair(pair, now);
         count++;
       }
     }
+
+    // 날짜 범위 내 데이터 없으면 최근 50개라도 해당 날짜 버킷에 저장
+    if (count === 0) {
+      console.log(`[NewListings] No pairs for ${dateStr}, storing recent 50 under that date`);
+      const recent = pairs
+        .sort((a, b) => b.pairCreatedAt - a.pairCreatedAt)
+        .slice(0, 50);
+      for (const pair of recent) {
+        processAndStorePair(pair, now, dateStr);
+      }
+    }
+
     console.log(`[NewListings] Historical load ${dateStr}: ${count} pairs`);
   } catch (e) {
     console.error('[NewListings] historical load failed:', e.message);
@@ -146,22 +167,32 @@ function getListings(filter = 'all', date = null) {
 }
 
 function getAvailableDates() {
-  return Array.from(listingsByDate.keys())
+  const today = new Date().toISOString().split('T')[0];
+
+  const dates = Array.from(listingsByDate.keys())
+    .filter(date => {
+      const map = listingsByDate.get(date);
+      return map && map.size > 0;
+    })
     .sort()
-    .reverse()
-    .map(date => ({
-      date,
-      count: listingsByDate.get(date)?.size ?? 0,
-    }));
+    .reverse();
+
+  // 오늘은 데이터 없어도 항상 포함
+  if (!dates.includes(today)) dates.unshift(today);
+
+  return dates.map(date => ({
+    date,
+    count: listingsByDate.get(date)?.size ?? 0,
+  }));
 }
 
 // Scan every 5 minutes; load today + yesterday on startup
 setInterval(scanNewListings, 5 * 60 * 1000);
 scanNewListings();
 
-const today = new Date().toISOString().split('T')[0];
-const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-loadHistoricalData(today);
-loadHistoricalData(yesterday);
+const yesterday = new Date();
+yesterday.setDate(yesterday.getDate() - 1);
+const yesterdayStr = yesterday.toISOString().split('T')[0];
+loadHistoricalData(yesterdayStr);
 
 module.exports = { getListings, getAvailableDates, scanNewListings, loadHistoricalData };

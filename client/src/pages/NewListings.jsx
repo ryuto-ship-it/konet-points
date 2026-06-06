@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getListings } from '../api/client';
 
 const RISK_CONFIG = {
@@ -262,7 +263,8 @@ function TokenCard({ token, onAnalyze }) {
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
-export default function NewListings({ onAnalyzeToken, onBack }) {
+export default function NewListings() {
+  const navigate = useNavigate();
   const todayStr = new Date().toISOString().split('T')[0];
 
   const [listings, setListings] = useState([]);
@@ -290,7 +292,7 @@ export default function NewListings({ onAnalyzeToken, onBack }) {
     }
   }, []);
 
-  useEffect(() => { fetchData(filter, selectedDate); }, [filter, selectedDate]);
+  useEffect(() => { fetchData(filter, selectedDate); }, [filter, selectedDate, fetchData]);
 
   // Auto-refresh only for today
   useEffect(() => {
@@ -300,8 +302,9 @@ export default function NewListings({ onAnalyzeToken, onBack }) {
   }, [filter, selectedDate, todayStr, fetchData]);
 
   const handleAnalyze = useCallback((token) => {
-    onAnalyzeToken({ id: token.address, name: token.name, symbol: token.symbol, address: token.address, chain: 'bsc' });
-  }, [onAnalyzeToken]);
+    const tokenObj = { id: token.address, name: token.name, symbol: token.symbol, address: token.address, chain: 'bsc' };
+    navigate(`/report/${token.address}`, { state: { token: tokenObj } });
+  }, [navigate]);
 
   const isToday = selectedDate === todayStr;
   const fmtTime = iso => iso ? new Date(iso).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : '—';
@@ -315,7 +318,7 @@ export default function NewListings({ onAnalyzeToken, onBack }) {
         background: 'rgba(255,255,255,0.02)',
       }}>
         <button
-          onClick={onBack}
+          onClick={() => navigate('/')}
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontSize: '20px', padding: '4px 8px' }}
         >←</button>
 

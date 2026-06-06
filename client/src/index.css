@@ -294,3 +294,29 @@ body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* Landing Page Additions */
+@keyframes swim {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-4px) rotate(3deg); }
+}
+
+.heading-space {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.heading-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Landing Section Animations */
+.landing-section {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.landing-section.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
