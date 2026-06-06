@@ -357,6 +357,29 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   }
   const goplusData = extract(goplusSecurityResult);
 
+  // ── Community / social data (CoinGecko community_data + twitterData merge) ───
+  const cgCommunity = tokenDetails?.community_data || {};
+  const communityData = {
+    // Twitter — from Twitter API when available, else null
+    twitterHandle: twitterHandle || null,
+    twitterFollowers: twitterData?.followersCount ?? null,
+    twitterFollowing: null,  // not exposed by Twitter API v2 free
+    twitterTotalTweets: twitterData?.tweetCount ?? null,
+    twitterAccountCreated: twitterData?.createdAt ?? null,
+    twitterVerified: twitterData?.verified ?? null,
+    twitterRecentTweets7d: twitterData?.recentTweetCount7d ?? null,
+    // Telegram — from CoinGecko community_data (free)
+    telegramHandle: tokenDetails?.links?.telegram_channel_identifier || null,
+    telegramUserCount: cgCommunity.telegram_channel_user_count ?? null,
+    // Reddit
+    redditSubscribers: cgCommunity.reddit_subscribers ?? null,
+    // Sources
+    sources: [
+      twitterData ? 'Twitter API v2' : null,
+      cgCommunity.telegram_channel_user_count != null ? 'CoinGecko' : null,
+    ].filter(Boolean),
+  };
+
   // ── Normalize market data (CMC primary, CoinGecko fallback) ──────────────────
   const market = marketDataArr?.[0] || {};
   const details = tokenDetails || {};
@@ -665,6 +688,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     goplusSecurity: goplusData,
     twitterData: twitterData || null,
     twitterHandle: twitterHandle || null,
+    communityData: communityData,
     exchangeListings,
     holderAnalysis,
     pricePattern,

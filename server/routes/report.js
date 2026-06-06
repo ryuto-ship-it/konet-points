@@ -140,6 +140,7 @@ router.get('/:coinId', async (req, res, next) => {
       socialAnalysis: aggregatedData.socialAnalysis || null,
       twitterData: aggregatedData.twitterData || null,
       twitterHandle: aggregatedData.twitterHandle || null,
+      communityData: aggregatedData.communityData || null,
       liquidityAnalysis: aggregatedData.liquidityAnalysis || null,
       githubActivity: aggregatedData.githubActivity || null,
       whitepaperContent: aggregatedData.whitepaperContent || null,

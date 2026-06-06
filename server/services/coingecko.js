@@ -263,7 +263,7 @@ async function getTokenDetails(coinId) {
 
   try {
     const data = await fetchCoinGecko(
-      `/coins/${encodeURIComponent(coinId)}?localization=false&tickers=false&community_data=false`
+      `/coins/${encodeURIComponent(coinId)}?localization=false&tickers=false&community_data=true`
     );
     cache.set(cacheKey, data, CACHE_TTL);
     return data;

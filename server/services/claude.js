@@ -142,30 +142,39 @@ function generateMockAnalysis(aggregatedData) {
 
     team_investors: (() => {
       const tw = aggregatedData.twitterData;
-      if (!tw) {
-        const handle = aggregatedData.twitterHandle;
-        return handle
-          ? `트위터 계정: @${handle} [CoinGecko]. Twitter API 미연동으로 팔로워 수 등 상세 지표 없음.`
-          : '공개 정보 없음';
+      const cd = aggregatedData.communityData || {};
+      const parts = [];
+
+      // Twitter metrics (from Twitter API when available)
+      const handle = cd.twitterHandle || aggregatedData.twitterHandle;
+      if (handle) parts.push(`트위터 계정: @${handle}`);
+
+      if (tw) {
+        if (tw.followersCount != null)
+          parts.push(`팔로워 ${tw.followersCount.toLocaleString()}명 [Twitter API]`);
+        if (tw.tweetCount != null)
+          parts.push(`총 트윗 ${tw.tweetCount.toLocaleString()}건 [Twitter API]`);
+        if (tw.createdAt)
+          parts.push(`계정 생성일 ${tw.createdAt.slice(0, 10)} [Twitter API]`);
+        if (tw.recentTweetCount7d != null)
+          parts.push(`최근 7일 트윗 ${tw.recentTweetCount7d}건 [Twitter API]`);
+        if (tw.verified)
+          parts.push('인증 계정 ✓ [Twitter API]');
+        if (tw.followersCount != null && tw.followersCount < 1000)
+          parts.push('⚠️ 팔로워 1,000명 미만 — 낮은 커뮤니티 참여도');
+        if (tw.recentTweetCount7d === 0)
+          parts.push('⚠️ 최근 7일 트윗 없음 — 비활성 계정');
+      } else if (handle) {
+        parts.push('Twitter API 크레딧 소진 — 팔로워 수 일시 조회 불가');
       }
-      const followers = tw.followersCount !== null
-        ? `팔로워 ${tw.followersCount.toLocaleString()}명 [Twitter API]`
-        : null;
-      const created = tw.createdAt
-        ? `계정 생성일 ${tw.createdAt.slice(0, 10)} [Twitter API]`
-        : null;
-      const activity = tw.recentTweetCount7d !== null
-        ? `최근 7일 트윗 ${tw.recentTweetCount7d}건 [Twitter API]`
-        : null;
-      const verified = tw.verified ? '인증 계정 ✓ [Twitter API]' : null;
-      const low = tw.followersCount !== null && tw.followersCount < 1000
-        ? '⚠️ 팔로워 1,000명 미만 — 낮은 커뮤니티 참여도'
-        : null;
-      const inactive = tw.recentTweetCount7d === 0
-        ? '⚠️ 최근 7일 트윗 없음 — 비활성 계정'
-        : null;
-      return [followers, created, activity, verified, low, inactive]
-        .filter(Boolean).join('. ') || '공개 정보 없음';
+
+      // Telegram (from CoinGecko community_data — always available)
+      if (cd.telegramHandle)
+        parts.push(`텔레그램: @${cd.telegramHandle}`);
+      if (cd.telegramUserCount != null)
+        parts.push(`텔레그램 멤버 ${cd.telegramUserCount.toLocaleString()}명 [CoinGecko]`);
+
+      return parts.length ? parts.join('. ') : '공개 정보 없음';
     })(),
 
     onchain_metrics: (() => {
@@ -419,6 +428,7 @@ ${JSON.stringify({
   defiData: aggregatedData.defiData,
   competitors: aggregatedData.competitors,
   twitterData: aggregatedData.twitterData,
+  communityData: aggregatedData.communityData,
 }, null, 2)}
 --- END DATA ---${whitepaperSection}
 
