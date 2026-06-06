@@ -1,6 +1,7 @@
-// key: "YYYY-MM-DD", value: Map(address → tokenData)
+// key: "YYYY-MM-DD" (UTC), value: Map(address → tokenData)
 const listingsByDate = new Map();
 
+// getDateKey always uses UTC so it matches ISO date strings
 function getDateKey(timestamp) {
   return new Date(timestamp).toISOString().split('T')[0];
 }
@@ -69,35 +70,77 @@ function processAndStorePair(pair, now = Date.now(), forceDateKey = null) {
   });
 }
 
+// Multiple queries for broader BSC pair coverage — deduped by pairAddress
+const SEARCH_QUERIES = ['BSC', 'pancakeswap', 'bnb token', 'bsc swap'];
+
 async function fetchBscPairs() {
-  const pairsRes = await fetch(
-    'https://api.dexscreener.com/latest/dex/search?q=BSC',
-    { signal: AbortSignal.timeout(10000) }
+  const results = await Promise.allSettled(
+    SEARCH_QUERIES.map(q =>
+      fetch(
+        `https://api.dexscreener.com/latest/dex/search?q=${encodeURIComponent(q)}`,
+        {
+          signal: AbortSignal.timeout(10000),
+          headers: { 'User-Agent': 'Mozilla/5.0' },
+        }
+      )
+        .then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); })
+        .then(data => (data.pairs || []).filter(p => p.chainId === 'bsc' && p.pairCreatedAt))
+    )
   );
-  if (!pairsRes.ok) throw new Error(`DexScreener ${pairsRes.status}`);
-  const data = await pairsRes.json();
-  return (data.pairs || []).filter(p => p.chainId === 'bsc' && p.pairCreatedAt);
+
+  const seen = new Set();
+  const pairs = [];
+  let errors = 0;
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      for (const pair of result.value) {
+        const key = (pair.pairAddress || pair.baseToken?.address || '').toLowerCase();
+        if (key && !seen.has(key)) {
+          seen.add(key);
+          pairs.push(pair);
+        }
+      }
+    } else {
+      errors++;
+    }
+  }
+
+  const dateMap = {};
+  for (const p of pairs) {
+    const d = getDateKey(p.pairCreatedAt);
+    dateMap[d] = (dateMap[d] || 0) + 1;
+  }
+  console.log(`[NewListings] fetchBscPairs: ${pairs.length} unique BSC pairs (${errors} query errors), dates:`, dateMap);
+  return pairs;
 }
 
 async function scanNewListings() {
   try {
     const pairs = await fetchBscPairs();
     const now = Date.now();
+    let stored = 0;
 
     for (const pair of pairs) {
       const ageHours = (now - pair.pairCreatedAt) / (1000 * 60 * 60);
-      if (ageHours > 24) continue;
+      // 48h window: captures both today and yesterday
+      if (ageHours > 48) continue;
+      const before = listingsByDate.get(getDateKey(pair.pairCreatedAt))?.size ?? 0;
       processAndStorePair(pair, now);
+      const after = listingsByDate.get(getDateKey(pair.pairCreatedAt))?.size ?? 0;
+      if (after > before) stored++;
     }
 
-    // Remove date buckets older than 7 days
+    // Remove buckets older than 7 days
     const cutoff = getDateKey(now - 7 * 24 * 60 * 60 * 1000);
     for (const dateKey of listingsByDate.keys()) {
       if (dateKey < cutoff) listingsByDate.delete(dateKey);
     }
 
-    const total = Array.from(listingsByDate.values()).reduce((s, m) => s + m.size, 0);
-    console.log(`[NewListings] ${total} tokens across ${listingsByDate.size} dates`);
+    const summary = Array.from(listingsByDate.entries())
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([d, m]) => `${d}(${m.size})`)
+      .join(', ');
+    console.log(`[NewListings] scan: stored ${stored} new pairs | listingsByDate: ${summary || 'empty'}`);
   } catch (e) {
     console.error('[NewListings] scan failed:', e.message);
   }
@@ -105,41 +148,41 @@ async function scanNewListings() {
 
 async function loadHistoricalData(dateStr) {
   try {
-    const res = await fetch(
-      'https://api.dexscreener.com/latest/dex/pairs/bsc',
-      { signal: AbortSignal.timeout(15000) }
-    );
-    if (!res.ok) throw new Error(`DexScreener pairs ${res.status}`);
-    const data = await res.json();
-    const pairs = (data.pairs || []).filter(p => p.pairCreatedAt);
+    console.log(`[NewListings] loadHistoricalData(${dateStr}) starting...`);
+    const pairs = await fetchBscPairs();
+    console.log(`[NewListings] loadHistoricalData(${dateStr}): ${pairs.length} pairs fetched`);
 
-    // KST 기준 날짜 범위 (UTC+9)
-    const targetDate = new Date(dateStr + 'T00:00:00+09:00');
-    const nextDate = new Date(targetDate);
-    nextDate.setDate(nextDate.getDate() + 1);
     const now = Date.now();
-
     let count = 0;
+
+    // Use UTC date matching (consistent with getDateKey)
     for (const pair of pairs) {
-      const created = new Date(pair.pairCreatedAt);
-      if (created >= targetDate && created < nextDate) {
+      const pairDateKey = getDateKey(pair.pairCreatedAt);
+      if (pairDateKey === dateStr) {
         processAndStorePair(pair, now);
         count++;
       }
     }
 
-    // 날짜 범위 내 데이터 없으면 최근 50개라도 해당 날짜 버킷에 저장
+    console.log(`[NewListings] loadHistoricalData(${dateStr}): ${count} pairs matched date`);
+
+    // Fallback: if no exact date match, seed the bucket with the 30 most recent pairs
     if (count === 0) {
-      console.log(`[NewListings] No pairs for ${dateStr}, storing recent 50 under that date`);
       const recent = pairs
+        .slice()
         .sort((a, b) => b.pairCreatedAt - a.pairCreatedAt)
-        .slice(0, 50);
+        .slice(0, 30);
       for (const pair of recent) {
         processAndStorePair(pair, now, dateStr);
       }
+      console.log(`[NewListings] loadHistoricalData(${dateStr}): fallback — seeded ${recent.length} recent pairs`);
     }
 
-    console.log(`[NewListings] Historical load ${dateStr}: ${count} pairs`);
+    const summary = Array.from(listingsByDate.entries())
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([d, m]) => `${d}(${m.size})`)
+      .join(', ');
+    console.log(`[NewListings] listingsByDate after historical load: ${summary}`);
   } catch (e) {
     console.error('[NewListings] historical load failed:', e.message);
   }
@@ -186,13 +229,12 @@ function getAvailableDates() {
   }));
 }
 
-// Scan every 5 minutes; load today + yesterday on startup
+// Scan every 5 minutes; load yesterday on startup
 setInterval(scanNewListings, 5 * 60 * 1000);
 scanNewListings();
 
 const yesterday = new Date();
 yesterday.setDate(yesterday.getDate() - 1);
-const yesterdayStr = yesterday.toISOString().split('T')[0];
-loadHistoricalData(yesterdayStr);
+loadHistoricalData(yesterday.toISOString().split('T')[0]);
 
 module.exports = { getListings, getAvailableDates, scanNewListings, loadHistoricalData };

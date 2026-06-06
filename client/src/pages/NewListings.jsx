@@ -285,6 +285,12 @@ export default function NewListings({ onAnalyzeToken, onBack }) {
     setError(null);
     try {
       const data = await getListings(f, date);
+      console.log('[NewListings] API response:', {
+        total: data.total,
+        currentDate: data.currentDate,
+        availableDates: data.availableDates,
+        listingsCount: (data.listings || []).length,
+      });
       setListings(data.listings || []);
       setTotal(data.total || 0);
       setAvailableDates(data.availableDates || []);
