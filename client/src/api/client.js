@@ -66,9 +66,12 @@ export async function getReport(coinId, address, chain) {
 /**
  * Get new listings feed.
  * @param {string} [filter] - 'all' | 'safe' | 'caution' | 'danger'
+ * @param {string|null} [date] - 'YYYY-MM-DD' date filter, null = today
  */
-export async function getListings(filter = 'all') {
-  const res = await fetch(`${API_BASE}/listings?filter=${encodeURIComponent(filter)}`);
+export async function getListings(filter = 'all', date = null) {
+  const params = new URLSearchParams({ filter });
+  if (date) params.set('date', date);
+  const res = await fetch(`${API_BASE}/listings?${params}`);
   if (!res.ok) throw new Error(`Listings failed: ${res.status}`);
   return res.json();
 }
