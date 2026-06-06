@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getListings } from '../api/client';
 
 const RISK_CONFIG = {
@@ -26,148 +27,6 @@ function fmtAge(hours) {
   if (hours < 1) return `${Math.round(hours * 60)}분`;
   if (hours < 24) return `${hours.toFixed(1)}h`;
   return `${Math.floor(hours / 24)}d`;
-}
-
-function fmtDateKo(dateStr) {
-  if (!dateStr) return '';
-  const [y, m, d] = dateStr.split('-');
-  return `${y}년 ${parseInt(m)}월 ${parseInt(d)}일`;
-}
-
-// ── Date Selector ─────────────────────────────────────────────────────────────
-function DateSelector({ availableDates, selectedDate, today, onSelect, loading }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const sorted = availableDates.slice().sort((a, b) => b.date.localeCompare(a.date));
-  const currentIdx = sorted.findIndex(d => d.date === selectedDate);
-  const canPrev = currentIdx < sorted.length - 1;
-  const canNext = currentIdx > 0;
-  const isToday = selectedDate === today;
-
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }} ref={ref}>
-      {/* ← 어제 */}
-      <button
-        onClick={() => canPrev && onSelect(sorted[currentIdx + 1].date)}
-        disabled={!canPrev}
-        style={{
-          padding: '6px 10px', borderRadius: '7px', cursor: canPrev ? 'pointer' : 'not-allowed',
-          background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-          color: canPrev ? 'var(--text-secondary)' : 'rgba(255,255,255,0.2)',
-          fontSize: '13px',
-        }}
-      >← 어제</button>
-
-      {/* 날짜 선택 버튼 */}
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          display: 'flex', alignItems: 'center', gap: '7px',
-          padding: '7px 14px', borderRadius: '8px', cursor: 'pointer',
-          background: 'rgba(0,229,255,0.08)', border: '1px solid rgba(0,229,255,0.35)',
-          color: 'var(--accent-cyan, #00e5ff)', fontSize: '13px', fontWeight: 600,
-          minWidth: '190px', justifyContent: 'center',
-        }}
-      >
-        {isToday ? (
-          <>
-            <span style={{
-              fontSize: '10px', fontWeight: 800, letterSpacing: '0.06em',
-              color: '#ef4444', background: 'rgba(239,68,68,0.15)',
-              border: '1px solid rgba(239,68,68,0.4)', borderRadius: '4px', padding: '1px 5px',
-            }}>LIVE</span>
-            오늘 · {fmtDateKo(today)}
-          </>
-        ) : (
-          <>📅 {fmtDateKo(selectedDate)}</>
-        )}
-        <span style={{ fontSize: '10px', opacity: 0.7 }}>▾</span>
-      </button>
-
-      {/* 오늘 → */}
-      <button
-        onClick={() => canNext && onSelect(sorted[currentIdx - 1].date)}
-        disabled={!canNext}
-        style={{
-          padding: '6px 10px', borderRadius: '7px', cursor: canNext ? 'pointer' : 'not-allowed',
-          background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-          color: canNext ? 'var(--text-secondary)' : 'rgba(255,255,255,0.2)',
-          fontSize: '13px',
-        }}
-      >오늘 →</button>
-
-      {/* 드롭다운 */}
-      {open && (
-        <div style={{
-          position: 'absolute', top: 'calc(100% + 6px)', left: '50%',
-          transform: 'translateX(-50%)',
-          background: 'var(--bg-card, #12141a)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: '10px', padding: '6px',
-          minWidth: '230px', zIndex: 100,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-          maxHeight: '280px', overflowY: 'auto',
-        }}>
-          {loading ? (
-            <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', padding: '10px 12px', textAlign: 'center' }}>
-              데이터 로딩 중...
-            </p>
-          ) : sorted.length === 0 ? (
-            <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', padding: '10px 12px', textAlign: 'center' }}>
-              날짜 데이터 없음
-            </p>
-          ) : (
-            sorted.map(({ date, count }) => {
-              const isSel = date === selectedDate;
-              const isTod = date === today;
-              return (
-                <button
-                  key={date}
-                  onClick={() => { onSelect(date); setOpen(false); }}
-                  style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    width: '100%', padding: '8px 12px', borderRadius: '7px',
-                    background: isSel ? 'rgba(0,229,255,0.12)' : 'transparent',
-                    border: isSel ? '1px solid rgba(0,229,255,0.4)' : '1px solid transparent',
-                    color: isSel ? 'var(--accent-cyan, #00e5ff)' : 'var(--text-secondary)',
-                    cursor: 'pointer', fontSize: '13px', fontWeight: isSel ? 600 : 400,
-                    textAlign: 'left',
-                  }}
-                  onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-                  onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = 'transparent'; }}
-                >
-                  <span>
-                    {isTod && (
-                      <span style={{
-                        fontSize: '9px', color: '#ef4444', fontWeight: 800,
-                        marginRight: '6px', letterSpacing: '0.05em',
-                      }}>LIVE</span>
-                    )}
-                    {fmtDateKo(date)}
-                  </span>
-                  <span style={{
-                    fontSize: '11px', fontWeight: 600,
-                    color: isSel ? 'var(--accent-cyan, #00e5ff)' : 'var(--text-tertiary)',
-                    background: 'rgba(255,255,255,0.06)', borderRadius: '10px',
-                    padding: '1px 7px',
-                  }}>
-                    {isTod && count === 0 ? 'LIVE' : `${count}개`}
-                  </span>
-                </button>
-              );
-            })
-          )}
-        </div>
-      )}
-    </div>
-  );
 }
 
 // ── Token Card ────────────────────────────────────────────────────────────────
@@ -268,32 +127,24 @@ function TokenCard({ token, onAnalyze }) {
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
-export default function NewListings({ onAnalyzeToken, onBack }) {
-  const todayStr = new Date().toISOString().split('T')[0];
+export default function NewListings() {
+  const navigate = useNavigate();
 
   const [listings, setListings] = useState([]);
   const [total, setTotal] = useState(0);
-  const [availableDates, setAvailableDates] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(todayStr);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchData = useCallback(async (f, date) => {
+  const fetchData = useCallback(async (f) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getListings(f, date);
-      console.log('[NewListings] API response:', {
-        total: data.total,
-        currentDate: data.currentDate,
-        availableDates: data.availableDates,
-        listingsCount: (data.listings || []).length,
-      });
+      // getListings now only takes filter, no date parameter since it's stateless
+      const data = await getListings(f);
       setListings(data.listings || []);
       setTotal(data.total || 0);
-      setAvailableDates(data.availableDates || []);
       setLastUpdated(data.lastUpdated);
     } catch (e) {
       setError(e.message);
@@ -302,24 +153,23 @@ export default function NewListings({ onAnalyzeToken, onBack }) {
     }
   }, []);
 
-  useEffect(() => { fetchData(filter, selectedDate); }, [filter, selectedDate, fetchData]);
+  useEffect(() => { fetchData(filter); }, [filter, fetchData]);
 
-  // 오늘 날짜만 5분 자동 갱신
+  // 5분 단위 자동 갱신
   useEffect(() => {
-    if (selectedDate !== todayStr) return;
-    const id = setInterval(() => fetchData(filter, selectedDate), 5 * 60 * 1000);
+    const id = setInterval(() => fetchData(filter), 5 * 60 * 1000);
     return () => clearInterval(id);
-  }, [filter, selectedDate, todayStr, fetchData]);
+  }, [filter, fetchData]);
 
   const handleAnalyze = useCallback((token) => {
-    onAnalyzeToken({ id: token.address, name: token.name, symbol: token.symbol, address: token.address, chain: 'bsc' });
-  }, [onAnalyzeToken]);
+    const tokenObj = { id: token.address, name: token.name, symbol: token.symbol, address: token.address, chain: 'bsc' };
+    navigate(`/report/${token.address}`, { state: { token: tokenObj } });
+  }, [navigate]);
 
-  const isToday = selectedDate === todayStr;
   const fmtTime = iso => iso ? new Date(iso).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : '—';
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary, #0a0b0f)', color: 'var(--text-primary)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--ocean-bg, #040914)', color: '#fff', fontFamily: "'Inter', sans-serif" }}>
       {/* 상단 바 */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap',
@@ -327,46 +177,34 @@ export default function NewListings({ onAnalyzeToken, onBack }) {
         background: 'rgba(255,255,255,0.02)',
       }}>
         <button
-          onClick={onBack}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontSize: '20px', padding: '4px 8px' }}
+          onClick={() => navigate('/')}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', fontSize: '20px', padding: '4px 8px' }}
         >←</button>
 
         <div>
           <h1 style={{ fontSize: '17px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            🔴 New Listings
-            {isToday && (
-              <span style={{
-                fontSize: '10px', fontWeight: 800, letterSpacing: '0.05em',
-                color: '#ef4444', background: 'rgba(239,68,68,0.15)',
-                border: '1px solid rgba(239,68,68,0.4)', borderRadius: '4px', padding: '2px 6px',
-              }}>LIVE</span>
-            )}
+            🔴 Live Sonar Feed
+            <span style={{
+              fontSize: '10px', fontWeight: 800, letterSpacing: '0.05em',
+              color: '#00F0FF', background: 'rgba(0,240,255,0.1)',
+              border: '1px solid rgba(0,240,255,0.4)', borderRadius: '4px', padding: '2px 6px',
+            }}>LIVE</span>
           </h1>
-          <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', margin: 0 }}>
-            BSC · {isToday ? `업데이트 ${fmtTime(lastUpdated)}` : `${fmtDateKo(selectedDate)} 기록`}
+          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+            BSC · 최근 스캔 {fmtTime(lastUpdated)}
           </p>
         </div>
 
         <div style={{ flex: 1 }} />
 
-        <DateSelector
-          availableDates={availableDates}
-          selectedDate={selectedDate}
-          today={todayStr}
-          onSelect={setSelectedDate}
-          loading={loading}
-        />
-
-        {isToday && (
-          <button
-            onClick={() => fetchData(filter, selectedDate)}
-            style={{
-              padding: '7px 13px', borderRadius: '8px', cursor: 'pointer',
-              background: 'rgba(0,229,255,0.08)', border: '1px solid rgba(0,229,255,0.3)',
-              color: 'var(--accent-cyan, #00e5ff)', fontSize: '12px', fontWeight: 600,
-            }}
-          >↻</button>
-        )}
+        <button
+          onClick={() => fetchData(filter)}
+          style={{
+            padding: '7px 13px', borderRadius: '8px', cursor: 'pointer',
+            background: 'rgba(0,240,255,0.08)', border: '1px solid rgba(0,240,255,0.3)',
+            color: '#00F0FF', fontSize: '12px', fontWeight: 600,
+          }}
+        >↻ 새로고침</button>
       </div>
 
       <div style={{ padding: '18px 24px' }}>
@@ -378,38 +216,38 @@ export default function NewListings({ onAnalyzeToken, onBack }) {
               onClick={() => setFilter(f.id)}
               style={{
                 padding: '6px 15px', borderRadius: '8px', cursor: 'pointer',
-                background: filter === f.id ? 'rgba(0,229,255,0.14)' : 'rgba(255,255,255,0.04)',
-                border: filter === f.id ? '1px solid rgba(0,229,255,0.5)' : '1px solid rgba(255,255,255,0.08)',
-                color: filter === f.id ? 'var(--accent-cyan, #00e5ff)' : 'var(--text-secondary)',
+                background: filter === f.id ? 'rgba(0,240,255,0.14)' : 'rgba(255,255,255,0.04)',
+                border: filter === f.id ? '1px solid rgba(0,240,255,0.5)' : '1px solid rgba(255,255,255,0.08)',
+                color: filter === f.id ? '#00F0FF' : 'rgba(255,255,255,0.6)',
                 fontSize: '13px', fontWeight: filter === f.id ? 700 : 400,
               }}
             >{f.label}</button>
           ))}
-          <span style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--text-tertiary)' }}>
-            {loading ? '로딩 중...' : `${total}개 토큰`}
+          <span style={{ marginLeft: 'auto', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+            {loading ? '스캐닝 중...' : `${total}개 토큰 감지됨`}
           </span>
         </div>
 
         {/* 콘텐츠 */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-tertiary)' }}>
+          <div style={{ textAlign: 'center', padding: '60px', color: 'rgba(255,255,255,0.5)' }}>
             <p style={{ fontSize: '14px' }}>
-              {isToday ? 'BSC 신규 페어 스캔 중...' : `${fmtDateKo(selectedDate)} 데이터 로딩 중...`}
+              BSC 네트워크 실시간 스캐닝 중...
             </p>
           </div>
         ) : error ? (
           <div style={{ textAlign: 'center', padding: '40px', color: '#ef4444' }}>
             <p>오류: {error}</p>
             <button
-              onClick={() => fetchData(filter, selectedDate)}
+              onClick={() => fetchData(filter)}
               style={{ marginTop: '12px', padding: '8px 16px', cursor: 'pointer', background: 'transparent', border: '1px solid #ef4444', borderRadius: '8px', color: '#ef4444' }}
             >재시도</button>
           </div>
         ) : listings.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-tertiary)' }}>
-            <p style={{ fontSize: '32px', marginBottom: '12px' }}>🔍</p>
+          <div style={{ textAlign: 'center', padding: '60px', color: 'rgba(255,255,255,0.5)' }}>
+            <p style={{ fontSize: '32px', marginBottom: '12px' }}>🌊</p>
             <p style={{ fontSize: '14px' }}>
-              {isToday ? '24시간 이내 신규 토큰 없음 — 5분마다 자동 업데이트' : `${fmtDateKo(selectedDate)}에 기록된 토큰 없음`}
+              최근 감지된 신규 페어가 없습니다.
             </p>
           </div>
         ) : (
