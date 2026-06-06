@@ -13,7 +13,7 @@ router.get('/', (req, res) => {
     listings,
     total: listings.length,
     availableDates,
-    currentDate: date,
+    currentDate: date || new Date().toISOString().split('T')[0],
     lastUpdated: new Date().toISOString(),
   });
 });

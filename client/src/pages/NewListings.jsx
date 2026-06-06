@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getListings } from '../api/client';
 
 const RISK_CONFIG = {
@@ -35,12 +34,11 @@ function fmtDateKo(dateStr) {
   return `${y}년 ${parseInt(m)}월 ${parseInt(d)}일`;
 }
 
-// ── Date Selector ──────────────────────────────────────────────────────────────
-function DateSelector({ availableDates, selectedDate, today, onSelect }) {
+// ── Date Selector ─────────────────────────────────────────────────────────────
+function DateSelector({ availableDates, selectedDate, today, onSelect, loading }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
     document.addEventListener('mousedown', handler);
@@ -51,12 +49,11 @@ function DateSelector({ availableDates, selectedDate, today, onSelect }) {
   const currentIdx = sorted.findIndex(d => d.date === selectedDate);
   const canPrev = currentIdx < sorted.length - 1;
   const canNext = currentIdx > 0;
-
   const isToday = selectedDate === today;
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }} ref={ref}>
-      {/* Prev day */}
+      {/* ← 어제 */}
       <button
         onClick={() => canPrev && onSelect(sorted[currentIdx + 1].date)}
         disabled={!canPrev}
@@ -68,7 +65,7 @@ function DateSelector({ availableDates, selectedDate, today, onSelect }) {
         }}
       >← 어제</button>
 
-      {/* Date picker trigger */}
+      {/* 날짜 선택 버튼 */}
       <button
         onClick={() => setOpen(o => !o)}
         style={{
@@ -76,7 +73,7 @@ function DateSelector({ availableDates, selectedDate, today, onSelect }) {
           padding: '7px 14px', borderRadius: '8px', cursor: 'pointer',
           background: 'rgba(0,229,255,0.08)', border: '1px solid rgba(0,229,255,0.35)',
           color: 'var(--accent-cyan, #00e5ff)', fontSize: '13px', fontWeight: 600,
-          minWidth: '180px', justifyContent: 'center',
+          minWidth: '190px', justifyContent: 'center',
         }}
       >
         {isToday ? (
@@ -84,8 +81,7 @@ function DateSelector({ availableDates, selectedDate, today, onSelect }) {
             <span style={{
               fontSize: '10px', fontWeight: 800, letterSpacing: '0.06em',
               color: '#ef4444', background: 'rgba(239,68,68,0.15)',
-              border: '1px solid rgba(239,68,68,0.4)', borderRadius: '4px',
-              padding: '1px 5px',
+              border: '1px solid rgba(239,68,68,0.4)', borderRadius: '4px', padding: '1px 5px',
             }}>LIVE</span>
             오늘 · {fmtDateKo(today)}
           </>
@@ -95,7 +91,7 @@ function DateSelector({ availableDates, selectedDate, today, onSelect }) {
         <span style={{ fontSize: '10px', opacity: 0.7 }}>▾</span>
       </button>
 
-      {/* Next day */}
+      {/* 오늘 → */}
       <button
         onClick={() => canNext && onSelect(sorted[currentIdx - 1].date)}
         disabled={!canNext}
@@ -107,7 +103,7 @@ function DateSelector({ availableDates, selectedDate, today, onSelect }) {
         }}
       >오늘 →</button>
 
-      {/* Dropdown */}
+      {/* 드롭다운 */}
       {open && (
         <div style={{
           position: 'absolute', top: 'calc(100% + 6px)', left: '50%',
@@ -115,49 +111,59 @@ function DateSelector({ availableDates, selectedDate, today, onSelect }) {
           background: 'var(--bg-card, #12141a)',
           border: '1px solid rgba(255,255,255,0.1)',
           borderRadius: '10px', padding: '6px',
-          minWidth: '220px', zIndex: 100,
+          minWidth: '230px', zIndex: 100,
           boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-          maxHeight: '260px', overflowY: 'auto',
+          maxHeight: '280px', overflowY: 'auto',
         }}>
-          {sorted.length === 0 && (
-            <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', padding: '8px 10px' }}>
+          {loading ? (
+            <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', padding: '10px 12px', textAlign: 'center' }}>
+              데이터 로딩 중...
+            </p>
+          ) : sorted.length === 0 ? (
+            <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', padding: '10px 12px', textAlign: 'center' }}>
               날짜 데이터 없음
             </p>
+          ) : (
+            sorted.map(({ date, count }) => {
+              const isSel = date === selectedDate;
+              const isTod = date === today;
+              return (
+                <button
+                  key={date}
+                  onClick={() => { onSelect(date); setOpen(false); }}
+                  style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    width: '100%', padding: '8px 12px', borderRadius: '7px',
+                    background: isSel ? 'rgba(0,229,255,0.12)' : 'transparent',
+                    border: isSel ? '1px solid rgba(0,229,255,0.4)' : '1px solid transparent',
+                    color: isSel ? 'var(--accent-cyan, #00e5ff)' : 'var(--text-secondary)',
+                    cursor: 'pointer', fontSize: '13px', fontWeight: isSel ? 600 : 400,
+                    textAlign: 'left',
+                  }}
+                  onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                  onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = 'transparent'; }}
+                >
+                  <span>
+                    {isTod && (
+                      <span style={{
+                        fontSize: '9px', color: '#ef4444', fontWeight: 800,
+                        marginRight: '6px', letterSpacing: '0.05em',
+                      }}>LIVE</span>
+                    )}
+                    {fmtDateKo(date)}
+                  </span>
+                  <span style={{
+                    fontSize: '11px', fontWeight: 600,
+                    color: isSel ? 'var(--accent-cyan, #00e5ff)' : 'var(--text-tertiary)',
+                    background: 'rgba(255,255,255,0.06)', borderRadius: '10px',
+                    padding: '1px 7px',
+                  }}>
+                    {isTod && count === 0 ? 'LIVE' : `${count}개`}
+                  </span>
+                </button>
+              );
+            })
           )}
-          {sorted.map(({ date, count }) => {
-            const isSel = date === selectedDate;
-            const isTod = date === today;
-            return (
-              <button
-                key={date}
-                onClick={() => { onSelect(date); setOpen(false); }}
-                style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  width: '100%', padding: '8px 12px', borderRadius: '7px',
-                  background: isSel ? 'rgba(0,229,255,0.12)' : 'transparent',
-                  border: isSel ? '1px solid rgba(0,229,255,0.4)' : '1px solid transparent',
-                  color: isSel ? 'var(--accent-cyan, #00e5ff)' : 'var(--text-secondary)',
-                  cursor: 'pointer', fontSize: '13px', fontWeight: isSel ? 600 : 400,
-                  textAlign: 'left',
-                }}
-                onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-                onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = 'transparent'; }}
-              >
-                <span>
-                  {isTod && <span style={{ fontSize: '9px', color: '#ef4444', fontWeight: 800, marginRight: '6px', letterSpacing: '0.05em' }}>LIVE</span>}
-                  {fmtDateKo(date)}
-                </span>
-                <span style={{
-                  fontSize: '11px', fontWeight: 600,
-                  color: isSel ? 'var(--accent-cyan, #00e5ff)' : 'var(--text-tertiary)',
-                  background: 'rgba(255,255,255,0.06)', borderRadius: '10px',
-                  padding: '1px 7px',
-                }}>
-                  {count}개
-                </span>
-              </button>
-            );
-          })}
         </div>
       )}
     </div>
@@ -251,7 +257,6 @@ function TokenCard({ token, onAnalyze }) {
           background: 'rgba(0,229,255,0.08)', border: '1px solid rgba(0,229,255,0.3)',
           borderRadius: '8px', cursor: 'pointer',
           fontSize: '12px', fontWeight: 600, color: 'var(--accent-cyan, #00e5ff)',
-          transition: 'background 0.15s',
         }}
         onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,255,0.15)'}
         onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,255,0.08)'}
@@ -263,8 +268,7 @@ function TokenCard({ token, onAnalyze }) {
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
-export default function NewListings() {
-  const navigate = useNavigate();
+export default function NewListings({ onAnalyzeToken, onBack }) {
   const todayStr = new Date().toISOString().split('T')[0];
 
   const [listings, setListings] = useState([]);
@@ -294,7 +298,7 @@ export default function NewListings() {
 
   useEffect(() => { fetchData(filter, selectedDate); }, [filter, selectedDate, fetchData]);
 
-  // Auto-refresh only for today
+  // 오늘 날짜만 5분 자동 갱신
   useEffect(() => {
     if (selectedDate !== todayStr) return;
     const id = setInterval(() => fetchData(filter, selectedDate), 5 * 60 * 1000);
@@ -302,23 +306,22 @@ export default function NewListings() {
   }, [filter, selectedDate, todayStr, fetchData]);
 
   const handleAnalyze = useCallback((token) => {
-    const tokenObj = { id: token.address, name: token.name, symbol: token.symbol, address: token.address, chain: 'bsc' };
-    navigate(`/report/${token.address}`, { state: { token: tokenObj } });
-  }, [navigate]);
+    onAnalyzeToken({ id: token.address, name: token.name, symbol: token.symbol, address: token.address, chain: 'bsc' });
+  }, [onAnalyzeToken]);
 
   const isToday = selectedDate === todayStr;
   const fmtTime = iso => iso ? new Date(iso).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : '—';
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary, #0a0b0f)', color: 'var(--text-primary)' }}>
-      {/* Top bar */}
+      {/* 상단 바 */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap',
         padding: '14px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)',
         background: 'rgba(255,255,255,0.02)',
       }}>
         <button
-          onClick={() => navigate('/')}
+          onClick={onBack}
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontSize: '20px', padding: '4px 8px' }}
         >←</button>
 
@@ -338,15 +341,14 @@ export default function NewListings() {
           </p>
         </div>
 
-        {/* Spacer */}
         <div style={{ flex: 1 }} />
 
-        {/* Date navigation */}
         <DateSelector
           availableDates={availableDates}
           selectedDate={selectedDate}
           today={todayStr}
           onSelect={setSelectedDate}
+          loading={loading}
         />
 
         {isToday && (
@@ -362,7 +364,7 @@ export default function NewListings() {
       </div>
 
       <div style={{ padding: '18px 24px' }}>
-        {/* Risk filter tabs */}
+        {/* 필터 탭 */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: '18px', flexWrap: 'wrap', alignItems: 'center' }}>
           {FILTERS.map(f => (
             <button
@@ -374,28 +376,28 @@ export default function NewListings() {
                 border: filter === f.id ? '1px solid rgba(0,229,255,0.5)' : '1px solid rgba(255,255,255,0.08)',
                 color: filter === f.id ? 'var(--accent-cyan, #00e5ff)' : 'var(--text-secondary)',
                 fontSize: '13px', fontWeight: filter === f.id ? 700 : 400,
-                transition: 'all 0.15s',
               }}
             >{f.label}</button>
           ))}
           <span style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--text-tertiary)' }}>
-            {total}개 토큰
+            {loading ? '로딩 중...' : `${total}개 토큰`}
           </span>
         </div>
 
-        {/* Content */}
+        {/* 콘텐츠 */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-tertiary)' }}>
             <p style={{ fontSize: '14px' }}>
-              {isToday ? 'BSC 신규 페어 스캔 중...' : `${fmtDateKo(selectedDate)} 데이터 로딩...`}
+              {isToday ? 'BSC 신규 페어 스캔 중...' : `${fmtDateKo(selectedDate)} 데이터 로딩 중...`}
             </p>
           </div>
         ) : error ? (
           <div style={{ textAlign: 'center', padding: '40px', color: '#ef4444' }}>
             <p>오류: {error}</p>
-            <button onClick={() => fetchData(filter, selectedDate)} style={{ marginTop: '12px', padding: '8px 16px', cursor: 'pointer', background: 'transparent', border: '1px solid #ef4444', borderRadius: '8px', color: '#ef4444' }}>
-              재시도
-            </button>
+            <button
+              onClick={() => fetchData(filter, selectedDate)}
+              style={{ marginTop: '12px', padding: '8px 16px', cursor: 'pointer', background: 'transparent', border: '1px solid #ef4444', borderRadius: '8px', color: '#ef4444' }}
+            >재시도</button>
           </div>
         ) : listings.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-tertiary)' }}>
