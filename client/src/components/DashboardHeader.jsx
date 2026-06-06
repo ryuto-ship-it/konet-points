@@ -2,12 +2,12 @@
 import './DashboardHeader.css';
 
 export default function DashboardHeader({ data, onBack }) {
-  const tokenName = data?.tokenName || 'Unknown';
-  const tokenSymbol = data?.tokenSymbol?.toUpperCase() || '';
+  const tokenName = data?.token?.name || 'Unknown';
+  const tokenSymbol = data?.token?.symbol?.toUpperCase() || '';
   const md = data?.marketData || {};
-  
+
   const currentPrice = md.currentPrice ?? 0;
-  const priceChange24h = md.priceChange24h ?? 0;
+  const priceChange24h = md.priceChangePercent24h ?? 0;
   const isPositive = priceChange24h >= 0;
   
   // Try to get token logo from various sources
@@ -37,9 +37,10 @@ export default function DashboardHeader({ data, onBack }) {
 
   const creationDate = data?.tokenCreationDate ? data.tokenCreationDate.slice(0, 10) : '—';
   
-  const tokenAgeDays = data?.tokenCreationDate 
-    ? Math.floor((Date.now() - new Date(data.tokenCreationDate).getTime()) / 86400000)
-    : null;
+  const tokenAgeDays = data?.tokenAgeInDays ??
+    (data?.tokenCreationDate
+      ? Math.floor((Date.now() - new Date(data.tokenCreationDate).getTime()) / 86400000)
+      : null);
 
   return (
     <header className="dash-header">

@@ -1,10 +1,10 @@
 const cache = require('../utils/cache');
 
-const BEARER_TOKEN = process.env.TWITTER_BEARER_TOKEN;
 const BASE_URL = 'https://api.twitter.com/2';
 const CACHE_TTL_24H = 24 * 60 * 60 * 1000;
 
 async function fetchTwitter(path) {
+  const BEARER_TOKEN = process.env.TWITTER_BEARER_TOKEN;
   if (!BEARER_TOKEN) throw new Error('TWITTER_BEARER_TOKEN not configured');
   const res = await fetch(`${BASE_URL}${path}`, {
     headers: { Authorization: `Bearer ${BEARER_TOKEN}` },

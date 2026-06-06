@@ -3,8 +3,9 @@ import { CheckCircle2, XCircle } from 'lucide-react';
 import './ScorePanel.css';
 
 export default function ScorePanel({ data }) {
-  const score = data?.analysis?.overall_score || 0;
-  
+  const ls = data?.listingScore || {};
+  const score = ls.composite ?? 0;
+
   const getScoreColor = (s) => {
     if (s >= 80) return 'var(--success)';
     if (s >= 60) return 'var(--warning)';
@@ -24,17 +25,19 @@ export default function ScorePanel({ data }) {
   };
 
   const color = getScoreColor(score);
-  const gradeInfo = getScoreGrade(score);
+  const gradeInfo = ls.compositeGrade
+    ? { grade: ls.compositeGrade, class: `grade-${ls.compositeGrade.toLowerCase().replace('+', 'plus')}` }
+    : getScoreGrade(score);
 
   // Radar chart data mapping
-  const sd = data?.securityData;
+  const sd = data?.goplusSecurity;
   const md = data?.marketData;
   const radarData = [
     { subject: '보안', value: sd?.is_open_source ? 90 : 50 },
     { subject: '시장', value: md?.marketCap > 10000000 ? 80 : 40 },
     { subject: '커뮤니티', value: data?.twitterData ? 85 : 30 },
-    { subject: '온체인', value: 70 }, // Placeholder
-    { subject: '거래소', value: md?.tickers?.length > 5 ? 85 : 45 },
+    { subject: '온체인', value: ls.onchain?.score ?? 70 },
+    { subject: '거래소', value: ls.exchange?.score ?? (md?.tickers?.length > 5 ? 85 : 45) },
     { subject: '펀더멘탈', value: score },
   ];
 

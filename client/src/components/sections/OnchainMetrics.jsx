@@ -15,9 +15,9 @@ export default function OnchainMetrics({ data }) {
   };
 
   const metrics = [
-    { label: 'Total Holders', value: formatNumber(onchain.holders), source: 'Etherscan / BscScan' },
-    { label: 'Total Value Locked', value: formatNumber(defi.tvl, true), source: 'DefiLlama' },
-    { label: 'FDMC / TVL Ratio', value: defi.mcapTvlRatio ? defi.mcapTvlRatio.toFixed(2) : '-', source: 'DefiLlama' }
+    { label: 'Total Holders', value: formatNumber(onchain.holderCount), source: 'Etherscan / BscScan' },
+    { label: 'Total Value Locked', value: defi.tvl != null ? formatNumber(defi.tvl, true) : '해당 없음', source: 'DefiLlama' },
+    { label: 'FDMC / TVL Ratio', value: defi.mcapTvlRatio ? defi.mcapTvlRatio.toFixed(2) : '해당 없음', source: 'DefiLlama' }
   ];
   
   return (
