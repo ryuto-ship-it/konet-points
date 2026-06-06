@@ -7,6 +7,7 @@ import ReportView from './components/ReportView';
 import NewListings from './pages/NewListings';
 import { getReport } from './api/client';
 import WalletButton from './components/WalletButton';
+import WalletModal from './components/WalletModal';
 import './App.css';
 
 /* ── App Navigation (shown on /app, /listings, /report pages) ── */
@@ -65,6 +66,7 @@ function AppNav() {
       </div>
 
       <WalletButton />
+      <WalletModal />
     </div>
   );
 }
