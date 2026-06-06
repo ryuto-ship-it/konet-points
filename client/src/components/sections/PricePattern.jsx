@@ -31,14 +31,17 @@ export default function PricePattern({ data }) {
   const tokenAgeDays = data.tokenAgeInDays ??
     (creationDate ? Math.floor((Date.now() - new Date(creationDate).getTime()) / 86400000) : null);
 
-  // Build 7-day chart from existing 30-day price history (last 7 daily data points)
+  // Prefer hourly 7-day data; fall back to last 7 daily points from 30-day history
+  const hourlyData = data.priceHistory7d;
   const rawPrices = data.priceHistory?.prices || [];
-  const chartData = rawPrices.length > 0
-    ? rawPrices.slice(-7).map(([ts, price]) => ({
-        time: new Date(ts).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' }),
-        price,
-      }))
-    : [];
+  const chartData = hourlyData && hourlyData.length >= 2
+    ? hourlyData
+    : rawPrices.length > 0
+      ? rawPrices.slice(-7).map(([ts, price]) => ({
+          time: new Date(ts).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' }),
+          price,
+        }))
+      : [];
 
   // Position of current price between ATL and ATH (0–100%)
   let pricePosition = null;
@@ -133,7 +136,7 @@ export default function PricePattern({ data }) {
       {chartData.length >= 2 && (
         <div className="section-card" style={{ marginBottom: '16px' }}>
           <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '12px' }}>
-            최근 {chartData.length}일 가격 추이
+            {hourlyData && hourlyData.length >= 2 ? '7일 가격 추이 (4시간 봉)' : `최근 ${chartData.length}일 가격 추이`}
           </p>
           <ResponsiveContainer width="100%" height={120}>
             <LineChart data={chartData} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>

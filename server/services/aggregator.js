@@ -317,6 +317,9 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
       const websiteUrl = tokenDetails?.links?.homepage?.[0] || cmciDetailFromSlug?.website || null;
       return websiteUrl ? webSecurity.analyzeWebsite(websiteUrl) : Promise.resolve(null);
     })(),
+
+    // 7-day hourly price chart
+    coinId ? coingecko.getPriceHistory7d(coinId) : Promise.resolve([]),
   ]);
 
   // ── Extract results (handle failures) ────────────────────────────────────────
@@ -375,6 +378,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const goplusData = extract(goplusSecurityResult);
   const pulseFeedData = extract(pulseFeedResult, []);
   const webSecurityData = extract(webSecurityResult);
+  const priceHistory7d = extract(priceHistory7dResult, []);
 
   // ── Community / social data (CoinGecko community_data + twitterData merge) ───
   const cgCommunity = tokenDetails?.community_data || {};
@@ -797,6 +801,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     whitepaperContent: (whitepaperData?.found && whitepaperData?.content) ? whitepaperData : null,
     pulseFeed: pulseFeedData.length > 0 ? pulseFeedData : null,
     webSecurity: webSecurityData || null,
+    priceHistory7d: priceHistory7d.length > 0 ? priceHistory7d : null,
     compliance: complianceData,
     dorphinAnalysis,
     twitterActivity: twitterActivity || null,

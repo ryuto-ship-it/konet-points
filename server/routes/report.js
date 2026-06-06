@@ -143,6 +143,7 @@ router.get('/:coinId', async (req, res, next) => {
       communityData: aggregatedData.communityData || null,
       pulseFeed: aggregatedData.pulseFeed || null,
       webSecurity: aggregatedData.webSecurity || null,
+      priceHistory7d: aggregatedData.priceHistory7d || null,
       compliance: aggregatedData.compliance || null,
       liquidityAnalysis: aggregatedData.liquidityAnalysis || null,
       dorphinAnalysis: aggregatedData.dorphinAnalysis || null,

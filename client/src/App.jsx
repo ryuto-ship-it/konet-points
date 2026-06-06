@@ -6,6 +6,7 @@ import DolphinLoader from './components/DolphinLoader';
 import ReportView from './components/ReportView';
 import NewListings from './pages/NewListings';
 import { getReport } from './api/client';
+import WalletButton from './components/WalletButton';
 import './App.css';
 
 /* ── App Navigation (shown on /app, /listings, /report pages) ── */
@@ -62,6 +63,8 @@ function AppNav() {
           );
         })}
       </div>
+
+      <WalletButton />
     </div>
   );
 }
