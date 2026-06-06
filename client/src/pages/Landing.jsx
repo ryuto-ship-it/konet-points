@@ -1,13 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Activity, BarChart3, Globe, Radio, Layers, Search, Zap, Database, ArrowRight, ExternalLink, Wallet, ChevronRight } from 'lucide-react';
+import { Shield, Activity, BarChart3, Globe, Radio, Layers, Search, Zap, Wallet, ChevronRight, BrainCircuit, Network, Cpu } from 'lucide-react';
 
 export default function Landing() {
   const navigate = useNavigate();
   const [address, setAddress] = useState('');
+  const [scrollY, setScrollY] = useState(0);
 
-  // Scroll animations
+  // Scroll animations and parallax
   useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -17,479 +21,469 @@ export default function Landing() {
     }, { threshold: 0.1 });
 
     document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
-    return () => observer.disconnect();
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      observer.disconnect();
+    };
   }, []);
 
   return (
     <div style={{
-      background: 'var(--bg-base, #0B0D11)',
-      color: 'var(--text-primary, #E2E4E9)',
+      backgroundColor: '#030508',
+      color: '#ffffff',
       minHeight: '100vh',
       fontFamily: "var(--font-sans, 'Inter', sans-serif)",
-      overflowX: 'hidden'
+      overflowX: 'hidden',
+      position: 'relative'
     }}>
       <style>{`
+        /* ── Base Animations ── */
         .animate-on-scroll {
           opacity: 0;
-          transform: translateY(20px);
-          transition: opacity 0.8s ease, transform 0.8s ease;
+          transform: translateY(40px) scale(0.95);
+          transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .animate-on-scroll.visible {
           opacity: 1;
-          transform: translateY(0);
-        }
-        
-        @keyframes orbit {
-          from { transform: rotate(0deg) translateX(140px) rotate(0deg); }
-          to { transform: rotate(360deg) translateX(140px) rotate(-360deg); }
+          transform: translateY(0) scale(1);
         }
 
-        .orbital-item {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          margin: -24px 0 0 -24px;
-          width: 48px;
-          height: 48px;
-          background: var(--bg-surface, #12151B);
-          border: 1px solid var(--border-strong, rgba(255,255,255,0.1));
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justifyContent: center;
-          color: var(--accent, #3B9EBF);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-          animation: orbit 20s linear infinite;
+        /* ── Gradient Text ── */
+        .text-gradient-cyan {
+          background: linear-gradient(135deg, #00f0ff 0%, #0066ff 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
         }
+        .text-gradient-magenta {
+          background: linear-gradient(135deg, #ff007b 0%, #7000ff 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        /* ── Animated Background Gradients ── */
+        @keyframes gradientMove {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .bg-animated-mesh {
+          position: absolute;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background: 
+            radial-gradient(circle at 15% 50%, rgba(0, 240, 255, 0.15), transparent 25%),
+            radial-gradient(circle at 85% 30%, rgba(255, 0, 123, 0.15), transparent 25%),
+            radial-gradient(circle at 50% 80%, rgba(112, 0, 255, 0.15), transparent 25%);
+          z-index: 0;
+          pointer-events: none;
+        }
+
+        /* ── Orbital System ── */
+        @keyframes rotate-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes rotate-reverse {
+          from { transform: rotate(360deg); }
+          to { transform: rotate(0deg); }
+        }
+        .orbital-system {
+          position: relative;
+          width: 500px;
+          height: 500px;
+          margin: 0 auto;
+        }
+        .orbit-ring-1 {
+          position: absolute; top: 10%; left: 10%; right: 10%; bottom: 10%;
+          border: 1px dashed rgba(0, 240, 255, 0.3);
+          border-radius: 50%;
+          animation: rotate-slow 30s linear infinite;
+        }
+        .orbit-ring-2 {
+          position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+          border: 1px solid rgba(255, 0, 123, 0.2);
+          border-radius: 50%;
+          animation: rotate-reverse 40s linear infinite;
+        }
+        .orbital-node {
+          position: absolute;
+          width: 60px; height: 60px;
+          background: rgba(10, 15, 30, 0.8);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(0, 240, 255, 0.5);
+          border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          color: #00f0ff;
+          box-shadow: 0 0 20px rgba(0, 240, 255, 0.4), inset 0 0 10px rgba(0,240,255,0.2);
+        }
+        .orbital-node.magenta {
+          border-color: rgba(255, 0, 123, 0.5);
+          color: #ff007b;
+          box-shadow: 0 0 20px rgba(255, 0, 123, 0.4), inset 0 0 10px rgba(255,0,123,0.2);
+        }
+        .orbital-node:nth-child(1) { top: -30px; left: 50%; transform: translateX(-50%); }
+        .orbital-node:nth-child(2) { bottom: -30px; left: 50%; transform: translateX(-50%); }
+        .orbital-node:nth-child(3) { top: 50%; left: -30px; transform: translateY(-50%); }
+        .orbital-node:nth-child(4) { top: 50%; right: -30px; transform: translateY(-50%); }
 
         .orbital-center {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 80px;
-          height: 80px;
-          background: rgba(59,158,191,0.1);
-          border: 1px solid rgba(59,158,191,0.3);
+          position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+          width: 120px; height: 120px;
+          background: linear-gradient(135deg, rgba(0,240,255,0.2), rgba(112,0,255,0.2));
+          border: 2px solid rgba(0, 240, 255, 0.8);
           border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 32px;
-          box-shadow: 0 0 32px rgba(59,158,191,0.2);
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 0 50px rgba(0, 240, 255, 0.6);
           z-index: 10;
         }
 
-        .orbit-ring {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 280px;
-          height: 280px;
-          border: 1px dashed rgba(255,255,255,0.1);
-          border-radius: 50%;
+        /* ── Glass Cards ── */
+        .glass-panel {
+          background: rgba(15, 20, 30, 0.6);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 24px;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+          position: relative;
+          overflow: hidden;
+        }
+        .glass-panel::before {
+          content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        }
+        
+        .hover-card-3d {
+          transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+        }
+        .hover-card-3d:hover {
+          transform: translateY(-10px) scale(1.02);
+          border-color: rgba(0, 240, 255, 0.5) !important;
+          box-shadow: 0 30px 60px rgba(0, 240, 255, 0.15), 0 0 20px rgba(0, 240, 255, 0.2) inset;
         }
 
-        .hover-card {
+        /* ── Buttons ── */
+        .btn-glow-cyan {
+          background: linear-gradient(135deg, #00f0ff, #0066ff);
+          color: #000;
+          font-weight: 700;
+          border: none;
+          position: relative;
+          z-index: 1;
+          overflow: hidden;
           transition: all 0.3s ease;
         }
-        .hover-card:hover {
-          transform: translateY(-4px);
-          border-color: rgba(59,158,191,0.3) !important;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        .btn-glow-cyan::after {
+          content: ''; position: absolute; inset: 0; z-index: -1;
+          background: linear-gradient(135deg, #0066ff, #00f0ff);
+          opacity: 0; transition: opacity 0.3s ease;
+        }
+        .btn-glow-cyan:hover::after { opacity: 1; }
+        .btn-glow-cyan:hover {
+          box-shadow: 0 0 30px rgba(0, 240, 255, 0.6);
+          transform: translateY(-2px);
         }
 
-        .pipeline-line {
-          height: 2px;
-          background: repeating-linear-gradient(90deg, rgba(59,158,191,0.5) 0, rgba(59,158,191,0.5) 4px, transparent 4px, transparent 8px);
-          flex: 1;
-          margin: 0 16px;
-          opacity: 0.5;
+        .btn-outline-magenta {
+          background: transparent;
+          color: #fff;
+          font-weight: 600;
+          border: 1px solid #ff007b;
+          box-shadow: 0 0 15px rgba(255, 0, 123, 0.2);
+          transition: all 0.3s ease;
+        }
+        .btn-outline-magenta:hover {
+          background: rgba(255, 0, 123, 0.1);
+          box-shadow: 0 0 25px rgba(255, 0, 123, 0.6);
+          transform: translateY(-2px);
         }
 
-        @media (max-width: 768px) {
-          .hero-split { flex-direction: column; text-align: center; }
-          .hero-split > div { width: 100% !important; }
-          .hero-split .buttons { justify-content: center; }
-          .orbital-container { display: none; }
-          .pipeline-row { flex-direction: column; align-items: center; }
-          .pipeline-line { width: 2px; height: 32px; margin: 16px 0; background: repeating-linear-gradient(180deg, rgba(59,158,191,0.5) 0, rgba(59,158,191,0.5) 4px, transparent 4px, transparent 8px); }
+        @media (max-width: 1024px) {
+          .hero-grid { grid-template-columns: 1fr !important; }
+          .orbital-system { transform: scale(0.7); margin-top: 40px; }
         }
       `}</style>
+
+      {/* Global Animated Background */}
+      <div className="bg-animated-mesh" />
 
       {/* Navigation */}
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 24px', height: '64px',
-        background: 'rgba(11,13,17,0.85)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)'
+        padding: '16px 32px',
+        background: scrollY > 50 ? 'rgba(5, 8, 15, 0.9)' : 'transparent',
+        backdropFilter: scrollY > 50 ? 'blur(20px)' : 'none',
+        borderBottom: scrollY > 50 ? '1px solid rgba(0,240,255,0.1)' : '1px solid transparent',
+        transition: 'all 0.3s ease'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '18px' }}>🐬</span>
-          <span style={{
-            fontSize: '14px', fontWeight: 600,
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase'
-          }}>DORPHIN</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{
+            width: '36px', height: '36px', borderRadius: '10px',
+            background: 'linear-gradient(135deg, #00f0ff, #7000ff)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '18px', boxShadow: '0 0 15px rgba(0,240,255,0.5)'
+          }}>🐬</div>
+          <span style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '0.15em' }}>
+            DORPHIN
+          </span>
         </div>
-        <button 
-          onClick={() => navigate('/app')}
-          style={{
-            padding: '8px 16px',
-            background: 'var(--accent, #3B9EBF)',
-            color: '#fff',
-            borderRadius: '6px',
-            fontSize: '13px',
-            fontWeight: 500,
-            transition: 'background 0.2s',
-            cursor: 'pointer',
-            border: 'none'
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-hover, #4DB3D4)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'var(--accent, #3B9EBF)'}
-        >
-          Launch App
-        </button>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button 
+            onClick={() => alert('Wallet connection initializing...')}
+            className="btn-outline-magenta"
+            style={{
+              padding: '10px 20px', borderRadius: '12px',
+              display: 'flex', alignItems: 'center', gap: '8px',
+              cursor: 'pointer'
+            }}
+          >
+            <Wallet size={16} /> Connect Wallet
+          </button>
+          <button 
+            onClick={() => navigate('/app')}
+            className="btn-glow-cyan"
+            style={{
+              padding: '10px 24px', borderRadius: '12px',
+              display: 'flex', alignItems: 'center', gap: '8px',
+              cursor: 'pointer'
+            }}
+          >
+            Launch App <ChevronRight size={18} />
+          </button>
+        </div>
       </nav>
 
       {/* SECTION 1: Hero */}
       <section style={{
+        position: 'relative',
         minHeight: '100vh',
-        padding: '120px 24px 80px',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative'
+        padding: '120px 24px 60px',
+        zIndex: 1
       }}>
-        {/* Glow */}
-        <div style={{
-          position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
-          width: '80%', height: '50vh',
-          background: 'radial-gradient(ellipse at top, rgba(59,158,191,0.08) 0%, transparent 60%)',
-          pointerEvents: 'none',
-        }} />
+        <div style={{ maxWidth: '1400px', margin: '0 auto', width: '100%' }} className="hero-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', alignItems: 'center' }}>
+          
+          <div style={{ zIndex: 2 }}>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: '10px',
+              padding: '8px 16px', borderRadius: '100px',
+              background: 'rgba(0, 240, 255, 0.1)',
+              border: '1px solid rgba(0, 240, 255, 0.3)',
+              marginBottom: '32px',
+              boxShadow: '0 0 20px rgba(0, 240, 255, 0.2)'
+            }}>
+              <BrainCircuit size={16} color="#00f0ff" />
+              <span style={{ fontSize: '13px', fontWeight: 600, color: '#00f0ff', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                Advanced AI Neural Engine
+              </span>
+            </div>
 
-        <div style={{ maxWidth: '1120px', width: '100%', margin: '0 auto' }}>
-          <div className="hero-split" style={{ display: 'flex', alignItems: 'center', gap: '64px' }}>
-            <div className="animate-on-scroll" style={{ width: '50%', zIndex: 1 }}>
+            <h1 style={{
+              fontSize: 'clamp(48px, 6vw, 84px)',
+              fontWeight: 800,
+              lineHeight: 1.05,
+              letterSpacing: '-0.03em',
+              marginBottom: '24px'
+            }}>
+              Total <span className="text-gradient-cyan">Awareness.</span><br />
+              Absolute <span className="text-gradient-magenta">Control.</span>
+            </h1>
+            
+            <p style={{
+              fontSize: '20px', color: '#A0AEC0', lineHeight: 1.6,
+              marginBottom: '48px', maxWidth: '540px', fontWeight: 400
+            }}>
+              Don't just look at data. <strong>Understand it.</strong> Our deep-learning AI dissects smart contracts in real-time, surfacing invisible risks before they become your losses.
+            </p>
+
+            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+              <button 
+                onClick={() => navigate('/app')}
+                className="btn-glow-cyan"
+                style={{
+                  padding: '18px 36px', borderRadius: '16px',
+                  fontSize: '16px', display: 'flex', alignItems: 'center', gap: '12px',
+                  cursor: 'pointer'
+                }}
+              >
+                <Zap size={20} /> Access AI Terminal
+              </button>
+            </div>
+            
+            <div style={{ marginTop: '48px', display: 'flex', gap: '32px' }}>
+              <div>
+                <div style={{ fontSize: '32px', fontWeight: 800, color: '#00f0ff' }}>0.2s</div>
+                <div style={{ fontSize: '13px', color: '#A0AEC0', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '4px' }}>AI Processing Time</div>
+              </div>
+              <div style={{ width: '1px', background: 'rgba(255,255,255,0.1)' }} />
+              <div>
+                <div style={{ fontSize: '32px', fontWeight: 800, color: '#ff007b' }}>99.9%</div>
+                <div style={{ fontSize: '13px', color: '#A0AEC0', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '4px' }}>Scam Detection Rate</div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ zIndex: 1, position: 'relative' }}>
+            <div className="orbital-system">
+              <div className="orbit-ring-1">
+                <div className="orbital-node"><Network size={24} /></div>
+                <div className="orbital-node"><Activity size={24} /></div>
+              </div>
+              <div className="orbit-ring-2">
+                <div className="orbital-node magenta"><Shield size={24} /></div>
+                <div className="orbital-node magenta"><Search size={24} /></div>
+              </div>
+              <div className="orbital-center">
+                <BrainCircuit size={48} color="#fff" />
+              </div>
+              {/* Center glow effect */}
               <div style={{
-                display: 'inline-block',
-                padding: '4px 12px',
-                borderRadius: '20px',
-                border: '1px solid rgba(59,158,191,0.3)',
-                background: 'rgba(59,158,191,0.1)',
-                color: 'var(--accent, #3B9EBF)',
-                fontSize: '12px',
-                fontWeight: 600,
-                marginBottom: '24px'
-              }}>
-                AI-Powered Token Intelligence
-              </div>
-              <h1 style={{
-                fontSize: 'clamp(40px, 5vw, 64px)',
-                fontWeight: 600,
-                lineHeight: 1.1,
-                letterSpacing: '-0.02em',
-                marginBottom: '20px'
-              }}>
-                Institutional-Grade<br />Token Research.
-              </h1>
-              <p style={{
-                fontSize: '18px',
-                color: 'var(--text-secondary, #8B8F99)',
-                lineHeight: 1.6,
-                marginBottom: '40px',
-                maxWidth: '480px'
-              }}>
-                Dive deeper. Surface smarter. 
-                Get professional risk analysis across 8+ data sources in seconds.
-              </p>
-              
-              <div className="buttons" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '16px' }}>
-                <button 
-                  onClick={() => navigate('/app')}
-                  style={{
-                    padding: '14px 24px',
-                    background: 'var(--accent, #3B9EBF)',
-                    color: '#fff',
-                    borderRadius: '8px',
-                    fontSize: '15px',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    border: 'none',
-                    display: 'flex', alignItems: 'center', gap: '8px'
-                  }}
-                >
-                  Launch Research Terminal <ArrowRight size={18} />
-                </button>
-                <button 
-                  onClick={() => alert('Wallet Connect coming soon')}
-                  style={{
-                    padding: '14px 24px',
-                    background: 'transparent',
-                    color: 'var(--text-primary)',
-                    borderRadius: '8px',
-                    fontSize: '15px',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    border: '1px solid var(--border-strong, rgba(255,255,255,0.1))',
-                    display: 'flex', alignItems: 'center', gap: '8px'
-                  }}
-                >
-                  <Wallet size={18} /> Connect Wallet
-                </button>
-              </div>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted, #4A4E57)' }}>
-                No signup required · Free to use
-              </p>
-            </div>
-
-            <div className="orbital-container animate-on-scroll" style={{ width: '50%', position: 'relative', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div className="orbit-ring"></div>
-              <div className="orbital-center">🐬</div>
-              {[
-                { icon: <Shield size={20} />, delay: '0s' },
-                { icon: <Activity size={20} />, delay: '-3.3s' },
-                { icon: <Database size={20} />, delay: '-6.6s' },
-                { icon: <BarChart3 size={20} />, delay: '-10s' },
-                { icon: <Radio size={20} />, delay: '-13.3s' },
-                { icon: <Zap size={20} />, delay: '-16.6s' }
-              ].map((item, i) => (
-                <div key={i} className="orbital-item" style={{ animationDelay: item.delay, display: 'flex', justifyContent: 'center' }}>
-                  {item.icon}
-                </div>
-              ))}
+                position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(0,240,255,0.2) 0%, transparent 70%)',
+                pointerEvents: 'none', zIndex: 0
+              }} />
             </div>
           </div>
 
-          <div className="animate-on-scroll" style={{
-            display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center',
-            marginTop: '100px', padding: '24px 0', borderTop: '1px solid rgba(255,255,255,0.06)'
-          }}>
-            {['AI-Powered', '8+ Data Sources', 'Real-time', 'Institutional Grade', 'BSC · ETH · SOL'].map(tag => (
-              <span key={tag} style={{
-                padding: '6px 14px', borderRadius: '20px',
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.06)',
-                fontSize: '12px', color: 'var(--text-secondary)'
-              }}>{tag}</span>
-            ))}
-          </div>
         </div>
       </section>
 
-      {/* SECTION 2: Problem Definition */}
-      <section style={{ padding: '100px 24px', background: 'var(--bg-surface, #12151B)' }}>
-        <div style={{ maxWidth: '1120px', margin: '0 auto' }}>
-          <div className="animate-on-scroll" style={{ textAlign: 'center', marginBottom: '64px' }}>
-            <h2 style={{ fontSize: '32px', fontWeight: 600, marginBottom: '16px' }}>The crypto intelligence gap.</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '16px', maxWidth: '600px', margin: '0 auto' }}>
-              Trading decisions are made in seconds, but research takes hours.
-              The tools available to retail investors aren't built for the speed of modern crypto.
+      {/* SECTION 2: AI Intelligence Gap */}
+      <section style={{ padding: '120px 24px', position: 'relative', zIndex: 10 }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+          <div className="animate-on-scroll" style={{ textAlign: 'center', marginBottom: '80px' }}>
+            <h2 style={{ fontSize: 'clamp(36px, 4vw, 56px)', fontWeight: 800, marginBottom: '24px' }}>
+              The <span className="text-gradient-magenta">AI Intelligence</span> Gap
+            </h2>
+            <p style={{ color: '#A0AEC0', fontSize: '18px', maxWidth: '700px', margin: '0 auto', lineHeight: 1.6 }}>
+              Human analysis cannot scale to the speed of modern decentralized markets. 
+              By the time you read the code, the liquidity is already gone.
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '30px' }}>
             {[
-              { icon: '🎭', title: 'Hundreds of new tokens daily', desc: 'Over 99% are scams, rug pulls, or pump-and-dump schemes. Manual vetting is impossible.' },
-              { icon: '🔍', title: 'Data without analysis', desc: 'CMC and CoinGecko show numbers — price, volume, market cap — but don\'t reveal malicious code.' },
-              { icon: '💀', title: 'No rug pull detection', desc: 'By the time you realize the liquidity was pulled, your investment is already gone.' },
-              { icon: '🏛️', title: 'Institutions have teams', desc: 'Whales have dedicated researchers. Retail investors have nothing but Twitter sentiment.' }
+              { title: 'Invisible Rug Pulls', icon: <Shield size={32} color="#ff007b" />, desc: 'Malicious code is obfuscated. Our AI decompiles and analyzes bytecode patterns instantly, flagging honeypots before you swap.' },
+              { title: 'Wash Trade Illusions', icon: <Activity size={32} color="#00f0ff" />, desc: 'High volume doesn\'t mean high liquidity. The neural engine maps holder networks to detect coordinated pump schemas.' },
+              { title: 'Information Asymmetry', icon: <Cpu size={32} color="#7000ff" />, desc: 'Institutions use algorithmic trading. Now you have an AI agent working for you, 24/7, processing millions of signals per second.' }
             ].map((p, i) => (
-              <div key={i} className="animate-on-scroll hover-card" style={{
-                background: 'var(--bg-card, #181C24)',
-                padding: '32px',
-                borderRadius: '12px',
-                border: '1px solid var(--border-strong, rgba(255,255,255,0.1))'
-              }}>
-                <div style={{ fontSize: '32px', marginBottom: '20px' }}>{p.icon}</div>
-                <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '12px' }}>{p.title}</h3>
-                <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{p.desc}</p>
+              <div key={i} className="glass-panel hover-card-3d animate-on-scroll" style={{ padding: '40px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ 
+                  width: '64px', height: '64px', borderRadius: '16px', 
+                  background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  marginBottom: '24px', border: '1px solid rgba(255,255,255,0.1)'
+                }}>
+                  {p.icon}
+                </div>
+                <h3 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>{p.title}</h3>
+                <p style={{ fontSize: '16px', color: '#A0AEC0', lineHeight: 1.7 }}>{p.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* SECTION 3: Solution */}
-      <section style={{ padding: '120px 24px', position: 'relative' }}>
-        <div style={{ maxWidth: '1120px', margin: '0 auto' }}>
-          <div className="animate-on-scroll" style={{ textAlign: 'center', marginBottom: '64px' }}>
-            <h2 style={{ fontSize: '32px', fontWeight: 600, marginBottom: '16px' }}>From contract to intelligence in seconds.</h2>
-            <p style={{ color: 'var(--text-secondary)' }}>A fully automated pipeline replacing hours of manual research.</p>
+      {/* SECTION 3: Deep AI Features */}
+      <section style={{ padding: '120px 24px', position: 'relative', overflow: 'hidden' }}>
+        {/* Background ambient glow */}
+        <div style={{ position: 'absolute', top: '50%', right: '-20%', transform: 'translateY(-50%)', width: '80%', height: '800px', background: 'radial-gradient(ellipse, rgba(112,0,255,0.1) 0%, transparent 60%)', zIndex: 0, pointerEvents: 'none' }} />
+
+        <div style={{ maxWidth: '1400px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <div className="animate-on-scroll" style={{ marginBottom: '80px' }}>
+            <h2 style={{ fontSize: 'clamp(36px, 4vw, 56px)', fontWeight: 800 }}>
+              The Ultimate <span className="text-gradient-cyan">Risk Engine</span>
+            </h2>
           </div>
 
-          <div className="pipeline-row animate-on-scroll" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '32px' }}>
             {[
-              { title: 'Paste Address', icon: <Search size={24} /> },
-              { title: 'Aggregate Data', icon: <Database size={24} />, sub: '8 sources' },
-              { title: 'AI Analysis', icon: <Zap size={24} /> },
-              { title: 'Risk Report', icon: <Shield size={24} />, highlight: true }
-            ].map((step, i, arr) => (
-              <React.Fragment key={i}>
-                <div style={{
-                  padding: '24px', width: '180px', textAlign: 'center',
-                  background: step.highlight ? 'rgba(59,158,191,0.1)' : 'var(--bg-surface)',
-                  border: `1px solid ${step.highlight ? 'var(--accent)' : 'var(--border)'}`,
-                  borderRadius: '12px',
-                  color: step.highlight ? 'var(--accent)' : 'var(--text-primary)'
-                }}>
-                  <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'center' }}>{step.icon}</div>
-                  <div style={{ fontSize: '14px', fontWeight: 600 }}>{step.title}</div>
-                  {step.sub && <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{step.sub}</div>}
-                </div>
-                {i < arr.length - 1 && <div className="pipeline-line" />}
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 4: Core Features */}
-      <section style={{ padding: '100px 24px', background: 'var(--bg-surface)' }}>
-        <div style={{ maxWidth: '1120px', margin: '0 auto' }}>
-          <div className="animate-on-scroll" style={{ marginBottom: '56px' }}>
-            <h2 style={{ fontSize: '32px', fontWeight: 600 }}>Built for serious investors.</h2>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-            {[
-              { icon: <BarChart3 size={24}/>, title: 'Dorphin Score', desc: 'Proprietary risk algorithm scoring tokens from 0 to 100 based on security, liquidity, and holder distribution.' },
-              { icon: <Activity size={24}/>, title: 'Pump & Dump Detection', desc: 'Pattern recognition across volume and holder concentration to flag coordinated buy/sell activity.' },
-              { icon: <Shield size={24}/>, title: 'Contract Security', desc: 'GoPlus-powered smart contract audit. Detects mint functions, proxy contracts, and blacklist mechanisms.' },
-              { icon: <Globe size={24}/>, title: 'Exchange Listing Score', desc: 'Algorithmic estimation of CEX listing probability based on project maturity and metrics.' },
-              { icon: <Layers size={24}/>, title: 'Korean Exchange Readiness', desc: 'Evaluates compliance with Upbit and Bithumb listing criteria and regulatory standards.' },
-              { icon: <Radio size={24}/>, title: 'Real-time New Listings', desc: 'Live BSC token feed with automatic risk scoring within seconds of onchain detection.' }
+              { icon: <BrainCircuit size={28}/>, title: 'Algorithmic Dorphin Score', color: '#00f0ff', desc: 'A dynamically calculated score (0-100) generated by our neural network analyzing contract safety, liquidity depth, and creator history.' },
+              { icon: <Search size={28}/>, title: 'Smart Contract Forensics', color: '#ff007b', desc: 'Deep-dive security scanning powered by GoPlus. We automatically identify hidden mints, fee modifiers, and proxy vulnerabilities.' },
+              { icon: <Activity size={28}/>, title: 'Predictive Listing Models', color: '#7000ff', desc: 'Machine learning models predict the probability of tier-1 centralized exchange listings (Binance, Upbit, Coinbase) based on chain metrics.' },
+              { icon: <Radio size={28}/>, title: 'Real-time Sonar Feed', color: '#00f0ff', desc: 'Live mempool scanning. The moment a liquidity pair is created on BSC, our AI evaluates and scores it before the UI even updates.' }
             ].map((f, i) => (
-              <div key={i} className="animate-on-scroll hover-card" style={{
-                background: 'var(--bg-card)', padding: '32px', borderRadius: '12px',
-                border: '1px solid var(--border)'
+              <div key={i} className="glass-panel hover-card-3d animate-on-scroll" style={{
+                padding: '48px',
+                background: 'linear-gradient(180deg, rgba(15,20,30,0.8) 0%, rgba(10,15,20,0.9) 100%)',
               }}>
-                <div style={{ color: 'var(--accent)', marginBottom: '20px' }}>{f.icon}</div>
-                <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>{f.title}</h3>
-                <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{f.desc}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px' }}>
+                  <div style={{ 
+                    width: '60px', height: '60px', borderRadius: '50%', 
+                    background: `rgba(${f.color === '#00f0ff' ? '0,240,255' : f.color === '#ff007b' ? '255,0,123' : '112,0,255'}, 0.1)`,
+                    border: `1px solid ${f.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: f.color, boxShadow: `0 0 20px rgba(${f.color === '#00f0ff' ? '0,240,255' : f.color === '#ff007b' ? '255,0,123' : '112,0,255'}, 0.4)`
+                  }}>
+                    {f.icon}
+                  </div>
+                  <h3 style={{ fontSize: '22px', fontWeight: 700 }}>{f.title}</h3>
+                </div>
+                <p style={{ fontSize: '16px', color: '#A0AEC0', lineHeight: 1.7 }}>{f.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* SECTION 5: Data Sources */}
-      <section style={{ padding: '80px 24px', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ maxWidth: '1120px', margin: '0 auto', textAlign: 'center' }}>
-          <p className="animate-on-scroll" style={{ fontSize: '13px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '32px' }}>
-            8 sources. One report.
+      {/* SECTION 4: Huge CTA */}
+      <section style={{ padding: '160px 24px', textAlign: 'center', position: 'relative' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at center, rgba(0,240,255,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        
+        <div style={{ maxWidth: '800px', margin: '0 auto', position: 'relative', zIndex: 1 }} className="animate-on-scroll">
+          <h2 style={{ fontSize: 'clamp(40px, 5vw, 64px)', fontWeight: 800, marginBottom: '32px', lineHeight: 1.1 }}>
+            Stop guessing.<br/>
+            Start <span className="text-gradient-cyan">knowing.</span>
+          </h2>
+          <p style={{ fontSize: '20px', color: '#A0AEC0', marginBottom: '48px' }}>
+            Plug any contract address into our AI terminal and get a full risk assessment in under 5 seconds.
           </p>
-          <div className="animate-on-scroll" style={{
-            display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '32px',
-            fontFamily: 'var(--font-mono)', fontSize: '18px', fontWeight: 600, color: 'var(--text-secondary)'
-          }}>
-            {['CoinGecko', 'CoinMarketCap', 'DexScreener', 'GoPlus', 'BscScan', 'CertiK', 'DefiLlama', 'TradingView'].map(s => (
-              <span key={s} style={{ opacity: 0.6 }}>{s}</span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 6: Traction */}
-      <section style={{ padding: '100px 24px' }}>
-        <div className="animate-on-scroll" style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: '32px', justifyContent: 'space-between' }}>
-          {[
-            { num: '12,481+', label: 'Tokens Analyzed' },
-            { num: '45,000+', label: 'Reports Generated' },
-            { num: '6+', label: 'Chains Supported' }
-          ].map(t => (
-            <div key={t.label} style={{ textAlign: 'center', flex: 1, minWidth: '200px' }}>
-              <div style={{ fontSize: '48px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>
-                {t.num}
-              </div>
-              <div style={{ fontSize: '14px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                {t.label}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* SECTION 7: Roadmap */}
-      <section style={{ padding: '100px 24px', background: 'var(--bg-surface)' }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <h2 className="animate-on-scroll" style={{ fontSize: '32px', fontWeight: 600, marginBottom: '48px', textAlign: 'center' }}>What's next.</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {[
-              { phase: 'Phase 1', title: 'Token Intelligence', status: 'LIVE', active: true },
-              { phase: 'Phase 2', title: 'Portfolio Monitoring', status: 'Q3 2026' },
-              { phase: 'Phase 3', title: 'Telegram Alerts', status: 'Q4 2026' },
-              { phase: 'Phase 4', title: '$DORPHIN Token', status: '2027' }
-            ].map((r, i) => (
-              <div key={i} className="animate-on-scroll" style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '24px 32px', background: 'var(--bg-card)', borderRadius: '12px',
-                border: r.active ? '1px solid var(--accent)' : '1px solid var(--border)'
-              }}>
-                <div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>{r.phase}</div>
-                  <div style={{ fontSize: '18px', fontWeight: 500, color: r.active ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{r.title}</div>
-                </div>
-                <div style={{
-                  padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
-                  background: r.active ? 'rgba(45,212,160,0.1)' : 'var(--bg-surface)',
-                  color: r.active ? 'var(--success, #2DD4A0)' : 'var(--text-muted)'
-                }}>
-                  {r.status}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 8: Final CTA */}
-      <section style={{ padding: '120px 24px', textAlign: 'center', position: 'relative' }}>
-        <div style={{ maxWidth: '600px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-          <h2 className="animate-on-scroll" style={{ fontSize: '40px', fontWeight: 600, marginBottom: '40px' }}>Start analyzing. It's free.</h2>
           
-          <div className="animate-on-scroll" style={{
-            display: 'flex', alignItems: 'center', background: 'var(--bg-surface)',
-            border: '1px solid var(--border-strong)', borderRadius: '12px', padding: '6px'
+          <div style={{
+            display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.6)',
+            border: '2px solid rgba(0,240,255,0.4)', borderRadius: '20px', padding: '10px',
+            boxShadow: '0 0 40px rgba(0,240,255,0.2)', maxWidth: '600px', margin: '0 auto'
           }}>
             <input 
               type="text" 
-              placeholder="0x... contract address"
+              placeholder="0x... paste contract address"
               value={address}
               onChange={e => setAddress(e.target.value)}
               style={{
                 flex: 1, background: 'transparent', border: 'none', outline: 'none',
-                padding: '0 16px', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)'
+                padding: '0 24px', color: '#fff', fontFamily: 'var(--font-mono)', fontSize: '16px'
               }}
             />
             <button 
               onClick={() => navigate('/app')}
+              className="btn-glow-cyan"
               style={{
-                padding: '12px 24px', background: 'var(--accent)', color: '#fff',
-                border: 'none', borderRadius: '8px', fontWeight: 500, cursor: 'pointer'
+                padding: '16px 32px', borderRadius: '12px', fontSize: '16px', cursor: 'pointer'
               }}
             >
-              Analyze
+              Analyze Token
             </button>
           </div>
-          <p className="animate-on-scroll" style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '20px' }}>
-            No signup · No wallet required · Unlimited reports
-          </p>
         </div>
       </section>
 
-      {/* SECTION 9: Footer */}
-      <footer style={{ padding: '40px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '16px' }}>🐬</span>
-          <span style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.1em', color: 'var(--text-secondary)' }}>DORPHIN RESEARCH</span>
+      {/* Footer */}
+      <footer style={{ 
+        padding: '60px 32px', 
+        borderTop: '1px solid rgba(255,255,255,0.05)', 
+        background: '#020305',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '24px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '24px' }}>🐬</span>
+          <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '0.15em', background: 'linear-gradient(90deg, #00f0ff, #fff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            DORPHIN RESEARCH
+          </span>
         </div>
-        <p style={{ fontSize: '12px', color: 'var(--text-muted)', maxWidth: '400px', textAlign: 'right' }}>
-          This platform provides informational analysis only. Not financial advice. © 2026 Dorphin Research.
+        <p style={{ fontSize: '13px', color: '#666', maxWidth: '500px', textAlign: 'right' }}>
+          AI-generated reports are for informational purposes only. This does not constitute financial advice. Always verify onchain data independently. © 2026 Dorphin.
         </p>
       </footer>
     </div>
