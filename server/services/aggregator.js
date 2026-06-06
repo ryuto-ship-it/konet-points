@@ -699,6 +699,19 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   };
 
   // ── Compliance check (synchronous) ──────────────────────────────────────────
+  const tier1or2Listed = exchangeListings.some(e =>
+    ['TIER1', 'TIER2'].includes(e.tierInfo?.tier)
+  );
+
+  const dexLiquidity = typeof dexData?.liquidity?.usd === 'number'
+    ? dexData.liquidity.usd
+    : (marketData.dexData?.liquidity?.usd ?? 0);
+
+  const rawHolderCount = onchainData.holderCount;
+  const holderCountNum = (typeof rawHolderCount === 'number' && !isNaN(rawHolderCount))
+    ? rawHolderCount
+    : (typeof rawHolderCount === 'string' ? parseInt(rawHolderCount, 10) || 0 : 0);
+
   const complianceData = checkCompliance({
     hasAudit: !!(cmciDetail?.certik || goplusData?.is_open_source),
     teamKYC: false,
@@ -708,6 +721,12 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     marketCap: marketData.market_cap || 0,
     description: marketData.description || '',
     tags: marketData.categories || [],
+    // Realistic exchange score inputs
+    volume24h:      marketData.total_volume || 0,
+    liquidity:      dexLiquidity,
+    tokenAgeInDays: tokenAgeInDays || 0,
+    holderCount:    holderCountNum,
+    tier1or2Listed,
   });
 
   return {
