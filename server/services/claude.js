@@ -32,7 +32,14 @@ CRITICAL RULES:
 3d. TRANSACTION COUNT: When citing transaction count in onchain_metrics, always specify what it counts. Format: "[토큰명] 토큰 전송 트랜잭션 X건 [BscScan]" or "컨트랙트 상호작용 X건 [BscScan]". Never cite a raw number without explaining what it represents.
 4. SEVERE RISK FLAGS: ATH drop ≥90% → prepend "⚠️". Honeypot detected → prepend "🚨 CRITICAL".
 5. COMPETITOR RULE: Only reference tokens in the provided competitors array. Empty array → "유사 시총 프로젝트 데이터 없음".
-6. CERTIK: If computed_metrics.certik is present, include in risk_matrix.contractRisk: "CertiK 점수 {score}/100 (등급 {rating}/5.0) [CertiK]". rating < 3.0 → ⚠️ 낮은 보안 점수. rating >= 4.0 → ✅ 우수한 보안 점수.
+6. CERTIK: If computed_metrics.certik is present:
+   - score present → include "CertiK Skynet {score}/100 (등급 {rating}/5.0) [CertiK]" in risk_matrix.contractRisk.
+   - is_partial=true → prepend "⚠️ Partial Rating — 완전 감사 아님".
+   - is_full_certik=true AND score>=80 → "✅ CertiK 완전 감사". score<80 AND >=70 → "CertiK 감사 완료 (점수 낮음)".
+   - badge_audit=true → "✅ CertiK 감사 완료". badge_kyc=true → "✅ Team KYC (CertiK)". badge_bug_bounty=true → "✅ Bug Bounty".
+   - audit_records present → list ALL auditors: "감사 기관: {auditor1} ({date}), {auditor2} ({date})".
+   - is_audited=false (no audit at all) → "⚠️ 감사 미실시 — 공인 감사 기관 검증 없음".
+   - cmc_holder_count present → include in onchain_metrics: "CMC 홀더 수: {cmc_holder_count}명 [CoinMarketCap]".
 6b. GOPLUS: Use computed_metrics.goplus_flags exactly. ownership_renounced=true → "소유권 포기 완료 ✓". is_honeypot=true → CRITICAL. sell_tax>10 → HIGH risk. can_take_back_ownership=true → HIGH risk. is_mintable=true → MEDIUM risk.
 7. HOLDER RISK: If computed_metrics.holder_concentration is present, use top10_pct in risk_matrix.holderConcentrationRisk. top10_pct >= 47% → ⚠️ 집중도 위험. top10_pct > 50% → HIGH RISK. If computed_metrics.holder_count is present, include "홀더 수: {holder_count}명" in onchain_metrics. Cite as [CoinMarketCap/BscScan].
 8. TWITTER: If twitterData present, include followers/activity in team_investors. followers < 1000 → LOW engagement flag.
@@ -375,11 +382,20 @@ async function generateReport(aggregatedData) {
       whitepaper_source: aggregatedData.whitepaperContent?.source || null,
       contract_analysis: aggregatedData.contractAnalysis || null,
       price_data_source: aggregatedData.marketData?.priceDataSource || 'CoinGecko',
-      certik: aggregatedData.certik ? {
-        score: aggregatedData.certik.score,
-        rating: aggregatedData.certik.rating,
-        update_time: aggregatedData.certik.updateTime,
-        link: aggregatedData.certik.link,
+      certik: aggregatedData.certikData ? {
+        score:            aggregatedData.certikData.skynetScore,
+        rating:           aggregatedData.certikData.skynetRating,
+        update_time:      aggregatedData.certikData.skynetUpdated,
+        link:             aggregatedData.certikData.skynetLink,
+        is_audited:       aggregatedData.certikData.isAudited,
+        is_partial:       aggregatedData.certikData.isPartialRating,
+        is_full_certik:   aggregatedData.certikData.isFullCertikAudit,
+        badge_audit:      aggregatedData.certikData.badges.auditByCertik,
+        badge_kyc:        aggregatedData.certikData.badges.kycByCertik,
+        badge_bug_bounty: aggregatedData.certikData.badges.bugBounty,
+        audit_records:    aggregatedData.certikData.auditInfos,
+        cmc_holder_count: aggregatedData.certikData.cmcHolderCount,
+        date_launched:    aggregatedData.certikData.dateLaunched,
       } : null,
       atl: aggregatedData.marketData?.atl ?? null,
       atl_date: aggregatedData.marketData?.atl_date ?? null,

@@ -35,6 +35,22 @@ async function getDetailBySlug(slug) {
     // CertiK audit score from cryptoRating array
     const certikEntry = (d.cryptoRating || []).find(r => r.type === 'CertiK');
 
+    // All audit records (CertiK, Hacken, etc.)
+    const auditInfos = (d.auditInfos || []).map(a => ({
+      auditor:   a.auditor || '',
+      status:    a.auditStatus,   // 2 = completed
+      date:      a.auditTime || null,
+      reportUrl: a.reportUrl || null,
+    }));
+
+    // CMC holder data (complements on-chain data)
+    const cmcHolders = d.holders || {};
+    const holderList = (cmcHolders.holderList || []).slice(0, 10).map(h => ({
+      address:    h.address,
+      share:      h.share,
+      balance:    h.balance,
+    }));
+
     const result = {
       id: d.id,
       name: d.name || '',
@@ -70,15 +86,25 @@ async function getDetailBySlug(slug) {
 
       // CertiK audit
       certik: certikEntry ? {
-        score: certikEntry.score,       // e.g. 66.62 (0-100)
-        rating: certikEntry.rating,     // e.g. 3.3 (0-5)
+        score: certikEntry.score,
+        rating: certikEntry.rating,
         updateTime: certikEntry.updateTime,
         link: certikEntry.link,
       } : null,
 
-      // Holder data (often empty for small tokens)
+      // All audits
+      isAudited: d.isAudited === true,
+      auditInfos,
+
+      // CMC holder data
       cdpTotalHolder: d.cdpTotalHolder || null,
       holderListAvailable: d.holderListFlag === true,
+      cmcHolderCount: cmcHolders.holderCount || null,
+      cmcDailyActiveHolders: cmcHolders.dailyActive || null,
+      cmcHolderList: holderList,
+
+      // Launch date
+      dateLaunched: d.actualTimeStart || d.dateAdded || null,
     };
 
     cache.set(cacheKey, result, CACHE_TTL);

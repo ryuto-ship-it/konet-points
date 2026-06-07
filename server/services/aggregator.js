@@ -26,6 +26,7 @@ const webSecurity = require('./webSecurity');
 const { checkCompliance } = require('./complianceChecker');
 const { calculateDorphinScore } = require('./dorphinScore');
 const { analyzeTwitterActivity } = require('./twitter');
+const { buildCertiKData } = require('./certik');
 
 /**
  * Aggregate token data from all API sources.
@@ -344,6 +345,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
   const cmciPairs = extract(cmciPairsResult, []);
   // cmciDetailFromSlug already resolved in Step 1b (before parallel calls)
   const cmciDetail = cmciDetailFromSlug;
+  const certikData = buildCertiKData(cmciDetail);
   const holderCountData = extract(holderCountResult);
   const topHoldersData = extract(topHoldersResult, []);
   const dexData = extract(dexDataResult);
@@ -802,6 +804,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     pulseFeed: pulseFeedData.length > 0 ? pulseFeedData : null,
     webSecurity: webSecurityData || null,
     priceHistory7d: priceHistory7d.length > 0 ? priceHistory7d : null,
+    certikData: certikData || null,
     compliance: complianceData,
     dorphinAnalysis,
     twitterActivity: twitterActivity || null,

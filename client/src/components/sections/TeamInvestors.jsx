@@ -3,6 +3,7 @@ export default function TeamInvestors({ data }) {
   const text = data.analysis?.team_investors || "데이터 없음";
   const tw = data.twitterData;
   const sa = data.socialAnalysis;
+  const cd = data.certikData;
 
   // Resolve Twitter handle from any available source
   const twitterHandle = tw?.handle
@@ -126,6 +127,35 @@ export default function TeamInvestors({ data }) {
               소셜 데이터 없음
             </p>
           )}
+        </div>
+      )}
+
+      {/* CMC holder stats + project launch date */}
+      {cd && (cd.cmcHolderCount || cd.cmcDailyActiveHolders || cd.dateLaunched) && (
+        <div className="section-card" style={{ marginBottom: '16px' }}>
+          <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '12px' }}>
+            프로젝트 통계 (CoinMarketCap)
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
+            {cd.cmcHolderCount != null && (
+              <div style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid var(--border-glass)' }}>
+                <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '4px' }}>총 홀더 (CMC)</p>
+                <p style={{ fontSize: '15px', fontWeight: 700 }}>{cd.cmcHolderCount.toLocaleString()}명</p>
+              </div>
+            )}
+            {cd.cmcDailyActiveHolders != null && (
+              <div style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid var(--border-glass)' }}>
+                <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '4px' }}>일일 활성 홀더</p>
+                <p style={{ fontSize: '15px', fontWeight: 700 }}>{cd.cmcDailyActiveHolders.toLocaleString()}명</p>
+              </div>
+            )}
+            {cd.dateLaunched && (
+              <div style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid var(--border-glass)' }}>
+                <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '4px' }}>토큰 출시일</p>
+                <p style={{ fontSize: '14px', fontWeight: 700 }}>{new Date(cd.dateLaunched).toLocaleDateString('ko-KR')}</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
