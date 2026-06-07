@@ -11,7 +11,7 @@ const STEPS = [
 
 const TOTAL = STEPS.reduce((s, x) => s + x.duration, 0);
 
-export default function DolphinLoader({ tokenName = 'Token', onComplete }) {
+export default function DolphinLoader({ tokenName = 'Token', tokenSymbol = '', tokenLogo = null }) {
   const [elapsed, setElapsed] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
 
@@ -121,9 +121,33 @@ export default function DolphinLoader({ tokenName = 'Token', onComplete }) {
         }} />
       ))}
 
-      {/* Token name */}
-      <div style={{ color: '#fff', fontSize: '20px', fontWeight: 600, marginBottom: '8px', fontFamily: 'Space Grotesk, sans-serif' }}>
-        Analyzing {tokenName}
+      {/* Token identity */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+        {tokenLogo ? (
+          <img
+            src={tokenLogo}
+            width="40" height="40"
+            style={{ borderRadius: '50%', flexShrink: 0 }}
+            onError={e => { e.target.style.display = 'none'; }}
+          />
+        ) : (
+          <div style={{
+            width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0,
+            background: 'linear-gradient(135deg, #00ccbb, #0066ff)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '18px', fontWeight: '700', color: '#fff',
+          }}>
+            {tokenSymbol?.[0] || tokenName?.[0] || '?'}
+          </div>
+        )}
+        <div style={{ textAlign: 'left' }}>
+          <div style={{ color: '#fff', fontSize: '18px', fontWeight: 600, fontFamily: 'Space Grotesk, sans-serif', lineHeight: 1.2 }}>
+            {tokenName}{tokenSymbol ? ` (${tokenSymbol.toUpperCase()})` : ''}
+          </div>
+          <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace' }}>
+            Analyzing...
+          </div>
+        </div>
       </div>
 
       {/* Current step label */}

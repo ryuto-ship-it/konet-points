@@ -61,7 +61,7 @@ export default function AppPage() {
     setShowDropdown(false);
     setResults([]);
     navigate(`/report/${encodeURIComponent(token.id)}`, {
-      state: { token: { id: token.id, address: token.address || null, chain: token.chain || selectedChain, name: token.name, symbol: token.symbol || '' } },
+      state: { token: { id: token.id, address: token.address || null, chain: token.chain || selectedChain, name: token.name, symbol: token.symbol || '', image: token.image || null } },
     });
   }, [navigate, selectedChain]);
 

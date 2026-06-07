@@ -75,7 +75,7 @@ function AppNav() {
 function ReportPageWrapper() {
   const [reportData, setReportData] = useState(null);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [apiComplete, setApiComplete] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const token = location.state?.token;
@@ -85,38 +85,49 @@ function ReportPageWrapper() {
     if (!token) { navigate('/app'); return; }
 
     const fetchReport = async () => {
-      setLoading(true);
       try {
         const data = await getReport(token.id, token.address, token.chain);
-        if (isMounted) setReportData(data);
+        if (isMounted) {
+          setReportData(data);
+          setApiComplete(true);
+        }
       } catch (err) {
-        if (isMounted) setError(err.message || 'Failed to generate report.');
-      } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          setError(err.message || 'Failed to generate report.');
+          setApiComplete(true);
+        }
       }
     };
 
-    if (!reportData) fetchReport();
+    fetchReport();
     return () => { isMounted = false; };
-  }, [token, navigate, reportData]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token?.id]);
 
   if (!token) return null;
 
-  if (loading || !reportData) {
-    if (error) {
-      return (
-        <div style={{ paddingTop: '80px', textAlign: 'center', color: 'var(--danger)' }}>
-          <h3>Error</h3>
-          <p>{error}</p>
-          <button onClick={() => navigate(-1)} style={{
-            marginTop: '20px', padding: '10px 20px',
-            background: 'var(--bg-surface)', color: '#fff', borderRadius: '8px',
-            border: '1px solid var(--border)',
-          }}>Go Back</button>
-        </div>
-      );
-    }
-    return <DolphinLoader tokenName={token.name || 'Token'} onComplete={() => {}} />;
+  if (error) {
+    return (
+      <div style={{ paddingTop: '80px', textAlign: 'center', color: 'var(--danger)' }}>
+        <h3>Error</h3>
+        <p>{error}</p>
+        <button onClick={() => navigate(-1)} style={{
+          marginTop: '20px', padding: '10px 20px',
+          background: 'var(--bg-surface)', color: '#fff', borderRadius: '8px',
+          border: '1px solid var(--border)',
+        }}>Go Back</button>
+      </div>
+    );
+  }
+
+  if (!apiComplete || !reportData) {
+    return (
+      <DolphinLoader
+        tokenName={token.name || 'Token'}
+        tokenSymbol={token.symbol || ''}
+        tokenLogo={token.image || null}
+      />
+    );
   }
 
   return <ReportView data={reportData} onBack={() => navigate(-1)} />;
