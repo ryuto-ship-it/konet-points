@@ -204,7 +204,7 @@ export default function Landing() {
               Stop guessing.<br />Start <span className="tg-cyan">knowing.</span>
             </h1>
             <p style={{ fontSize: 19, color: '#A0AEC0', lineHeight: 1.65, marginBottom: 44, maxWidth: 520 }}>
-              Plug any contract address into our AI terminal and get a full risk assessment in under 30 seconds.
+              Dive deeper. Surface smarter. Get professional risk analysis across multiple data vectors in seconds.
             </p>
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
               <button onClick={() => navigate('/app')} className="btn-cyan" style={{ padding: '15px 30px', borderRadius: 12, fontSize: 16, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
@@ -635,10 +635,10 @@ export default function Landing() {
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at center, rgba(0,240,255,0.09) 0%, transparent 60%)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 760, margin: '0 auto', position: 'relative' }} className="aos">
           <h2 style={{ fontSize: 'clamp(44px,6vw,72px)', fontWeight: 800, marginBottom: 20, lineHeight: 1.1 }}>
-            The market doesn't wait.
+            Stop Guessing.
           </h2>
           <p style={{ fontSize: 22, color: '#A0AEC0', marginBottom: 48, lineHeight: 1.5 }}>
-            Neither should your research.
+            Start knowing what you're really buying.
           </p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={() => navigate('/app')} className="btn-cyan" style={{ padding: '17px 34px', borderRadius: 12, fontSize: 16, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
