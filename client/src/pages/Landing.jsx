@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Shield, Activity, BarChart3, Globe, Radio, Search, Zap, Wallet, ChevronRight, 
+import {
+  Shield, Activity, BarChart3, Globe, Radio, Search, Zap, Wallet, ChevronRight, ArrowRight,
   BrainCircuit, Network, Cpu, AlertTriangle, AlertOctagon, TrendingDown, CheckCircle2,
   FileText, Check
 } from 'lucide-react';
