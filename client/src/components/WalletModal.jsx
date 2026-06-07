@@ -154,7 +154,7 @@ export default function WalletModal() {
           color: '#4a5568', fontSize: '12px',
           textAlign: 'center', marginTop: '20px', lineHeight: 1.6,
         }}>
-          지갑을 연결하면 Dorphin의 이용약관에 동의하는 것으로 간주됩니다.
+          지갑을 연결하면 Dolphin의 이용약관에 동의하는 것으로 간주됩니다.
           개인키는 절대 요청하지 않습니다.
         </p>
       </div>

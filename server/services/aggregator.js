@@ -24,7 +24,7 @@ const githubAnalyzer = require('./githubAnalyzer');
 const pulseFeed = require('./pulseFeed');
 const webSecurity = require('./webSecurity');
 const { checkCompliance } = require('./complianceChecker');
-const { calculateDorphinScore } = require('./dorphinScore');
+const { calculateDolphinScore } = require('./dolphinScore');
 const { analyzeTwitterActivity } = require('./twitter');
 const { buildCertiKData } = require('./certik');
 
@@ -745,8 +745,8 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     tier1or2Listed,
   });
 
-  // ── Dorphin proprietary score ────────────────────────────────────────────────
-  const dorphinAnalysis = calculateDorphinScore({
+  // ── Dolphin proprietary score ────────────────────────────────────────────────
+  const dolphinAnalysis = calculateDolphinScore({
     volume24h:       dexData?.volume24h || marketData.total_volume || 0,
     liquidity:       dexLiquidity,
     marketCap:       marketData.market_cap || 0,
@@ -806,7 +806,7 @@ async function aggregateTokenData(coinId, contractAddress = null, chain = null) 
     priceHistory7d: priceHistory7d.length > 0 ? priceHistory7d : null,
     certikData: certikData || null,
     compliance: complianceData,
-    dorphinAnalysis,
+    dolphinAnalysis,
     twitterActivity: twitterActivity || null,
   };
 }

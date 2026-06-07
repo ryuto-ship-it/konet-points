@@ -54,8 +54,8 @@ CRITICAL RULES:
 15. LIQUIDITY ANALYSIS: If liquidityAnalysis present: liquidityHealth='CRITICAL' → 상장 부적합. isWashTradingSuspect=true → ⚠️ 유동성 대비 거래량 이상. sellRatio>70 → ⚠️ 매도 압력 집중. Include in onchain_metrics.
 16. UNLISTED TOKEN: If exchangeListings is null or empty, state "현재 중앙화 거래소 미상장" in exchange_listing_interpretation. Assess DEX listing status and compare against exchange listing criteria: DEX volume $1M+/day, 1,000+ holders, 6+ months operation.
 14. LISTING ASSESSMENT GRADE: Use computed_metrics.listing_score for the listing_assessment. The composite score (0-100) is pre-calculated as: exchange 40% + onchain 30% + price stability 30%. Use composite_grade as the base, but you may adjust ±1 grade based on qualitative factors (e.g. contract risks, community size). Cite tierCounts: "T1×N, T2×N, T3×N" format. TIER1 상장 여부가 가장 중요한 지표임.
-17. DORPHIN INTELLIGENCE: Use dorphinAnalysis object for the dorphin_intelligence section. This is Dorphin Research의 독자 알고리즘 결과다.
-   - dorphinScore (0-100) + dorphinGrade (A-F): 러그풀/조작 위험 중심 평가. 기존 listing_assessment와 별도.
+17. DOLPHIN INTELLIGENCE: Use dolphinAnalysis object for the dolphin_intelligence section. This is Dolphin Research의 독자 알고리즘 결과다.
+   - dolphinScore (0-100) + dolphinGrade (A-F): 러그풀/조작 위험 중심 평가. 기존 listing_assessment와 별도.
    - pumpDumpSignals: CRITICAL/HIGH severity 신호를 우선 명시. severity=CRITICAL → 🚨, HIGH → ⚠️.
    - volumeSignals: 거래량 이상 징후. isWashTrading 포함.
    - socialSignals: 소셜-온체인 불일치 신호.
@@ -89,10 +89,10 @@ You MUST output ONLY valid JSON in this exact structure:
     "summary": "2-3 sentences: final verdict citing key positive and negative factors from computed_metrics."
   },
   "data_sources": ["CoinGecko API", "Etherscan API", "GoPlus Security API", "DexScreener API", "CoinMarketCap API"],
-  "dorphin_intelligence": {
-    "score": "Dorphin Score (0-100) — 100에서 감점 방식. 러그풀/조작 위험 평가.",
+  "dolphin_intelligence": {
+    "score": "Dolphin Score (0-100) — 100에서 감점 방식. 러그풀/조작 위험 평가.",
     "grade": "A|B|C|D|F",
-    "summary": "dorphinAnalysis.summary 그대로 사용",
+    "summary": "dolphinAnalysis.summary 그대로 사용",
     "pump_dump_verdict": "pumpDumpSignals 종합 1-2문장. 신호 없으면 '런치 패턴 이상 없음'.",
     "volume_verdict": "volumeSignals 종합 1-2문장. 거래량 진위 판단.",
     "twitter_verdict": "twitterActivity 기반 커뮤니티 진위 1-2문장. 없으면 '트위터 데이터 없음'.",
@@ -495,8 +495,8 @@ async function generateReport(aggregatedData) {
       ? `\n--- WHITEPAPER / DOCS CONTENT (use for tokenomics section) ---\nSource: ${aggregatedData.whitepaperContent.source}\n${aggregatedData.whitepaperContent.content}\n--- END WHITEPAPER ---`
       : '';
 
-    const dorphinSection = aggregatedData.dorphinAnalysis
-      ? `\n--- DORPHIN ANALYSIS (use for dorphin_intelligence section) ---\n${JSON.stringify(aggregatedData.dorphinAnalysis, null, 2)}\n--- END DORPHIN ---`
+    const dolphinSection = aggregatedData.dolphinAnalysis
+      ? `\n--- DOLPHIN ANALYSIS (use for dolphin_intelligence section) ---\n${JSON.stringify(aggregatedData.dolphinAnalysis, null, 2)}\n--- END DOLPHIN ---`
       : '';
 
     const twitterActivitySection = aggregatedData.twitterActivity
@@ -517,7 +517,7 @@ ${JSON.stringify({
   twitterData: aggregatedData.twitterData,
   communityData: aggregatedData.communityData,
 }, null, 2)}
---- END DATA ---${whitepaperSection}${dorphinSection}${twitterActivitySection}
+--- END DATA ---${whitepaperSection}${dolphinSection}${twitterActivitySection}
 
 Respond with ONLY the JSON object as specified. No additional text.`;
 

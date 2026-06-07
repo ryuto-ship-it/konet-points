@@ -176,7 +176,7 @@ export default function Landing() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 16, boxShadow: '0 0 14px rgba(0,240,255,0.4)',
           }}>🐬</div>
-          <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: '0.14em' }}>DORPHIN</span>
+          <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: '0.14em' }}>DOLPHIN</span>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
           <button onClick={() => navigate('/listings')} className="btn-out" style={{ padding: '9px 18px', borderRadius: 10, fontSize: 14, cursor: 'pointer' }}>
@@ -267,7 +267,7 @@ export default function Landing() {
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div className="aos" style={{ textAlign: 'center', marginBottom: 70 }}>
             <h2 style={{ fontSize: 'clamp(30px,4vw,48px)', fontWeight: 800, marginBottom: 16 }}>The Market Is Broken for Retail</h2>
-            <p style={{ color: '#A0AEC0', fontSize: 17 }}>Click each card to see how Dorphin solves it.</p>
+            <p style={{ color: '#A0AEC0', fontSize: 17 }}>Click each card to see how Dolphin solves it.</p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 24 }}>
@@ -278,7 +278,7 @@ export default function Landing() {
                 title: 'Information Asymmetry',
                 desc: 'Institutions have 50-person research teams. You have a Twitter feed and a prayer.',
                 solIcon: <Shield size={32} color="#00f0ff" />,
-                sol: 'Dorphin runs 8+ data sources simultaneously and surfaces the signal. Institutional-grade research, automated.',
+                sol: 'Dolphin runs 8+ data sources simultaneously and surfaces the signal. Institutional-grade research, automated.',
               },
               {
                 id: 'prob2',
@@ -294,7 +294,7 @@ export default function Landing() {
                 title: 'Data Without Verdict',
                 desc: 'CoinGecko shows numbers. CertiK shows security. Nobody connects the dots into a clear answer.',
                 solIcon: <BrainCircuit size={32} color="#00f0ff" />,
-                sol: 'The Dorphin Score (0-100) cross-references 50+ signals and gives you a single actionable verdict.',
+                sol: 'The Dolphin Score (0-100) cross-references 50+ signals and gives you a single actionable verdict.',
               },
             ].map((card) => (
               <div key={card.id} className={`aos flip-scene`} style={{ height: 260 }} onClick={() => toggleFlip(card.id)}>
@@ -320,25 +320,25 @@ export default function Landing() {
       </section>
 
       {/* ════════════════════════════════════════
-          SECTION 3 — WHY DORPHIN (alternating)
+          SECTION 3 — WHY DOLPHIN (alternating)
       ════════════════════════════════════════ */}
       <section style={{ padding: '120px 24px', position: 'relative', zIndex: 1 }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div className="aos" style={{ textAlign: 'center', marginBottom: 100 }}>
             <h2 style={{ fontSize: 'clamp(34px,5vw,56px)', fontWeight: 800, marginBottom: 16 }}>
-              Why <span className="tg-cyan">Dorphin?</span>
+              Why <span className="tg-cyan">Dolphin?</span>
             </h2>
             <p style={{ color: '#A0AEC0', fontSize: 17 }}>Four unfair advantages you can't get anywhere else.</p>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 110 }}>
 
-            {/* EDGE 1 — Dorphin Score */}
+            {/* EDGE 1 — Dolphin Score */}
             <div ref={scoreRef} className="aos edge-cols" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 56, alignItems: 'center' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
                   <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(0,240,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#00f0ff', fontSize: 13, fontWeight: 700 }}>01</div>
-                  <h3 style={{ fontSize: 28, fontWeight: 700 }}>The Dorphin Score</h3>
+                  <h3 style={{ fontSize: 28, fontWeight: 700 }}>The Dolphin Score</h3>
                 </div>
                 <p style={{ fontSize: 17, color: '#A0AEC0', lineHeight: 1.65 }}>
                   While others show you raw data, we give you a verdict. Our proprietary algorithm synthesizes 50+ signals into a single 0-100 score. Low cost, high signal.
@@ -346,7 +346,7 @@ export default function Landing() {
               </div>
               <div className="glass" style={{ padding: 36 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <span style={{ fontSize: 13, color: '#A0AEC0' }}>Dorphin Score</span>
+                  <span style={{ fontSize: 13, color: '#A0AEC0' }}>Dolphin Score</span>
                   <span style={{ padding: '3px 10px', background: `${scoreColor(score1)}18`, color: scoreColor(score1), borderRadius: 4, fontSize: 11, fontWeight: 700 }}>
                     {score1 >= 70 ? 'SAFE' : score1 >= 40 ? 'CAUTION' : 'DANGER'}
                   </span>
@@ -457,7 +457,7 @@ export default function Landing() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 24 }}>
             {[
               { num: '01', title: 'SCAN', icon: <Search size={36} color="#00f0ff" />, desc: 'Paste any contract address. We pull data from 8+ sources simultaneously — market, on-chain, social, security.' },
-              { num: '02', title: 'ANALYZE', icon: <BrainCircuit size={36} color="#ff007b" />, desc: 'Our AI cross-references contract code, on-chain patterns, social signals, exchange data — then runs the Dorphin algorithm.' },
+              { num: '02', title: 'ANALYZE', icon: <BrainCircuit size={36} color="#ff007b" />, desc: 'Our AI cross-references contract code, on-chain patterns, social signals, exchange data — then runs the Dolphin algorithm.' },
               { num: '03', title: 'KNOW', icon: <CheckCircle2 size={36} color="#7000ff" />, desc: 'Get a full risk report in under 30 seconds. Not just data — a verdict you can act on.' },
             ].map((s, i) => (
               <div key={i} className={`glass aos d${i+1}`} style={{ padding: 36, textAlign: 'center', position: 'relative' }}>
@@ -485,7 +485,7 @@ export default function Landing() {
             <div className="aos">
               {[
                 'Executive risk summary',
-                'Dorphin Score (0-100)',
+                'Dolphin Score (0-100)',
                 'Pump & dump pattern detection',
                 'Contract source code analysis',
                 'Exchange tier breakdown (T1-T5)',
@@ -506,13 +506,13 @@ export default function Landing() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28, borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 18 }}>
                 <div style={{ width: 44, height: 44, background: '#00f0ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontWeight: 800, fontSize: 11 }}>DTKN</div>
                 <div>
-                  <div style={{ fontSize: 18, fontWeight: 700 }}>Dorphin Mock Token</div>
+                  <div style={{ fontSize: 18, fontWeight: 700 }}>Dolphin Mock Token</div>
                   <div style={{ fontSize: 12, color: '#A0AEC0', fontFamily: 'monospace' }}>0x1234...abcd</div>
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 22 }}>
                 <div style={{ background: 'rgba(255,255,255,0.03)', padding: 16, borderRadius: 10 }}>
-                  <div style={{ fontSize: 11, color: '#A0AEC0', marginBottom: 8 }}>Dorphin Score</div>
+                  <div style={{ fontSize: 11, color: '#A0AEC0', marginBottom: 8 }}>Dolphin Score</div>
                   <div style={{ fontSize: 36, fontWeight: 800, color: '#2dd4a0' }}>88</div>
                 </div>
                 <div style={{ background: 'rgba(255,255,255,0.03)', padding: 16, borderRadius: 10 }}>
@@ -609,7 +609,7 @@ export default function Landing() {
               { phase: 'Phase 1', status: 'LIVE', title: 'Token Intelligence Terminal', active: true, c: '#2dd4a0' },
               { phase: 'Phase 2', status: 'Q3 2026', title: 'Portfolio Risk Monitoring', active: false, c: '#00f0ff' },
               { phase: 'Phase 3', status: 'Q3 2026', title: 'Telegram Alert Bot', active: false, c: '#00f0ff' },
-              { phase: 'Phase 4', status: 'Q4 2026', title: '$DORPHIN Token Launch', active: false, c: '#ff007b' },
+              { phase: 'Phase 4', status: 'Q4 2026', title: '$DOLPHIN Token Launch', active: false, c: '#ff007b' },
             ].map((r, i) => (
               <div key={i} className="aos" style={{ position: 'relative', marginBottom: i === 3 ? 0 : 44 }}>
                 <div style={{
@@ -659,10 +659,10 @@ export default function Landing() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 22 }}>🐬</span>
-          <span style={{ fontSize: 15, fontWeight: 800, letterSpacing: '0.14em' }}>DORPHIN RESEARCH</span>
+          <span style={{ fontSize: 15, fontWeight: 800, letterSpacing: '0.14em' }}>DOLPHIN RESEARCH</span>
         </div>
         <p style={{ fontSize: 12, color: '#555', maxWidth: 480, textAlign: 'right' }}>
-          AI-generated reports are for informational purposes only. Not financial advice. Always verify on-chain data independently. © 2026 Dorphin.
+          AI-generated reports are for informational purposes only. Not financial advice. Always verify on-chain data independently. © 2026 Dolphin.
         </p>
       </footer>
     </div>

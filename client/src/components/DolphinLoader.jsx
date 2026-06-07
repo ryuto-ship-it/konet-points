@@ -5,7 +5,7 @@ const STEPS = [
   { id: 2, label: 'Scanning contract source',    duration: 4 },
   { id: 3, label: 'Analyzing on-chain metrics',  duration: 4 },
   { id: 4, label: 'Checking security signals',   duration: 3 },
-  { id: 5, label: 'Running Dorphin algorithm',   duration: 4 },
+  { id: 5, label: 'Running Dolphin algorithm',   duration: 4 },
   { id: 6, label: 'Generating AI report',        duration: 8 },
 ];
 

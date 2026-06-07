@@ -53,8 +53,8 @@ export function WalletProvider({ children }) {
 
       await fetchBalance(account, prov);
 
-      localStorage.setItem('dorphin_wallet_type', type);
-      localStorage.setItem('dorphin_wallet_address', account);
+      localStorage.setItem('dolphin_wallet_type', type);
+      localStorage.setItem('dolphin_wallet_address', account);
     } catch (e) {
       if (e.code === 4001) {
         setError('연결을 거부했습니다.');
@@ -117,8 +117,8 @@ export function WalletProvider({ children }) {
     setBalance(null);
     setProvider(null);
     setError(null);
-    localStorage.removeItem('dorphin_wallet_type');
-    localStorage.removeItem('dorphin_wallet_address');
+    localStorage.removeItem('dolphin_wallet_type');
+    localStorage.removeItem('dolphin_wallet_address');
   }, []);
 
   const switchToBSC = useCallback(async () => {
@@ -171,8 +171,8 @@ export function WalletProvider({ children }) {
   }, [address, disconnect]);
 
   useEffect(() => {
-    const savedType = localStorage.getItem('dorphin_wallet_type');
-    const savedAddress = localStorage.getItem('dorphin_wallet_address');
+    const savedType = localStorage.getItem('dolphin_wallet_type');
+    const savedAddress = localStorage.getItem('dolphin_wallet_address');
 
     if (savedType && savedAddress && window.ethereum) {
       window.ethereum.request({ method: 'eth_accounts' })
@@ -185,8 +185,8 @@ export function WalletProvider({ children }) {
             setProvider(prov);
             fetchBalance(savedAddress, prov);
           } else {
-            localStorage.removeItem('dorphin_wallet_type');
-            localStorage.removeItem('dorphin_wallet_address');
+            localStorage.removeItem('dolphin_wallet_type');
+            localStorage.removeItem('dolphin_wallet_address');
           }
         })
         .catch(() => {});

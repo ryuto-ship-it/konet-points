@@ -3,7 +3,7 @@ import './ReportNav.css';
 
 const SECTIONS = [
   { id: 'overview',   label: 'Overview',       icon: LayoutDashboard },
-  { id: 'dorphin',   label: '🐬 Dorphin Score', icon: Zap },
+  { id: 'dolphin',   label: '🐬 Dolphin Score', icon: Zap },
   { id: 'security',  label: 'Security',        icon: Shield },
   { id: 'market',    label: 'Market',          icon: TrendingUp },
   { id: 'community', label: 'Community',       icon: Users },
@@ -39,7 +39,7 @@ export default function ReportNav({ activeSection, onNavigate }) {
 
       <div className="nav-footer">
         <div className="nav-divider" />
-        <span className="nav-brand">🐬 Dorphin Research</span>
+        <span className="nav-brand">🐬 Dolphin Research</span>
         <span className="nav-tagline">Dive deeper. Surface smarter.</span>
       </div>
     </nav>

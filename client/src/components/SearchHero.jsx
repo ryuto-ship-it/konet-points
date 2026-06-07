@@ -134,7 +134,7 @@ export default function SearchHero({ onTokenSelect, onGoToListings, error }) {
       <div className="hero-content">
         <div className="hero-logo animate-fade-in-up">
           <h1 className="logo-text">
-            🐬 DORPHIN <span className="text-gradient">RESEARCH</span>
+            🐬 DOLPHIN <span className="text-gradient">RESEARCH</span>
           </h1>
           <p className="hero-tagline">Dive deeper. Surface smarter.</p>
         </div>

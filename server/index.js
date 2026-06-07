@@ -1,6 +1,6 @@
 /**
  * @module index
- * @description Express server entry point for the Dorphin Research crypto token analysis platform.
+ * @description Express server entry point for the Dolphin Research crypto token analysis platform.
  * Sets up CORS, JSON parsing, API routes, error handling, and health check.
  */
 
@@ -93,7 +93,7 @@ app.use((err, req, res, next) => {
 // ─── Start Server ──────────────────────────────────────────────────────────────
 
 app.listen(PORT, () => {
-  console.log(`\n🚀 Dorphin Research Server running on http://localhost:${PORT}`);
+  console.log(`\n🚀 Dolphin Research Server running on http://localhost:${PORT}`);
   console.log(`   Health check: http://localhost:${PORT}/api/health`);
   console.log(`   Search:       http://localhost:${PORT}/api/search?q=ethereum`);
   console.log(`   Report:       http://localhost:${PORT}/api/report/ethereum\n`);

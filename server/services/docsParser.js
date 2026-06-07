@@ -14,7 +14,7 @@ async function fetchAndParseWhitepaper(urls) {
     try {
       const res = await fetch(url, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; DorphinBot/1.0)',
+          'User-Agent': 'Mozilla/5.0 (compatible; DolphinBot/1.0)',
           'Accept': 'text/html,application/xhtml+xml,application/pdf,text/plain',
         },
         signal: AbortSignal.timeout(5000),

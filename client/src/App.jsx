@@ -36,7 +36,7 @@ function AppNav() {
           }}
           onClick={() => navigate('/')}
         >
-          🐬 DORPHIN
+          🐬 DOLPHIN
         </span>
 
         {[

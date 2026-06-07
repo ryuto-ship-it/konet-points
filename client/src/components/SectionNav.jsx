@@ -55,7 +55,7 @@ export default function SectionNav({ tabs, activeTab, onTabClick }) {
     <nav className="section-nav">
       <div className="nav-brand">
         <div className="nav-brand-dot" />
-        <span>Dorphin</span>
+        <span>Dolphin</span>
       </div>
 
       <ul className="nav-list">

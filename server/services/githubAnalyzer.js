@@ -13,7 +13,7 @@ async function analyzeGithub(githubUrl) {
     const repo = parts[1];
     if (!owner) { cache.set(cacheKey, null, CACHE_TTL); return null; }
 
-    const headers = { 'User-Agent': 'DorphinResearch/1.0' };
+    const headers = { 'User-Agent': 'DolphinResearch/1.0' };
 
     const repoPath = repo ? `${owner}/${repo}` : null;
     const [repoRes, commitsRes] = await Promise.all([

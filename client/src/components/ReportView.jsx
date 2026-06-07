@@ -17,13 +17,13 @@ import ListingAssessment from './sections/ListingAssessment';
 import DataSources from './sections/DataSources';
 import PulseFeed from './sections/PulseFeed';
 import Compliance from './sections/Compliance';
-import DorphinIntelligence from './sections/DorphinIntelligence';
+import DolphinIntelligence from './sections/DolphinIntelligence';
 import './ReportView.css';
 
 // Nav tabs mapping
 const NAV_TABS = [
   { id: 'overview',  targetId: 'executive-summary',    sectionIds: ['executive-summary', 'project-overview', 'tokenomics'] },
-  { id: 'dorphin',  targetId: 'dorphin-intelligence',  sectionIds: ['dorphin-intelligence'] },
+  { id: 'dolphin',  targetId: 'dolphin-intelligence',  sectionIds: ['dolphin-intelligence'] },
   { id: 'security', targetId: 'onchain-verification',  sectionIds: ['onchain-verification'] },
   { id: 'market',   targetId: 'price-pattern',         sectionIds: ['price-pattern', 'holder-analysis'] },
   { id: 'community',targetId: 'team-investors',        sectionIds: ['team-investors', 'social-dev'] },
@@ -40,7 +40,7 @@ NAV_TABS.forEach(tab => {
 
 const ALL_SECTION_IDS = [
   'executive-summary', 'project-overview', 'tokenomics',
-  'dorphin-intelligence',
+  'dolphin-intelligence',
   'team-investors', 'onchain-metrics', 'exchange-listings',
   'holder-analysis', 'price-pattern', 'onchain-verification',
   'social-dev', 'risk-matrix', 'listing-assessment', 'compliance',
@@ -104,8 +104,8 @@ export default function ReportView({ data, onBack }) {
             <div ref={setSectionRef('tokenomics')}>
               <Tokenomics data={data} />
             </div>
-            <div ref={setSectionRef('dorphin-intelligence')}>
-              <DorphinIntelligence data={data} />
+            <div ref={setSectionRef('dolphin-intelligence')}>
+              <DolphinIntelligence data={data} />
             </div>
             <div ref={setSectionRef('onchain-verification')}>
               <OnchainVerification data={data} />
@@ -146,7 +146,7 @@ export default function ReportView({ data, onBack }) {
 
             <footer className="report-footer" style={{ borderTop: '1px solid var(--border-subtle)', padding: '20px', textAlign: 'center', marginTop: '40px' }}>
               <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                🐬 Dorphin Research — AI-Powered Token Intelligence
+                🐬 Dolphin Research — AI-Powered Token Intelligence
               </p>
               <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                 Dive deeper. Surface smarter.

@@ -1,4 +1,4 @@
-function calculateDorphinScore({
+function calculateDolphinScore({
   volume24h      = 0,
   liquidity      = 0,
   marketCap      = 0,
@@ -154,8 +154,8 @@ function calculateDorphinScore({
           : '📊 추가 검증 필요';
 
   return {
-    dorphinScore: score,
-    dorphinGrade: grade,
+    dolphinScore: score,
+    dolphinGrade: grade,
     pumpDumpSignals,
     volumeSignals,
     socialSignals,
@@ -165,4 +165,4 @@ function calculateDorphinScore({
   };
 }
 
-module.exports = { calculateDorphinScore };
+module.exports = { calculateDolphinScore };

@@ -86,14 +86,14 @@ function TwitterRow({ label, value, highlight }) {
   );
 }
 
-export default function DorphinIntelligence({ data }) {
-  const d = data.dorphinAnalysis;
+export default function DolphinIntelligence({ data }) {
+  const d = data.dolphinAnalysis;
   const ta = data.twitterActivity;
-  const ai = data.analysis?.dorphin_intelligence;
+  const ai = data.analysis?.dolphin_intelligence;
 
   if (!d) return null;
 
-  const gradeColor = GRADE_COLOR[d.dorphinGrade] || '#6b7280';
+  const gradeColor = GRADE_COLOR[d.dolphinGrade] || '#6b7280';
   const allSignals = [
     ...(d.pumpDumpSignals || []),
     ...(d.volumeSignals || []),
@@ -102,9 +102,9 @@ export default function DorphinIntelligence({ data }) {
   const hasSignals = allSignals.length > 0;
 
   return (
-    <section className="report-section" id="dorphin-intelligence">
+    <section className="report-section" id="dolphin-intelligence">
       <div className="section-header">
-        <h2 className="heading-3">Dorphin Intelligence</h2>
+        <h2 className="heading-3">Dolphin Intelligence</h2>
         <span className="badge" style={{ background: 'rgba(0,212,255,0.08)', color: 'var(--accent)', border: '1px solid rgba(0,212,255,0.2)' }}>
           독자 알고리즘
         </span>
@@ -124,7 +124,7 @@ export default function DorphinIntelligence({ data }) {
             fontFamily: 'var(--font-mono)', fontSize: '52px', fontWeight: 600,
             color: gradeColor, lineHeight: 1,
           }}>
-            {d.dorphinScore}
+            {d.dolphinScore}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             / 100
@@ -139,17 +139,17 @@ export default function DorphinIntelligence({ data }) {
               fontFamily: 'var(--font-mono)', fontSize: '22px', fontWeight: 700,
               color: gradeColor,
             }}>
-              {d.dorphinGrade}
+              {d.dolphinGrade}
             </span>
             <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-              Dorphin Score
+              Dolphin Score
             </span>
           </div>
           <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: 0 }}>
             {d.summary}
           </p>
           <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-            Dorphin Research 독자 알고리즘 — CMC/CoinGecko/CertiK 미제공 인사이트
+            Dolphin Research 독자 알고리즘 — CMC/CoinGecko/CertiK 미제공 인사이트
           </p>
         </div>
       </div>
@@ -239,7 +239,7 @@ export default function DorphinIntelligence({ data }) {
           {ai?.final_judgment && (
             <>
               <p style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '16px 0 8px' }}>
-                Dorphin 독자 판단
+                Dolphin 독자 판단
               </p>
               <div style={{
                 padding: '12px 14px', borderRadius: '6px',
